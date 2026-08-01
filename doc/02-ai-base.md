@@ -1,0 +1,191 @@
+# 02 · ai-base — what QM gives us
+
+> Everything here was read at `ai-base` commit `7f2c916`
+> (upstream `yc-software/qm@main`, 2026-07-31). QM pushes daily. **Re-verify
+> before relying on any line number in this document.**
+
+## What it is
+
+| | |
+|---|---|
+| Upstream | https://github.com/yc-software/qm |
+| License | MIT, `Copyright (c) 2026 QM contributors` |
+| Created | 2026-07-29 |
+| Language | TypeScript, run directly on Node ≥ 24.15 |
+| HTTP | Fastify |
+| Persistence | Postgres |
+| Size | ~72,000 lines across 45 subsystems in `src/` |
+| Vendored at | `7f2c916` — "Use @latest in the qm init bootstrap instead of a version placeholder (#41)" |
+
+QM describes itself as "a multiplayer agent harness for work. In Slack and on the
+web." The framing that matters for us: **the core is generic, and everything
+company-specific lives in a separate deployment directory** that depends on
+`@yc-software/qm` and wires substrates in one file.
+
+## Subsystems, by size
+
+The ten largest, which is a fair proxy for where the thinking went:
+
+| Subsystem | Lines | What it holds |
+|---|---:|---|
+| `src/api/` | 16,214 | HTTP surface, routes, app services |
+| `src/harness/` | 9,945 | Six model harnesses + routing + compaction + replay |
+| `src/slack/` | 6,994 | Slack surface |
+| `src/core/` | 5,855 | Turn orchestrator, turn options/outcome/resume |
+| `src/sandbox/` | 3,226 | Per-scope durable sandbox |
+| `src/deploy/` | 2,485 | Deployment machinery |
+| `src/credentials/` | 2,410 | Keychain, per-scope credential views |
+| `src/skills/` | 1,890 | Skill store, packs, materialization, sync |
+| `src/sessions/` | 1,820 | Sessions, entries, leases |
+| `src/runs/` | 1,762 | Run store, signals, activity, tool ledger |
+
+## The parts ai-os builds on
+
+### Scopes — the isolation model
+
+`src/types.ts:12`
+
+```ts
+const SCOPE_KINDS = ["personal", "channel", "team", "org", "group"] as const;
+```
+
+A `ScopeId` is `"<kind>:<ref>"`. Memory, files, keychain view, permissions, crons,
+web apps and the sandbox are all scope-keyed. This is the strongest thing QM has
+and ai-os inherits it wholesale.
+
+**The gap for us:** the union is closed, and it has no `flow` and no `system`.
+Our four memory levels (system / user / project / flow) map to
+`org` / `personal` / `team`|`channel` / **nothing**. Adding a kind means editing
+this file — a real fork point, addressed in
+[ADR-0003](adr/0003-storage-scope-axis.md).
+
+### `MemoryService` — what memory is today
+
+`src/memory/memory-service.ts`. The default implementation is a markdown file:
+
+- `MEMORY_FILE = "memory/MEMORY.md"`, header `# Memory`
+- `MAX_FACTS = 300`; on overflow the **oldest bullets are dropped**
+- `capture()` folds facts in as `- (YYYY-MM-DD) fact`, deduplicated by normalized text
+- untrusted provenance is defanged textually — `(said in X)` becomes `[claimed source: X]`
+- revisions are sha256 of content, with optional `history` / `restore` /
+  `replaceIfRevision` for optimistic concurrency
+
+It is a good, small design. Its limits are exactly ai-os's opening: one flat
+namespace per scope, FIFO eviction as the only forgetting policy, no notion of
+which *work* a fact came from, and `query()` is the only retrieval affordance.
+
+### Strategies — the consolidation seam
+
+`src/memory/strategy.ts:14` — `MemoryStrategy { onTurnEnd?, maintain?, promptLines? }`,
+selected by a closed union `"per-turn" | "scratch-promote" | "agent-only"` with a
+consolidation wrapper (`DEFAULT_CONSOLIDATE_AFTER`). `ai-storage`'s promotion
+between levels is a strategy, and adding one means widening that union — a
+one-line fork point, or a clean upstream patch.
+
+### Plugins — how a UI attaches
+
+`plugins/` holds `web-ui`, `admin`, `portal`, `auth`, and `chassis` (shared,
+private, never published). The chassis provides source-auth signing, signed
+core-client helpers, and the `CORE_*` env block, and the rule is explicit:
+plugins talk to core over signed HTTP and **never import core**.
+
+`web-ui` is Vite + Lit, with `dockview-core` for panel layout and
+`@earendil-works/pi-web-ui`. 128 TypeScript files.
+
+### Harnesses — the model layer
+
+`src/harness/harness.ts:167`, `defineHarness(profile, implementation, tools)`.
+Implementations: `claude-harness`, `codex-harness`, `opencode-harness`,
+`pi-harness`, plus `mock-harness` and `replay` for tests. Context compaction is
+QM's own (`context-compaction.ts`), not the vendor's.
+
+### Security
+
+Three org-level postures, narrowable by scope: **strict** (every tool call pauses
+for approval), **auto** (default — a classifier screens provenance-labelled
+external data before it reaches the model), **dangerous** (no screening, no
+pauses). A predeclared command policy — approval rules and hard denials for
+recursive deletes, destructive SQL — applies in *every* posture including
+dangerous.
+
+ai-os inherits all of it and adds nothing. Flows execute through the same policy;
+a flow is not an escape hatch from approval. This is stated because "the
+automation runs unattended so it needs fewer checks" is the obvious wrong turn
+here.
+
+## Verified gaps — the reason ai-os exists
+
+Each of these was checked against the source, not inferred from documentation.
+
+**1. No workflow engine.** `src/processes/` is OS-process reaping in the sandbox
+(`process-reaper.ts` sends TERM, waits, sends KILL). The nearest things are
+`runs` (one turn), `tasks` (a status row with events), `triggers` and `cron`
+(ways to start a turn). Nothing sequences, resumes, or reasons about multi-step
+work. → **`ai-flows`**
+
+**2. Fork without lineage.** `src/api/app-sessions.ts:392` `forkSession(sessionId,
+principalId, { upToSeq })` copies visible entries into a fresh session and writes
+an audit row `action: "session.fork"`. Grep for `forkedFrom` / `parentSessionId`
+across the tree: no persisted parent pointer. You can branch; you can never
+diff or merge. → **`ai-flows` lineage**, plus a small upstream proposal.
+
+**3. Skills version without history.** `src/skills/skill-store.ts:142` — `s.version += 1`.
+A counter, not a history: no prior content retained, so no diff and no rollback.
+There is HMAC signing and admin-gated `promote()`, so the *trust* half exists and
+the *history* half does not.
+
+**4. Memory has one axis.** Covered above. → **`ai-storage`**
+
+**5. The interface is a transcript.** Panels around a chat log. → **`ai-ui`**
+
+### Org layers — the deployment seam
+
+`deploy/layers/README.md`. QM's supported customization path for a private fork:
+core stays identical to upstream, and everything organization-specific is
+confined to `deploy/layers/<org>/` — deployment config, sandbox tools and skills,
+org plugin images, infrastructure. Upstream keeps the directory empty except for
+that README.
+
+Generated, not hand-built (the scaffold includes the `.gitignore` that keeps
+`.env` and Terraform state out of Git):
+
+```bash
+node cli/bin/qm.ts init deploy/layers/evolvingagents --org evolvingagents --target fly
+```
+
+**What this covers and does not.** It covers deployment and org plugins — so
+`ai-ui` belongs here, under `plugins/`. It does not accommodate a new core
+service, which is what `ai-flows` is. That asymmetry is the whole shape of our
+divergence from upstream ([ADR-0001](adr/0001-fork-vs-dependency.md)).
+
+QM also ships three Claude Code skills at `.claude/skills/` — `update-qm`
+(merge upstream into a private fork), `upstream-pr` (send a change back with org
+context scrubbed), `dev-instance` (run the tree locally). Read them; **do not run
+the first two here**, since both assume the repository root is qm. See
+`ai-base/AI-OS-PATCHES.md`.
+
+## Working with the upstream
+
+**Pull cadence.** Weekly, via `git subtree pull --prefix=ai-base https://github.com/yc-software/qm.git main --squash`.
+Weekly rather than continuous: a daily-moving upstream and a squashed subtree
+means conflicts are cheaper to resolve in one sitting than in six.
+
+**Modification policy inside `ai-base/`.** In order of preference:
+
+1. Don't. Build against the seam.
+2. If unavoidable, make it the smallest possible widening (a union member, an
+   interface method made optional) and record it in `doc/adr/`.
+3. Every modification gets a line in `ai-base/AI-OS-PATCHES.md` — what, why,
+   whether it is upstreamable, and the upstream issue if it was offered.
+
+**Contributing back.** QM's `CONTRIBUTING.md` asks for **human-written text, not
+code**, as an informal ADR in `adrs/` (currently empty except `.gitkeep`). So the
+route upstream is a hand-written proposal, not a pull request generated here.
+The first one to send, because it is small, self-contained and useful to them
+independently of us: *record `forkedFrom: { sessionId, upToSeq }` on fork.*
+
+## What we do not touch
+
+Identity, ACL, credentials, sandbox, security posture, Slack, deploy. If one of
+these looks like it needs changing, that is evidence the design above it is
+wrong. Re-read this section before editing any of them.
