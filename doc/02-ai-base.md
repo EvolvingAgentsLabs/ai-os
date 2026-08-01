@@ -3,6 +3,12 @@
 > Everything here was read at `ai-base` commit `7f2c916`
 > (upstream `yc-software/qm@main`, 2026-07-31). QM pushes daily. **Re-verify
 > before relying on any line number in this document.**
+>
+> **Revised 2026-08-01 after actually running it.** The first version of this
+> document was written from reading alone and contained seven material errors,
+> two of which had already hardened into an ADR. Claims below are now marked
+> **[read]** or **[ran]** so the difference is visible. That distinction is the
+> single most useful thing in this file.
 
 ## What it is
 
@@ -119,9 +125,14 @@ Each of these was checked against the source, not inferred from documentation.
 
 **1. No workflow engine.** `src/processes/` is OS-process reaping in the sandbox
 (`process-reaper.ts` sends TERM, waits, sends KILL). The nearest things are
-`runs` (one turn), `tasks` (a status row with events), `triggers` and `cron`
-(ways to start a turn). Nothing sequences, resumes, or reasons about multi-step
-work. → **`ai-flows`**
+`runs` (one turn), `tasks` (the subagent tracker — see below), `triggers`,
+`monitors` and `cron` (ways to start a turn). **Nothing sequences work across
+turns, and nothing carries a goal from one turn to the next.** → **`ai-flows`**
+
+Stated carefully, because the first draft overreached: QM *does* resume
+(`src/core/turn-resume.ts` — `findTrailingPartialTurn`, attempt counting, a
+`turn.resume` audit action). It recovers an interrupted **turn**. What does not
+exist is anything that survives *across* turns as a unit of work. **[read]**
 
 **2. Fork without lineage.** `src/api/app-sessions.ts:392` `forkSession(sessionId,
 principalId, { upToSeq })` copies visible entries into a fresh session and writes
@@ -137,6 +148,68 @@ the *history* half does not.
 **4. Memory has one axis.** Covered above. → **`ai-storage`**
 
 **5. The interface is a transcript.** Panels around a chat log. → **`ai-ui`**
+
+## What running it changed
+
+Everything in this section is **[ran]** — observed on 2026-08-01 against
+`deepseek/deepseek-v4-flash` through OpenRouter, `HARNESS=pi`, in-memory stores.
+
+**It runs, and the suite is green.** `npx tsc --noEmit` clean;
+`npm test` → **3,712 tests, 3,580 pass, 0 fail, 132 skipped, 93s**. No build
+step — Node executes the TypeScript directly.
+
+**Postgres is optional.** `config.databaseUrl ? postgres : memory` throughout
+`wiring.ts`. The server reports `store=memory, runStore=memory` and works. The
+roadmap previously implied Postgres was a prerequisite; it is not.
+
+**Memory is exactly what this document described** — verified by writing to it:
+
+```
+data/workspaces/personal__matias/memory/MEMORY.md
+
+# Memory
+
+- (2026-08-01) User is building ai-os, an agent operating system.
+- (2026-08-01) Flagship repo is EvolvingAgentsLabs/ai-os.
+```
+
+**`execute` needs Docker.** The sandbox refuses without a locally built image:
+`local sandbox image qm-sandbox-local:latest not found — run npm run sandbox:local:build`.
+Since `execute` is the tool the whole design leans on, any milestone that
+exercises tools has Docker as a hard prerequisite.
+
+**The API requires signed requests.** HMAC-SHA256 over
+`v0:{unix-seconds}:{METHOD}\n{path}\n{body}`, sent as `x-timestamp` and
+`x-signature`, with a five-minute replay window
+(`src/auth/source-auth-sign.ts`). `POST /v1/turns` takes
+`{ surface, actor, conversation: { kind, threadRef }, text }`.
+
+### The fixed tool surface
+
+Child agents get exactly: `execute`, `read`, `write`, `publish`, `memory`,
+`history`, `background`. A flow step must express itself through these or
+through a new MCP tool — there is no general code-execution escape hatch beyond
+`execute`. **[read]**
+
+### Harness capabilities are not uniform
+
+The constraint that matters most, and the one this document previously missed
+entirely. See the matrix in
+[01-architecture](01-architecture.md#the-harness-capability-matrix): subagent
+tracking exists only on `claude` / `codex` / `opencode`; OpenRouter models work
+only on `pi` / `mock`. **The sets are disjoint.** Cheap-model and multi-agent are
+mutually exclusive today. **[ran]**
+
+### A memory benchmark already exists
+
+`src/memory/bench.ts` (151 lines) plus `scripts/memory-bench.ts`, run with
+`npm run bench:memory`. It compares `MemoryStrategyKind` variants over scripted
+conversations and judges each resulting notebook on **`signalToNoise`**,
+**`staleness`** and **`inferenceVsObservation`**.
+
+That is a working measurement of memory quality, upstream, today — and
+`staleness` is one of the two metrics `ai-storage` proposed inventing. See
+[05-ai-storage](05-ai-storage.md). **[read]**
 
 ### Org layers — the deployment seam
 

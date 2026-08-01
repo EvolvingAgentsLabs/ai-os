@@ -27,6 +27,31 @@ an improvement, and the burden of proof is on the axis.* This document therefore
 specifies the cheapest possible version of each idea and names what would falsify
 it, rather than specifying the elaborate version and assuming it wins.
 
+## There is already a memory benchmark upstream
+
+Found after this document was first written, which is its own small lesson:
+**`npm run bench:memory`** — `src/memory/bench.ts` (151 lines) plus
+`scripts/memory-bench.ts`.
+
+It runs scripted conversations through each `MemoryStrategyKind` and judges the
+resulting notebook on three axes:
+
+| Metric | What it asks |
+|---|---|
+| `signalToNoise` | how much of what was kept is worth keeping |
+| `staleness` | how much of it is no longer true |
+| `inferenceVsObservation` | how much was inferred rather than observed |
+
+**`staleness` is one of the two metrics this document proposed inventing.** The
+third, `inferenceVsObservation`, is one we had not thought of and is arguably
+sharper than either — a memory system that quietly promotes inference to fact is
+failing in a way retrieval accuracy cannot see.
+
+So the measurement plan below is rewritten around extending this harness rather
+than building a parallel one. Writing our own scale would have made our numbers
+incomparable with upstream's, which is the specific way benchmarks get used to
+flatter their author.
+
 ## What exists today
 
 `ai-base/src/memory/memory-service.ts`. One markdown file per scope:
@@ -118,16 +143,35 @@ Inverting this order is exactly the mistake the 80/80 result recorded.
 
 ## How this gets falsified
 
-**The measurement:** a retrieval set from real ai-os usage — questions whose
-answers live in memory, spread across levels. Compare: one flat `MEMORY.md` per
-scope (upstream, the baseline) versus four levels with level-ordered recall.
+**The harness:** extend `ai-base/src/memory/bench.ts` with a levelled strategy,
+so ai-storage is scored by the same judge, on the same conversations, as
+upstream's three. Adding a row to an existing table beats publishing a new table.
 
-**Metrics:** acc@1 and MRR, the same instruments as the prior benchmark, so the
-results are comparable rather than a fresh scale invented to look good.
+**Metrics, in order of what they actually settle:**
 
-**The claim:** four levels retrieve better *and* — the part the flat file cannot
-do at all — bound what the system believes forever, measured as the fraction of
-retained facts that are still true after 30 days.
+1. **`staleness`** (upstream's) — the claim four levels are *for*. Flow memory
+   that dies with its flow should measurably reduce the stock of no-longer-true
+   facts. If it does not, the level idea has failed at its own thesis.
+2. **`signalToNoise`** and **`inferenceVsObservation`** (upstream's) — guards.
+   Levelling must not buy staleness by discarding useful facts, or by promoting
+   inference to fact at a boundary.
+3. **acc@1 / MRR** on a retrieval set — kept as a secondary, and deliberately
+   secondary. It is the instrument the *prior* attempt used, and the prior
+   attempt measured 80% either way. Leading with it would mean betting the pillar
+   on the one number that has already come back flat.
+
+**The claim:** level-ordered recall lowers `staleness` against the flat-file
+baseline without losing `signalToNoise` — bounding what the system believes
+forever, which is the thing one flat file cannot do at all.
+
+**The baseline is already observed**, not assumed — this is what a real turn
+wrote to disk on 2026-08-01:
+
+```
+data/workspaces/personal__matias/memory/MEMORY.md
+- (2026-08-01) User is building ai-os, an agent operating system.
+- (2026-08-01) Flagship repo is EvolvingAgentsLabs/ai-os.
+```
 
 **Two ways this fails, both reportable:**
 

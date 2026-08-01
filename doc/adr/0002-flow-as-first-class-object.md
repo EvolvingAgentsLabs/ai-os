@@ -1,7 +1,22 @@
 # ADR-0002 · The flow is a first-class persisted object, not a prompt pattern
 
 - **Date:** 2026-08-01
-- **Status:** Accepted
+- **Status:** **Superseded** by [ADR-0004](0004-flows-and-the-subagent-record.md) (2026-08-01)
+
+> **Superseded the same day, and kept unedited on purpose.**
+>
+> The conclusion below — a flow is a first-class persisted object in its own
+> tables — survives. The reasoning does not. This ADR describes `src/tasks/` as
+> *"a status row with events and no execution semantics"* and rejects extending
+> it on that basis. That is false: `TaskStore` is the subagent execution tracker,
+> with a state machine, a transition event log and compare-and-swap. The real
+> question was never asked here.
+>
+> It stays readable because a decision reached from a wrong premise is the most
+> useful kind of record this organisation can keep — and because editing it
+> quietly is exactly the habit `doc/README.md` forbids.
+>
+> Read [ADR-0004](0004-flows-and-the-subagent-record.md) instead.
 
 ## Context
 
