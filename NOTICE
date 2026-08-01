@@ -1,0 +1,25 @@
+ai-os
+Copyright 2026 Evolving Agents Lab
+
+This product includes software developed at Evolving Agents Lab, licensed under
+the Apache License, Version 2.0 (see LICENSE).
+
+------------------------------------------------------------------------------
+Third-party components
+------------------------------------------------------------------------------
+
+ai-base/
+  Derived from QM (https://github.com/yc-software/qm), which is licensed under
+  the MIT License. The original MIT license text and copyright notice are
+  retained verbatim at ai-base/LICENSE and apply to that directory.
+
+    MIT License
+    Copyright (c) 2026 QM contributors
+
+  Modifications made by Evolving Agents Lab within ai-base/ are also released
+  under the MIT License, so that they remain eligible to be contributed back
+  upstream without a license mismatch. See doc/06-licensing.md.
+
+  QM is a project of yc-software. "QM" is their name, not ours. Nothing in this
+  repository is endorsed by, affiliated with, or supported by yc-software or
+  Y Combinator.
