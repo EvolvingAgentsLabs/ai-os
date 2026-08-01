@@ -38,12 +38,18 @@ surfaced that; configuring it did.
 or **[ran]**. Reading is how the previous flagship reached 18,680 lines with three
 test functions.
 
-### Known prerequisites for anything past here
+### Prerequisites — all met (2026-08-01)
 
-- **Docker**, for `npm run sandbox:local:build`. `execute` — the tool the design
-  leans on — does not work without it.
+- **Docker + sandbox image** — built (`qm-sandbox-local:latest`, 1.31 GB).
+  `execute` runs real commands, and `/workspace` persists across sessions in the
+  same scope. Both verified.
 - **A signed-request client.** HMAC-SHA256 over
   `v0:{unix-seconds}:{METHOD}\n{path}\n{body}`, five-minute replay window.
+
+**One cost to plan around:** the sandbox image is `linux/amd64`, so on Apple
+Silicon every tool call is emulated — ~47 s cold, ~25 s warm, against ~4 s for a
+turn without tools. M2's iteration loop is therefore minutes per cycle. Either
+budget for that or build an arm64 image first; do not discover it mid-milestone.
 
 ## M2 · The first flow — **not started, and the one that justifies the repository**
 

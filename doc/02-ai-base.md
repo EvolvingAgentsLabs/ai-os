@@ -173,10 +173,25 @@ data/workspaces/personal__matias/memory/MEMORY.md
 - (2026-08-01) Flagship repo is EvolvingAgentsLabs/ai-os.
 ```
 
-**`execute` needs Docker.** The sandbox refuses without a locally built image:
-`local sandbox image qm-sandbox-local:latest not found — run npm run sandbox:local:build`.
-Since `execute` is the tool the whole design leans on, any milestone that
-exercises tools has Docker as a hard prerequisite.
+**`execute` needs Docker — built, and it works.** The sandbox refuses without a
+locally built image. After `npm run sandbox:local:build` (→ `qm-sandbox-local:latest`,
+1.31 GB, `linux/amd64`), real commands run:
+
+```
+SANDBOX-OK
+x86_64
+Python 3.11.2
+```
+
+**The durable-computer claim holds.** A file written to `/workspace` in one
+session is readable from a *different* session in the same scope — verified, not
+assumed. The sandbox belongs to the scope, not the conversation.
+
+**It is slow on Apple Silicon, and that is a planning fact.** The image is
+`linux/amd64`, so it runs emulated: ~47 s for a cold container, ~25 s warm, against
+~4 s for a turn with no tool call. Any flow step that shells out costs tens of
+seconds locally. For M2 that means the iteration loop is minutes, not seconds —
+budget for it, or build an arm64 image.
 
 **The API requires signed requests.** HMAC-SHA256 over
 `v0:{unix-seconds}:{METHOD}\n{path}\n{body}`, sent as `x-timestamp` and
