@@ -21,20 +21,30 @@ Read in order the first time:
 Architecture decisions live in [`adr/`](adr/). One file per decision, written
 when the decision is made, never edited afterwards — superseded instead.
 
-| ADR | Decision |
-|---|---|
-| [0001](adr/0001-fork-vs-dependency.md) | Vendor QM as a subtree rather than depend on `@yc-software/qm` |
-| [0002](adr/0002-flow-as-first-class-object.md) | The flow is a first-class persisted object, not a prompt pattern |
-| [0003](adr/0003-storage-scope-axis.md) | Add `flow` and `system` as scope kinds, extending QM's closed union |
+| ADR | Decision | Status |
+|---|---|---|
+| [0001](adr/0001-fork-vs-dependency.md) | Vendor QM as a subtree rather than depend on `@yc-software/qm` | Accepted |
+| [0002](adr/0002-flow-as-first-class-object.md) | The flow is a first-class persisted object, not a prompt pattern | **Superseded by 0004** |
+| [0003](adr/0003-storage-scope-axis.md) | Add `flow` and `system` as scope kinds, extending QM's closed union | Accepted |
+| [0004](adr/0004-flows-and-the-subagent-record.md) | A flow reads the subagent record (`tasks`) but does not own it | Accepted |
 
 ## House rules for these documents
 
 1. **Every claim about QM cites a file and line.** The upstream moves daily; a
-   claim without a citation is a claim that has already rotted. Where a document
-   says "verified", it was read at `ai-base` commit `7f2c916`.
-2. **A gap is stated as a gap.** If something is not built, the document says so
+   claim without a citation is a claim that has already rotted. Line numbers here
+   were read at `ai-base` commit `7f2c916`.
+2. **Reading is not running — say which.** Claims are marked **[read]** (from the
+   source) or **[ran]** (observed executing). Added 2026-08-01, after the first
+   pass of these documents was written from reading alone and turned out to
+   contain seven material errors, two of which had already hardened into an ADR.
+   The full correction is in
+   [02-ai-base § What running it changed](02-ai-base.md#what-running-it-changed).
+3. **A gap is stated as a gap.** If something is not built, the document says so
    in the present tense. No aspirational voice.
-3. **Measured beats argued.** Where a design claims an advantage, it names the
-   measurement that would falsify it. This organisation has shipped architecture
-   without evidence before; that is the specific habit these documents exist to
-   break.
+4. **Measured beats argued.** Where a design claims an advantage, it names the
+   measurement that would falsify it — and prefers an *existing* measurement to
+   a new one, because a fresh scale is how a benchmark ends up flattering its
+   author.
+5. **Superseded, never quietly rewritten.** A decision that turned out to rest on
+   a false premise is the most useful record this organisation can keep. See
+   [ADR-0002](adr/0002-flow-as-first-class-object.md), left intact and marked.

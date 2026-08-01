@@ -16,32 +16,55 @@ Repository, licensing, and QM vendored as a subtree with lineage.
 **Done means:** the licensing question is settled in writing
 ([06](06-licensing.md)) and every claim about QM cites a file.
 
-## M1 · ai-base runs locally — **not started**
+## M1 · ai-base runs locally — **done** (2026-08-01)
 
-Before designing further against QM, run it: Postgres up, core up, one turn
-through the mock harness, one through a real one.
+Running took under an hour. No Postgres (in-memory stores), no build step, and
+the suite was already green: **3,712 tests, 3,580 pass, 0 fail**, plus a clean
+`tsc --noEmit`.
 
-**Done means:** a turn completes locally and `doc/02-ai-base.md` has been
-corrected wherever reality disagreed with it.
+Real turns completed against `deepseek/deepseek-v4-flash` through OpenRouter on
+`HARNESS=pi` — a smoke reply, a memory write observed on disk, and a tool call
+that failed honestly because the sandbox image was not built.
 
-**Why first:** every seam in [01](01-architecture.md) was read, not exercised.
-Reading is how the previous flagship accumulated 18,680 lines and three tests.
+**It paid for itself immediately.** Seven material errors in `doc/` were found
+and corrected — two of them had already hardened into
+[ADR-0002](adr/0002-flow-as-first-class-object.md), now superseded by
+[ADR-0004](adr/0004-flows-and-the-subagent-record.md). The one worth naming:
+**subagent delegation and OpenRouter models live on disjoint sets of harnesses**,
+so cheap-model and multi-agent cannot be had together. No amount of reading
+surfaced that; configuring it did.
+
+**The standing rule that comes out of M1:** claims in `doc/` are marked **[read]**
+or **[ran]**. Reading is how the previous flagship reached 18,680 lines with three
+test functions.
+
+### Known prerequisites for anything past here
+
+- **Docker**, for `npm run sandbox:local:build`. `execute` — the tool the design
+  leans on — does not work without it.
+- **A signed-request client.** HMAC-SHA256 over
+  `v0:{unix-seconds}:{METHOD}\n{path}\n{body}`, five-minute replay window.
 
 ## M2 · The first flow — **not started, and the one that justifies the repository**
 
 The smallest honest `ai-flows`: **one shape (`Open`), persisted, resumable.**
 
 1. `flow_` tables; a flow record with goal, state, steps
-2. A step's attempt executes as an existing run (`ai-base/src/runs/`)
+2. A step's attempt executes as an existing run (`ai-base/src/runs/`), reusing
+   `src/core/turn-resume.ts` for crash recovery inside an attempt
 3. A flow survives process restart and context compaction
 4. `forkedFrom { flowId, atStep }` recorded from the first commit — the gap in
    upstream sessions is not reproduced here
 5. API routes for create / advance / inspect
+6. **Completes on `pi`, with no subagents and no task rows**
+   ([ADR-0004](adr/0004-flows-and-the-subagent-record.md))
 
 Not in M2: shapes beyond `Open`, merge, canvas, new memory.
 
 **Done means:** a flow started on Monday is resumed on Wednesday, after a
-restart, with its state intact.
+restart, with its state intact — **on both `pi` and one CLI-backed harness.**
+Testing on one alone would tune the design to whichever happened to be
+configured that week.
 
 **Falsified by:** a plain QM session doing the same. See
 [03](03-ai-flows.md#how-this-gets-falsified). This is the pillar that forces the
@@ -63,12 +86,15 @@ the most useful thing in `ai-flows`.
 Four levels behind QM's `MemoryService`, level-ordered recall, explicit
 promotion. **No embeddings.** ([05](05-ai-storage.md))
 
-**Done means:** the retrieval benchmark runs, against the flat-file baseline,
-using acc@1/MRR so it is comparable to the 80/80 result — **and the number is
-published whichever way it comes out.**
+**Done means:** a levelled strategy is added to the **existing** upstream
+harness (`npm run bench:memory`, `src/memory/bench.ts`) and scored by the same
+judge as upstream's three — `staleness` first, `signalToNoise` and
+`inferenceVsObservation` as guards. **The number is published whichever way it
+comes out.**
 
-**Falsified by:** parity on both retrieval and 30-day fact staleness. Then the
-upstream flat file wins and this pillar is dropped.
+**Falsified by:** no reduction in `staleness` against the flat-file baseline.
+That is the claim four levels exist to make; without it the upstream flat file
+wins and this pillar is dropped.
 
 ## M5 · ai-ui v1 — **not started**
 

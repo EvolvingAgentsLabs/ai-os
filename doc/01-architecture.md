@@ -108,15 +108,57 @@ workflow. What exists is one layer down:
 | Subsystem | What it does | Why it is not a flow engine |
 |---|---|---|
 | `src/runs/` | Executes one turn; run store, signals, activity, tool ledger | Scoped to a single turn |
-| `src/tasks/` | A task record with status + events | A to-do row, no execution semantics |
+| `src/tasks/` | **Records subagent executions** — states, an event log, CAS transitions | Owned by the harness, bound to one `originRunId`, empty on half the harnesses. See below |
 | `src/triggers/` | Webhook / monitor / consent triggers | Starts turns; does not sequence them |
+| `src/monitors/` | Watch broker, poller and store (489 lines) | Fires on external change; does not carry work forward |
 | `src/cron/` | Scheduled firing | Starts turns on a clock |
 | `src/sessions/` | Conversation persistence, entries, leases, fork | Append-only event log |
+| `src/core/turn-resume.ts` | **Resumes an interrupted turn** — `findTrailingPartialTurn`, attempt counting, a `turn.resume` audit action | Recovers *one turn* after a crash; carries nothing across turns |
 
 So `ai-flows` is genuinely new construction, not a re-skin — and it must
 *compose* these rather than replace them: a flow step ultimately becomes a run,
-a flow can be woken by a trigger or a cron, and a flow's conversation is a
-session.
+a flow can be woken by a trigger, a monitor or a cron, and a flow's conversation
+is a session.
+
+**Two corrections worth stating plainly**, because the first version of this
+document got both wrong and one of them shaped an ADR:
+
+- `src/tasks/` is not a to-do list. It is the **subagent execution tracker**:
+  `pending | in_progress | completed | skipped | failed`, a `TaskEvent` log with
+  `fromStatus`/`toStatus`, and `transitionStatus()` with compare-and-swap. The
+  harness writes it from the agent CLI's `task_started` / `task_updated` /
+  `task_notification` events. This is the swarm dimension, and it already exists.
+  What it changes for us is [ADR-0004](adr/0004-flows-and-the-subagent-record.md).
+- QM **does** resume. Not multi-turn work — but a turn interrupted mid-flight is
+  recovered, with attempts counted and the resumption audited. Saying "nothing
+  resumes" was false.
+
+## The harness capability matrix
+
+This is the constraint that shapes `ai-flows` most, and it is invisible until you
+run the thing. Capabilities are **not uniform across harnesses**:
+
+| Harness | Subagents + `tasks` | OpenRouter models |
+|---|:--:|:--:|
+| `pi` (default) | **no** | **yes** |
+| `mock` | no | yes |
+| `claude` | yes | no |
+| `codex` | yes | no |
+| `opencode` | yes | no |
+
+Left column: references to `TaskStore` per harness — `pi` and `mock` have zero;
+the three CLI-backed harnesses have four each. Right column:
+`selectableCatalogForHarness` admits `provider === "openrouter"` only for `pi`
+and `mock`.
+
+**The two columns never overlap.** A cheap or non-Anthropic model and subagent
+fan-out cannot be had at the same time in the base as it stands. Any flow design
+that assumes both is designing for a configuration that does not exist.
+
+Where the CLI-backed harnesses do delegate, `claude-harness.ts:341` defines three
+child agents — `research`, `code`, `consult` — each under a policy that forbids
+contacting people, scheduling work or changing standing configuration, with a
+tool set narrowed to `execute, read, write, publish, memory, history, background`.
 
 ## The lineage gap, and why it belongs to ai-os
 

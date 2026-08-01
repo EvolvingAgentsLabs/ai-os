@@ -12,11 +12,19 @@ wrong unit for work, in four specific ways:
 2. **No survival.** Compaction summarises the conversation
    (`ai-base/src/harness/context-compaction.ts`). Work that lived only in the
    transcript is now a paraphrase of itself.
-3. **No structure above the turn.** `runs` execute one turn; `cron` and
-   `triggers` start turns. Nothing sequences them, resumes them after a restart,
-   or reasons about a step that failed three days ago.
+3. **No structure above the turn.** `runs` execute one turn; `cron`, `triggers`
+   and `monitors` start turns. Nothing sequences them or reasons about a step
+   that failed three days ago.
 4. **No lineage.** Fork copies entries and forgets it forked
    (`app-sessions.ts:392`).
+
+**One thing this list used to claim and should not.** An earlier draft said
+nothing resumes after a restart. That is false: `src/core/turn-resume.ts`
+recovers an interrupted turn, counts attempts and audits the resumption. The gap
+is narrower and more precise than the overstatement — *a turn* is recoverable,
+*a piece of work* is not. Overstating it made the case sound stronger and made
+the design worse, because it hid the fact that turn-level recovery is machinery
+`ai-flows` should build on rather than duplicate.
 
 A **flow** is the object that fixes all four.
 
@@ -115,12 +123,38 @@ A flow **composes** upstream primitives; it does not replace them.
 | Flow concept | Runs on |
 |---|---|
 | Step execution | `src/runs/` — a step's attempt is a run |
+| Turn-level crash recovery | `src/core/turn-resume.ts` — **reused, not rebuilt** |
 | Model call | `Harness` (`src/harness/harness.ts:167`) — never a vendor SDK directly |
 | Conversation | `src/sessions/` — a flow references sessions, does not reimplement them |
-| Waking | `src/cron/`, `src/triggers/` |
+| Waking | `src/cron/`, `src/triggers/`, `src/monitors/` |
+| Sub-agent fan-out within a step | `src/tasks/` — **read and linked, never owned** ([ADR-0004](adr/0004-flows-and-the-subagent-record.md)) |
+| Tool surface | `execute, read, write, publish, memory, history, background` |
 | Approval / policy | Unchanged. A flow gets **no** exemption from the security posture |
-| Isolation | The scope's existing sandbox |
-| Flow + step records | **New Postgres tables, `flow_` prefix, no upstream table altered** |
+| Isolation | The scope's existing sandbox (**needs a locally built Docker image**) |
+| Flow + step records | **New tables, `flow_` prefix, no upstream table altered** |
+
+## The portability constraint
+
+Verified by running, and it bounds the design more than anything else here:
+**subagent delegation and OpenRouter models live on disjoint sets of harnesses**
+(matrix in [01-architecture](01-architecture.md#the-harness-capability-matrix)).
+`pi` gets cheap models and no subagents; `claude`/`codex`/`opencode` get
+subagents and no OpenRouter.
+
+Three consequences, and they are design rules rather than observations:
+
+1. **A flow must complete on a harness with no subagents.** Fan-out is an
+   optimisation a step *may* use where available, never a requirement. A flow
+   that silently does nothing on `pi` is a broken flow.
+2. **`Fan-out` and `Deliberation` shapes cannot assume subagents.** Both can be
+   served by sequential steps on one harness; parallelism through subagents is
+   the fast path, not the only path.
+3. **The eval must run on both.** Otherwise the design gets tuned to whichever
+   harness happens to be configured that week.
+
+This is also the strongest argument yet for the `Harness` seam: the moment a
+flow reaches past it into a specific harness's subagent machinery, `ai-flows`
+becomes portable in name only.
 
 ## Open questions
 
