@@ -6,6 +6,33 @@ Agents today are **applications**. ai-os is the argument that they should be an
 **operating system** — and that the difference is not branding, but four specific
 missing abstractions.
 
+### The same gap, said the other way
+
+Y Combinator, 2026-07-31 —
+[@ycombinator](https://x.com/ycombinator/status/2079963728439832823):
+
+> The best work tools became more powerful when they became multiplayer. But AI
+> is still mostly trapped in private chats, with agents working in sessions that
+> teammates can't join or influence.
+
+That is this document's argument arriving from the opposite direction. We reached
+it from *"an operating system needs a unit of work"*; they reach it from *"work is
+multiplayer"*. Both land on the same object.
+
+The bridge is one sentence: **you cannot hand off a conversation.** A handoff
+needs something with a declared goal, a current state and a history — something a
+second person can open, read, redirect and take over. A session is none of those.
+It is private to its participants, summarised away by compaction, and forked
+without recording that it forked. The unit is wrong, so everything above it is
+single-player by construction.
+
+Worth keeping honest about which claim we are making: theirs says *"in real
+time"*. Ours is **asynchronous multiplayer** — a durable object several people act
+on across days, hand off, fork and rejoin. Real-time co-presence is a legitimate
+goal and not the one we build toward first ([04-ai-ui](04-ai-ui.md#scope-of-v1)
+excludes simultaneous editing from v1). Handing off work that is *still running*,
+without losing what it learned, is the harder half and the part nobody has.
+
 An operating system earns the name when it owns four things: how work is
 scheduled and survives interruption, how resources are isolated between tenants,
 how state persists and is addressed, and how the user perceives and steers the

@@ -74,28 +74,135 @@ past cannot be diffed, rolled back, or explained.
 
 ## Flow shapes
 
-The user-facing point of ai-flows: **different work has different shapes, and the
-system should know which one it is in.** A shape determines how the next step is
-chosen, what "done" means, and what the canvas renders.
+**Different work has different shapes, and the system should know which one it is
+in.** A shape is a real object, not a label: it determines how the next step is
+chosen, what "done" means, what the canvas renders, and — the part that matters
+for [the multiplayer problem](../README.md#the-problem-ai-is-still-single-player)
+— *what a second person can do to the flow without breaking it*.
 
-| Shape | Next step chosen by | Done when | Example |
-|---|---|---|---|
-| **Sequence** | Declared order | Last step done | Onboard a new employee |
-| **Loop** | Repeat until condition | Condition met or budget spent | Improve until the eval passes |
-| **Fan-out** | One step per item | All items done | Triage 40 inbox threads |
-| **Deliberation** | N independent attempts, then judge | A winner is selected | Pick an architecture |
-| **Watch** | External event | Never — it is standing work | Monitor CI and react |
-| **Open** | The agent decides each time | The agent declares it | Exploratory research |
+Six shapes. Each is defined below on the same seven fields, because a shape whose
+handoff and termination are unspecified is a name, not a definition.
 
-**Open** is the honest default and matters as much as the structured ones — it is
-what a plain session already is, expressed as a flow so it gets goal, lineage and
-memory for free. A user should never have to pick a shape to start working; they
-should be able to *promote* an open flow to a structured one once the shape
-becomes obvious. Requiring the shape up front is how workflow tools become
-things nobody starts.
+### Definition template
 
-`Deliberation` and `Loop` are where lineage pays off: both produce multiple
-attempts that must be compared, and comparison needs a common ancestor.
+| Field | Why it is in every definition |
+|---|---|
+| **For** | The kind of work. If you cannot name it in a phrase, the shape is wrong |
+| **Next step** | How the engine picks what runs next |
+| **Done** | The success condition. A shape with no terminating condition is a bug, not a feature |
+| **Fails when** | The state that means *stuck*, distinct from `waiting` |
+| **Handoff** | What a second person can do — the multiplayer contract |
+| **Without subagents** | How it completes on `pi`. Every shape must, per the [portability constraint](#the-portability-constraint) |
+| **Do not use for** | The misuse that makes it collapse into another shape |
+
+---
+
+### `Open` — the default
+
+- **For:** work whose shape is not known yet. Exploratory research, a question
+  that turns into a project.
+- **Next step:** the agent decides each time.
+- **Done:** the agent declares it, or a person does.
+- **Fails when:** the goal has not moved across N steps — drift, not failure.
+- **Handoff:** anyone in scope reads the goal and the step history and continues.
+  This is the minimum multiplayer contract and every other shape inherits it.
+- **Without subagents:** natively — it is one agent working.
+- **Do not use for:** work you already know is a `Sequence`. `Open` is honest
+  about uncertainty, not a way to avoid declaring structure you have.
+
+**`Open` is the one that has to exist.** It is what a plain session already is,
+expressed as a flow so it gets a goal, lineage and memory for free. Nobody should
+have to pick a shape to start working; they should be able to **promote** an open
+flow to a structured one once the shape becomes obvious, keeping its history.
+Requiring the shape up front is how workflow tools become things nobody starts.
+
+### `Sequence` — declared order
+
+- **For:** work with known steps in a known order. Onboarding, a release
+  checklist, a compliance procedure.
+- **Next step:** the next undone step in the declared order.
+- **Done:** the last step is done.
+- **Fails when:** a step fails and has no retry left. Later steps are `blocked`,
+  not `skipped` — the distinction is what makes the flow diagnosable.
+- **Handoff:** step-level. A person can own step 4 while the agent runs 5, and
+  ownership is a property of the step. This is the shape closest to how teams
+  already divide work.
+- **Without subagents:** natively — steps are sequential by definition.
+- **Do not use for:** work where the order is a guess. A `Sequence` that gets
+  reordered every run was an `Open` flow.
+
+### `Loop` — until it is good enough
+
+- **For:** improvement against a measurable condition. "Iterate until the eval
+  passes."
+- **Next step:** repeat the body with the previous attempt's result.
+- **Done:** the condition holds.
+- **Fails when:** the budget is spent, or the metric stops improving across N
+  iterations. **A `Loop` without a declared budget is not a valid flow** — the
+  engine refuses to start one.
+- **Handoff:** a person can change the *condition* mid-flight. That is the
+  interesting multiplayer move: redirecting the target without discarding the
+  attempts already made.
+- **Without subagents:** natively — iterations are sequential.
+- **Do not use for:** work with no measurable condition. Without one this is an
+  `Open` flow with a false promise of termination.
+
+### `Fan-out` — one step per item
+
+- **For:** the same work over many items. Triage 40 threads, migrate 200 files.
+- **Next step:** every item is independent; order is not meaningful.
+- **Done:** every item reaches a terminal state — including `skipped`.
+- **Fails when:** the failure *rate* crosses a threshold. One failed item is
+  data; forty is a broken flow, and the shape should say so rather than grinding
+  to the end.
+- **Handoff:** by item. Two people and an agent can each take a slice, and the
+  flow remains one object. This is the shape that most obviously beats a chat.
+- **Without subagents:** sequentially, slower. Subagent fan-out is the fast path,
+  **never a requirement** — a `Fan-out` that does nothing on `pi` is broken.
+- **Do not use for:** items that depend on each other. That is a `Sequence`
+  wearing a disguise, and it will deadlock or corrupt.
+
+### `Deliberation` — N attempts, then judge
+
+- **For:** decisions with a wide solution space. Pick an architecture, choose a
+  migration strategy.
+- **Next step:** N independent attempts from declared angles, then a judging step.
+- **Done:** a winner is selected **and the reason is recorded.** An unrecorded
+  choice makes the whole shape pointless — nobody can revisit it.
+- **Fails when:** the judge cannot separate the attempts. That is a real outcome
+  ("these are equivalent"), not an error, and must be reportable as such.
+- **Handoff:** **a person can be one of the attempts, or be the judge.** This is
+  the shape where human and agent participate as peers rather than as
+  operator-and-tool.
+- **Without subagents:** attempts run sequentially with the others hidden —
+  independence is a property of *context isolation*, not of parallelism.
+- **Do not use for:** decisions already made. A `Deliberation` staged to justify
+  a foregone conclusion is worse than no flow, because it launders the decision.
+
+### `Watch` — standing work
+
+- **For:** reacting to external change. Monitor CI, watch a queue, track an inbox.
+- **Next step:** an external event, via `src/triggers/` or `src/monitors/`.
+- **Done:** **never.** It is standing work, and the state model must accept that
+  rather than treating it as unfinished.
+- **Fails when:** the trigger source is unreachable, or the reaction fails
+  repeatedly. Silence must be distinguishable from health — a `Watch` that has
+  seen nothing for a week is either calm or broken, and only the flow knows.
+- **Handoff:** ownership transfers; the watch does not restart. Handing off a
+  standing responsibility without dropping it is exactly the operational problem
+  a shared chat cannot solve.
+- **Without subagents:** natively — reactions are single turns.
+- **Do not use for:** a one-off wait. That is a `waiting` step in another flow.
+
+---
+
+### Which pay for lineage
+
+`Deliberation` and `Loop` produce multiple attempts that must be compared, and
+comparison needs a common ancestor — this is where `forkedFrom` earns its place.
+`Fan-out` produces the most handoff traffic, and is the best first proof that a
+flow beats a chat. `Open` is the one that must ship first, because everything
+else is a promotion of it.
 
 ## Lineage: fork, diff, merge
 

@@ -8,9 +8,61 @@ operational base it all runs on (`ai-base`).
 This is the primary project of Evolving Agents Lab. Everything else in the
 organisation is frozen — see [`doc/07-freeze-policy.md`](doc/07-freeze-policy.md).
 
+**[Español](README.es.md)** · English is the canonical version of every document
+here; see [Languages](#languages).
+
 > **Status: design.** `ai-base/` is a vendored copy of QM and runs. `ai-flows/`,
 > `ai-ui/` and `ai-storage/` are specified in `doc/` and not yet implemented.
 > Nothing in this README describes software that exists unless it says so.
+
+## The problem: AI is still single-player
+
+<table>
+<tr><td>
+
+> **The best work tools became more powerful when they became multiplayer. But AI
+> is still mostly trapped in private chats, with agents working in sessions that
+> teammates can’t join or influence.**
+>
+> **The next generation of AI tools will let teams work with agents together in
+> real time: watching, redirecting, and handing off work across engineering,
+> sales, support, legal, finance, and more. AI’s multiplayer moment is coming.**
+
+<sub>— **Y Combinator**, [@ycombinator](https://x.com/ycombinator/status/2079963728439832823)
+· [video](https://x.com/ycombinator/status/2079963728439832823/video/1)</sub>
+
+</td></tr>
+</table>
+
+That is the problem ai-os exists to solve, and it names the gap more legibly than
+our own framing did.
+
+**Why a session cannot be multiplayer.** You cannot hand off a conversation. A
+handoff needs a *thing* — something with a declared goal, a current state and a
+history, that another person can open, read, redirect and take over. A session is
+none of those: it is an append-only transcript, private to its participants,
+summarised away by compaction, and forked without recording that it forked. The
+unit is wrong, so everything above it is single-player by construction.
+
+Each pillar is one half of that answer:
+
+| | The multiplayer problem it answers |
+|---|---|
+| [`ai-flows`](ai-flows/) | **The thing you hand off.** A flow is a persisted object with a goal, a state and a lineage — addressable by anyone with the scope, not owned by one conversation |
+| [`ai-ui`](ai-ui/) | **Watching and redirecting.** A canvas projects the *state* of the work, which a third party can read. A transcript is only legible to the people who were in it |
+| [`ai-storage`](ai-storage/) | **What the team knows.** Project- and system-level memory, so context is not stranded in one person's private chat |
+| [`ai-base`](ai-base/) | **Who is allowed.** QM's scopes, permissions and audit — already multiplayer, and the reason we did not start here |
+
+### One precision, stated up front
+
+The tweet says **"in real time"**. ai-os is making a narrower and, we think,
+more defensible claim: **asynchronous multiplayer** — a durable object several
+people act on across days, hand off, fork and rejoin. Not several cursors on one
+canvas at once; [`ai-ui`'s v1 explicitly excludes simultaneous editing](doc/04-ai-ui.md#scope-of-v1).
+
+Real-time co-presence is a legitimate goal and not the one we are building
+toward first. Handing off work that is still running, without losing what it
+learned, is the harder half and the part nobody has.
 
 ## Why this exists
 
@@ -57,6 +109,21 @@ pullable rather than being a one-way snapshot.
 We are not competing with QM and we do not pretend to be affiliated with it.
 Where a change belongs upstream, it goes upstream, as human-written text in their
 `adrs/` format — that is what their `CONTRIBUTING.md` asks for.
+
+## Languages
+
+**English is canonical.** Every document has a Spanish counterpart, and where the
+two disagree the English one is correct — a translation that has drifted is worse
+than no translation, so the rule is written down rather than assumed.
+
+| | English | Español |
+|---|---|---|
+| This file | `README.md` | [`README.es.md`](README.es.md) |
+| Design documents | [`doc/`](doc/) | [`doc/es/`](doc/es/) |
+
+A change to a design document is not finished until its Spanish counterpart moves
+with it, in the same pull request. Splitting them across two PRs is how the copy
+that nobody reviews starts lying.
 
 ---
 
