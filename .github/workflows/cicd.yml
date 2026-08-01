@@ -1,0 +1,259 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: cicd-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  core-typecheck:
+    name: Core typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install and typecheck
+        run: |
+          npm ci
+          npm run typecheck
+
+  core-tests:
+    name: Core tests (${{ matrix.shard }}/5)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Verify root test shard plan
+        if: matrix.shard == 1
+        run: npm run test:root:shard:check
+      - name: Root tests
+        env:
+          CORE_TEST_SHARD: ${{ matrix.shard }}/5
+        run: npm run test:root:shard
+
+  core:
+    name: Core
+    runs-on: ubuntu-latest
+    needs:
+      - core-typecheck
+      - core-tests
+    steps:
+      - name: Core checks passed
+        run: echo "Core typecheck and root test shards passed."
+
+  cli:
+    name: CLI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            cli/package-lock.json
+            package-lock.json
+      - name: Install, typecheck, unit + packaged-artifact + e2e tests
+        working-directory: cli
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+          npm run test:e2e
+      - name: Install root dependencies
+        run: npm ci
+      - name: Build the CLI package
+        working-directory: cli
+        run: npm run build
+      - name: Deployment stack contracts
+        run: |
+          npm run typecheck:contract
+          node --test "deploy/stacks/*/test/*.test.ts"
+
+  cli-version:
+    name: CLI version bump
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require a version bump when the published package changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          base=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
+          changed=$(git diff --name-only "$base" "$HEAD_SHA" -- \
+            cli/bin cli/src cli/templates cli/manifest.json cli/package.json \
+            cli/package-lock.json cli/README.md cli/LICENSE cli/tsconfig.json cli/tsconfig.build.json)
+          [ -n "$changed" ] || exit 0
+          base_version=$(git show "${base}:cli/package.json" | jq -r .version)
+          head_version=$(git show "${HEAD_SHA}:cli/package.json" | jq -r .version)
+          highest=$(printf '%s\n%s\n' "$base_version" "$head_version" | sort -V | tail -1)
+          if [ "$base_version" = "$head_version" ] || [ "$highest" != "$head_version" ]; then
+            printf '%s\n' "$changed" >&2
+            echo "these files ship in @yc-software/qm; bump cli/package.json past $base_version" >&2
+            exit 1
+          fi
+          case "$head_version" in
+            [0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "cli/package.json version must be semver, got $head_version" >&2; exit 1 ;;
+          esac
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            plugins/web-ui/package-lock.json
+      - name: Install
+        run: |
+          npm ci
+          npm ci --prefix plugins/web-ui
+      - name: Formatting
+        run: npm run format:check
+      - name: Lint whole repo, incl. plugins
+        run: npm run lint
+      - name: Dead code (knip)
+        run: npm run lint:knip
+      - name: Oxlint
+        run: npm run lint:ox
+
+  core-postgres:
+    name: Core Postgres tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: qm
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Postgres-backed tests (durability + cross-process)
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/qm
+        run: npm run test:pg
+
+  admin-plugin:
+    name: Admin plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: plugins/admin/package-lock.json
+      - name: Install, typecheck, test
+        working-directory: plugins/admin
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+      - name: Build and boot production image
+        run: bash scripts/smoke-surface-image.sh admin
+
+  web-ui-plugin:
+    name: Web UI plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            plugins/web-ui/package-lock.json
+      - name: Install core dependencies
+        run: npm ci
+      - name: Install, typecheck, test, build
+        working-directory: plugins/web-ui
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+          npm run build
+      - name: Build and boot production image
+        run: bash scripts/smoke-surface-image.sh web-ui
+
+  auth-plugin:
+    name: Auth plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: plugins/auth/package-lock.json
+      - name: Install, typecheck, test
+        working-directory: plugins/auth
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+      - name: Build and boot production image
+        run: bash scripts/smoke-surface-image.sh auth
+
+  portal-plugin:
+    name: Portal plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: plugins/portal/package-lock.json
+      - name: Install, typecheck, test
+        working-directory: plugins/portal
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+      - name: Build and boot production image
+        run: bash scripts/smoke-surface-image.sh portal
