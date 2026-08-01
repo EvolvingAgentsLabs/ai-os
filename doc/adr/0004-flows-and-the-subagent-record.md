@@ -41,9 +41,20 @@ Three properties of `tasks`, all verified:
 that can reach OpenRouter models — the table stays empty. A flow engine built on
 `tasks` would work under Claude Code and silently do nothing under DeepSeek.
 
-**It is bound to a run.** `Task` carries `sessionId` and `originRunId`. Its
-lifetime is that of a run. A flow must outlive runs, sessions and restarts —
-that is the entire point of the object.
+**It is bound to a run, and deleted with its session.** `Task` carries
+`sessionId` and `originRunId`, and the schema enforces the lifetime in the
+database itself (`postgres-task-store.ts`):
+
+```sql
+ALTER TABLE tasks ADD CONSTRAINT tasks_session_id_cascade_fkey
+  FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE CASCADE
+```
+
+Delete a session and its tasks go with it. A flow must outlive runs, sessions
+and restarts — that is the entire point of the object — so this constraint alone
+settles the question. It is not a matter of taste about where work records
+belong; storing flows in `tasks` would mean flows are garbage-collected by
+session cleanup.
 
 **It has no ordering, goal or lineage.** Statuses and transitions, but no
 sequence, no success condition, no parent pointer. It answers *"what did this
