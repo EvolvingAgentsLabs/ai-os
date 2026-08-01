@@ -113,10 +113,12 @@ Requires an ADR in `ai-os/doc/adr/` stating what changed. Not a mood.
 
 ## Ledger
 
-Updated in the same commit as each freeze. Blank until the work is done — an
-optimistic entry here would be exactly the failure this document exists to
-prevent.
+Updated in the same commit as each freeze.
 
 | Repo | State | Frozen on | Idea moved to | Done by |
 |---|---|---|---|---|
-| *(pending)* | | | | |
+| `evolving-agents` | SUPERSEDED | 2026-08-01 | ai-os · `ai-flows` (lineage) | matiasmolinas |
+| `skillos` | FROZEN | 2026-08-01 | ai-os · `ai-flows` | matiasmolinas |
+| `gemma4nanoloop` | FROZEN | 2026-08-01 | — | matiasmolinas |
+
+26 of 29 org repositories are archived. Live: `ai-os`, the site, `.github`.
