@@ -275,6 +275,40 @@ Es además el argumento más fuerte hasta ahora a favor del seam `Harness`: apen
 un flow mete la mano más allá, hacia la maquinaria de subagentes de un harness
 puntual, `ai-flows` pasa a ser portable sólo de nombre.
 
+## La restricción de concurrencia
+
+Una segunda restricción, encontrada en el run store y no en la capa de harness, y
+acota a todo flow con más de un participante. `postgres-run-store.ts:149`
+**[read]**:
+
+```sql
+SELECT id FROM runs WHERE status='pending'
+  AND session_id NOT IN (SELECT session_id FROM runs WHERE status='running')
+ORDER BY created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1
+```
+
+**Los runs se serializan por sesión.** Dos personas no pueden tener dos runs
+ejecutando contra una misma sesión, así que un flow atado a una sola sesión es
+mono-hilo por más participantes que tenga. Lo que upstream ofrece en su lugar es
+intercalado: un segundo mensaje hacia un run vivo llega como señal
+(`RunSignalKind = "abort" | "steer"`, `run-signal-store.ts:3`), ruteada en
+`app-turn.ts:326-338` y aplicada a mitad de turno.
+
+Dos consecuencias de diseño:
+
+1. **El paralelismo dentro de un flow exige varias sesiones**, lo que convierte la
+   pregunta abierta #2 de abajo en un prerequisito para cualquier forma que
+   abanique — `Fan-out` y `Deliberation`, las dos.
+2. **El contrato multiplayer del campo Handoff de cada forma lo sirve `steer`
+   hoy, no la concurrencia.** Una forma que asume dos participantes actuando
+   simultáneamente está especificando una primitiva que no existe.
+
+La guarda de membresía también está decidida: si la versión del roster de un
+proyecto se mueve a mitad del trabajo, el turno se rechaza en vez de continuar en
+silencio (`app-turn.ts:102-106,337`). Un motor de flows que encola runs pasa por
+esa guarda; no la vuelve a decidir. El detalle escala por escala está en
+[09-scales](09-scales.md).
+
 ## Preguntas abiertas
 
 No se responden acá a propósito — contestarlas antes de que corra el primer flow
@@ -287,7 +321,9 @@ es adivinar.
    conjunto acotado de pasos nativos cuando el dolor sea real.
 2. **¿Una sesión o varias?** ¿Un flow posee una sesión, o referencia varias entre
    agentes y superficies? El trabajo multi-agente es lo segundo; la simplicidad es
-   lo primero.
+   lo primero. **Afilada por [la restricción de concurrencia](#la-restricción-de-concurrencia):**
+   una sola sesión significa que el flow es mono-hilo, así que hay que responderla
+   antes de cualquier trabajo colectivo o de fan-out, no durante.
 3. **¿Quién avanza el flow — el agente o el motor?** Que avance el motor es
    predecible; que avance el agente es lo que lo hace un SO *de agentes*.
    Probablemente dependa de la forma, lo cual es un argumento a favor de que las

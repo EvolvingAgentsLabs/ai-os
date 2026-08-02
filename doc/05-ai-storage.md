@@ -108,7 +108,20 @@ Rules:
 
 Implementation note: this is a `MemoryStrategy`
 (`ai-base/src/memory/strategy.ts:14` — `onTurnEnd` / `maintain` / `promptLines`),
-not a new subsystem. Upstream already ships a `consolidation` strategy to model it on.
+not a new subsystem. The selectable strategies are
+`per-turn | scratch-promote | agent-only` (`strategy.ts:28`), and the
+consolidation machinery they share lives in `strategies/consolidation.ts` — a
+module to build on, not a fourth kind to imitate.
+
+**One arrow of this diagram is already built.** `ccTargetFor` /
+`ccCaptureToPersonal` (`memory-service.ts:158,166`) copy a fact learned in a
+shared scope into the acting person's `personal:` scope with the source labelled,
+firing only for `channel` / `group` origins and never for system actors. It is
+wired into two of the three strategies (`per-turn.ts:140`,
+`scratch-promote.ts:167-170`). That is `project → user`, in production today —
+so the arrows ai-storage actually has to build are `flow → project` and
+`project → system`, and the first is blocked on a `flow` scope existing at all.
+**[read]**
 
 ## How it attaches
 
@@ -119,7 +132,7 @@ that makes promotion reversible.
 
 The scope-kind problem: QM's union (`src/types.ts:12`) is
 `personal | channel | team | org | group`. Our four levels map to
-`org` / `personal` / `team`|`channel` / **nothing**. There is no flow scope, and
+`org` / `personal` / `group` / **nothing**. There is no flow scope, and
 `org` is not quite "system". Resolution in
 [ADR-0003](adr/0003-storage-scope-axis.md): add `flow` and `system` to the union
 inside `ai-base` — a two-line widening, recorded in `AI-OS-PATCHES.md` and offered
@@ -127,6 +140,13 @@ upstream — rather than encoding a fake scope in the `ref` string, which would 
 invisible to every permission check that parses a `ScopeId`.
 
 That last clause is the actual reason: a fake scope silently bypasses ACLs.
+
+**The project level maps to `group`, not `team`** — corrected here after reading
+`src/projects/project-store.ts`. A QM project *is* a group scope with a reserved
+ref prefix (`projectScopeId(id) → group:web-project-<id>`, `project-store.ts:47`),
+carrying a roster (`ownerId`, `memberIds`) and a version per roster. `team:`
+comes from `Principal.teamIds` — identity-provider teams, not project rosters.
+The scale axis and its consequences are [09](09-scales.md). **[read]**
 
 ## Retrieval
 

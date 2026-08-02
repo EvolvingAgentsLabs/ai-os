@@ -15,6 +15,7 @@ Read in order the first time:
 | 06 | [Licensing](06-licensing.md) | Apache 2.0 over MIT: what is permitted, what is required, what is forbidden |
 | 07 | [Freeze policy](07-freeze-policy.md) | What "frozen" means for the other repositories, operationally |
 | 08 | [Roadmap](08-roadmap.md) | Milestones, in dependency order, with the honest blockers |
+| 09 | [Scales](09-scales.md) | Individual, collective, project, system — one axis for flows and memory, and it is `scopeId` |
 
 ## Decisions
 
@@ -27,6 +28,7 @@ when the decision is made, never edited afterwards — superseded instead.
 | [0002](adr/0002-flow-as-first-class-object.md) | The flow is a first-class persisted object, not a prompt pattern | **Superseded by 0004** |
 | [0003](adr/0003-storage-scope-axis.md) | Add `flow` and `system` as scope kinds, extending QM's closed union | Accepted |
 | [0004](adr/0004-flows-and-the-subagent-record.md) | A flow reads the subagent record (`tasks`) but does not own it | Accepted |
+| [0005](adr/0005-scale-is-scope.md) | The scale of work is its scope; a project is upstream's group, not `team` | Accepted |
 
 ## House rules for these documents
 
