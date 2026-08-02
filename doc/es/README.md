@@ -18,6 +18,7 @@ Leer en orden la primera vez:
 | 06 | [Licenciamiento](06-licensing.md) | Apache 2.0 sobre MIT: qué se permite, qué se exige, qué se prohíbe |
 | 07 | [Política de congelado](07-freeze-policy.md) | Qué significa "congelado", operativamente |
 | 08 | [Roadmap](08-roadmap.md) | Milestones, en orden de dependencia, con los bloqueos dichos con honestidad |
+| 09 | [Escalas](09-scales.md) | Individual, colectivo, proyecto, sistema — un solo eje para flows y memoria, y es el `scopeId` |
 
 ## Decisiones
 
@@ -30,6 +31,7 @@ escrito cuando se toma, **nunca editado después** — se reemplaza (*superseded
 | [0002](adr/0002-flow-as-first-class-object.md) | El flow es un objeto persistido de primera clase, no un patrón de prompt | **Reemplazada por 0004** |
 | [0003](adr/0003-storage-scope-axis.md) | Agregar `flow` y `system` como scope kinds, extendiendo la unión cerrada de QM | Aceptada |
 | [0004](adr/0004-flows-and-the-subagent-record.md) | Un flow lee el registro de subagentes (`tasks`) pero no lo posee | Aceptada |
+| [0005](adr/0005-scale-is-scope.md) | La escala del trabajo es su scope; un proyecto es el grupo de upstream, no `team` | Aceptada |
 
 ## Reglas de la casa para estos documentos
 

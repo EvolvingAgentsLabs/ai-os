@@ -115,8 +115,20 @@ Reglas:
 
 Nota de implementación: esto es una `MemoryStrategy`
 (`ai-base/src/memory/strategy.ts:14` — `onTurnEnd` / `maintain` / `promptLines`),
-no un subsistema nuevo. Upstream ya trae una estrategia `consolidation` para
-tomar de modelo.
+no un subsistema nuevo. Las estrategias seleccionables son
+`per-turn | scratch-promote | agent-only` (`strategy.ts:28`), y la maquinaria de
+consolidación que comparten vive en `strategies/consolidation.ts` — un módulo
+sobre el que construir, no un cuarto kind para imitar.
+
+**Una flecha de este diagrama ya está construida.** `ccTargetFor` /
+`ccCaptureToPersonal` (`memory-service.ts:158,166`) copian un hecho aprendido en
+un scope compartido al scope `personal:` de quien actuó, con la fuente
+etiquetada; disparan sólo para orígenes `channel` / `group` y nunca para actores
+de sistema. Están cableadas en dos de las tres estrategias (`per-turn.ts:140`,
+`scratch-promote.ts:167-170`). Eso es `proyecto → usuario`, en producción hoy —
+así que las flechas que ai-storage realmente tiene que construir son
+`flow → proyecto` y `proyecto → sistema`, y la primera está bloqueada hasta que
+exista un scope `flow`. **[read]**
 
 ## Cómo se engancha
 
@@ -127,7 +139,7 @@ vez de omitir — la historia es lo que hace reversible a la promoción.
 
 El problema de los scope kinds: la unión de QM (`src/types.ts:12`) es
 `personal | channel | team | org | group`. Nuestros cuatro niveles mapean a
-`org` / `personal` / `team`|`channel` / **nada**. No hay scope de flow, y `org` no
+`org` / `personal` / `group` / **nada**. No hay scope de flow, y `org` no
 es exactamente "sistema". Resolución en
 [ADR-0003](adr/0003-storage-scope-axis.md): agregar `flow` y `system` a la unión
 dentro de `ai-base` — un ensanchamiento de dos líneas, registrado en
@@ -136,6 +148,14 @@ del string `ref`, que sería invisible para cada chequeo de permisos que parsea 
 `ScopeId`.
 
 Esa última cláusula es la razón real: un scope falso saltea las ACL en silencio.
+
+**El nivel de proyecto mapea a `group`, no a `team`** — corregido acá después de
+leer `src/projects/project-store.ts`. Un proyecto de QM *es* un scope de grupo con
+un prefijo de ref reservado (`projectScopeId(id) → group:web-project-<id>`,
+`project-store.ts:47`), con roster (`ownerId`, `memberIds`) y una versión por
+roster. `team:` sale de `Principal.teamIds` — equipos del proveedor de identidad,
+no rosters de proyecto. El eje de escalas y sus consecuencias están en
+[09](09-scales.md). **[read]**
 
 ## Recuperación
 

@@ -263,6 +263,39 @@ This is also the strongest argument yet for the `Harness` seam: the moment a
 flow reaches past it into a specific harness's subagent machinery, `ai-flows`
 becomes portable in name only.
 
+## The concurrency constraint
+
+A second constraint, found in the run store rather than the harness layer, and it
+bounds every multi-participant flow. `postgres-run-store.ts:149` **[read]**:
+
+```sql
+SELECT id FROM runs WHERE status='pending'
+  AND session_id NOT IN (SELECT session_id FROM runs WHERE status='running')
+ORDER BY created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1
+```
+
+**Runs are serialised per session.** Two people cannot have two runs executing
+against one session, which means a flow bound to a single session is
+single-threaded no matter how many participants it has. What upstream offers
+instead is interleaving: a second message into a live run arrives as a signal
+(`RunSignalKind = "abort" | "steer"`, `run-signal-store.ts:3`) routed at
+`app-turn.ts:326-338` and applied mid-turn.
+
+Two design consequences:
+
+1. **Parallelism inside a flow requires several sessions**, which turns open
+   question #2 below from a matter of taste into a prerequisite for any shape
+   that fans out — `Fan-out` and `Deliberation` both.
+2. **The multiplayer contract in each shape's Handoff field is served by `steer`
+   today, not by concurrency.** A shape that assumes two participants acting
+   simultaneously is specifying a primitive that does not exist.
+
+The membership guard is already decided too: if a project roster version moves
+mid-work, the turn is refused rather than silently continued
+(`app-turn.ts:102-106,337`). A flow engine that enqueues runs goes through that
+guard; it does not re-decide it. Scale-by-scale detail is in
+[09-scales](09-scales.md).
+
 ## Open questions
 
 Not answered here on purpose — answering them before the first flow runs is
@@ -274,7 +307,9 @@ guessing.
    start with turns only, add a narrow set of native steps when the pain is real.
 2. **One session or many?** Does a flow own one session, or reference several
    across agents and surfaces? Multi-agent work is the second; simplicity is the
-   first.
+   first. **Sharpened by [the concurrency constraint](#the-concurrency-constraint):**
+   one session means the flow is single-threaded, so this question has to be
+   answered before any collective or fan-out work, not during it.
 3. **Who advances the flow — the agent or the engine?** The engine advancing is
    predictable; the agent advancing is what makes it an *agent* OS. Probably
    shape-dependent, which is an argument for shapes being real objects.
