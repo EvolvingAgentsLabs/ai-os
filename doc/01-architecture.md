@@ -29,14 +29,24 @@ for how expensive each one is to build and to maintain against a moving upstream
 |---|---|---|
 | `ai-storage` | Implements QM's existing `MemoryService` interface, registered in `src/wiring.ts` | **Low** — interface is stable and narrow |
 | `ai-ui` | HTTP plugin over the core API, using the plugin chassis contract | **Low** — plugins never import core (enforced upstream) |
-| `ai-flows` | New service inside core + new store + new API routes | **High** — this is the one that genuinely diverges |
+| `ai-flows` | **Own package over the signed HTTP API** + own `flow_` store. Was "new service inside core", cost **High**, until the seam was read — [ADR-0006](adr/0006-ai-flows-lives-outside-core.md) | **Low** — it imports nothing from `ai-base` |
 | `ai-base` | Is the upstream | n/a |
 
-That table is the actual architecture decision. Two of the three pillars can be
-built almost entirely *without* forking anything, because QM's extension seams
-are real and were designed for this. Only `ai-flows` requires cutting into core —
-which is why the fork exists ([ADR-0001](adr/0001-fork-vs-dependency.md)) and why
-`ai-flows` carries the maintenance burden for the whole project.
+That table is the actual architecture decision, and one row of it changed on
+2026-08-02. It used to read that `ai-flows` requires cutting into core — the
+stated reason the fork exists ([ADR-0001](adr/0001-fork-vs-dependency.md)) and
+the reason `ai-flows` was said to carry the maintenance burden for the whole
+project. Reading the route table rather than the architecture showed the public
+API already exposes create, advance, inspect, steer and abort
+(`src/api/routes/turns.ts:154-161`), which is the whole of M2, so **all three
+pillars are now built without forking anything** ([ADR-0006](adr/0006-ai-flows-lives-outside-core.md)).
+
+That does not retire the fork. `ai-base` still carries two recorded patches, the
+scope-kind widening of [ADR-0003](adr/0003-storage-scope-axis.md) is still
+planned, and later milestones may need a route that does not exist yet. It does
+mean the burden is a good deal smaller than this document asserted, and that
+[ADR-0001](adr/0001-fork-vs-dependency.md)'s scheduled re-evaluation should be
+made with that correction in hand.
 
 **Design rule that falls out of this:** anything that *can* be built against a
 public seam is built against a public seam, even when editing core would be

@@ -32,6 +32,7 @@ escrito cuando se toma, **nunca editado después** — se reemplaza (*superseded
 | [0003](adr/0003-storage-scope-axis.md) | Agregar `flow` y `system` como scope kinds, extendiendo la unión cerrada de QM | Aceptada |
 | [0004](adr/0004-flows-and-the-subagent-record.md) | Un flow lee el registro de subagentes (`tasks`) pero no lo posee | Aceptada |
 | [0005](adr/0005-scale-is-scope.md) | La escala del trabajo es su scope; un proyecto es el grupo de upstream, no `team` | Aceptada |
+| [0006](adr/0006-ai-flows-lives-outside-core.md) | `ai-flows` se construye contra el seam HTTP firmado, no adentro del core | Aceptada |
 
 ## Reglas de la casa para estos documentos
 
