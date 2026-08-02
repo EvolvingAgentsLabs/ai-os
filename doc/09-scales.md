@@ -248,8 +248,9 @@ in `resolution/scope-membership.ts` ends in `return false`.
 test carries a census asserting `SCOPE_KINDS` holds exactly the five upstream
 kinds, so the day the widening lands, the test fails and its author has to give
 `flow` and `system` an explicit decision instead of letting them inherit a
-default. That is the guard ADR-0003 asked for, and it is now enforced by CI
-rather than by the pull checklist alone.
+default. That is the guard ADR-0003 asked for, and it runs as its own CI job —
+`Fail-closed scope guard` in `.github/workflows/ci.yml`, named separately from
+the five test shards so its failure is unmissable rather than buried.
 
 **The general lesson, worth more than the bug:** the fail-open was in a
 fall-through, not in a permission function. Nothing in the four-question table

@@ -1,12 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import {
-  isManageableCreationScope,
-  isSharedScope,
-  parseScopeId,
-  type ScopeId,
-  type ScopeKind,
-} from "../src/types.ts";
+import { isManageableCreationScope, isSharedScope, parseScopeId, type ScopeId, type ScopeKind } from "../src/types.ts";
 import {
   createCanManageScope,
   createCanReadScope,

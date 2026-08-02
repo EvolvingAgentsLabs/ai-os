@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: ai-base
+
+jobs:
+  scope-guard:
+    name: Fail-closed scope guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: ai-base/.node-version
+          cache: npm
+          cache-dependency-path: ai-base/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: An unhandled scope kind must deny, and the union census must hold
+        run: node --experimental-test-module-mocks --test test/scope-kind-fail-closed.test.ts
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: ai-base/.node-version
+          cache: npm
+          cache-dependency-path: ai-base/package-lock.json
+      - name: Install and typecheck
+        run: |
+          npm ci
+          npm run typecheck
+
+  tests:
+    name: Tests (${{ matrix.shard }}/5)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: ai-base/.node-version
+          cache: npm
+          cache-dependency-path: ai-base/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Verify the shard plan covers every test file exactly once
+        if: matrix.shard == 1
+        run: npm run test:root:shard:check
+      - name: Root tests
+        env:
+          CORE_TEST_SHARD: ${{ matrix.shard }}/5
+        run: npm run test:root:shard
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: ai-base/.node-version
+          cache: npm
+          cache-dependency-path: |
+            ai-base/package-lock.json
+            ai-base/plugins/web-ui/package-lock.json
+      - name: Install
+        run: |
+          npm ci
+          npm ci --prefix plugins/web-ui
+      - name: Formatting
+        run: npm run format:check
+      - name: Lint
+        run: npm run lint
+      - name: Dead code
+        run: npm run lint:knip
+      - name: Oxlint
+        run: npm run lint:ox
+
+  ledger:
+    name: ai-base ledger
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: A change inside ai-base must be recorded in AI-OS-PATCHES.md
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          base=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
+          changed=$(git diff --name-only "$base" "$HEAD_SHA" -- ai-base \
+            ':!ai-base/AI-OS-PATCHES.md')
+          [ -n "$changed" ] || exit 0
+          if git diff --quiet "$base" "$HEAD_SHA" -- ai-base/AI-OS-PATCHES.md; then
+            printf '%s\n' "$changed" >&2
+            echo "these files are vendored upstream; record the change in ai-base/AI-OS-PATCHES.md in this PR" >&2
+            exit 1
+          fi
+
+  base:
+    name: ai-base
+    runs-on: ubuntu-latest
+    needs:
+      - scope-guard
+      - typecheck
+      - tests
+      - lint
+    steps:
+      - name: Checks passed
+        run: echo "scope guard, typecheck, five test shards and lint passed."
+        working-directory: .
