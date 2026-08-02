@@ -76,7 +76,9 @@ Run after every pull, before committing the merge:
       ([ADR-0003](../doc/adr/0003-storage-scope-axis.md))
 - [ ] Every upstream `switch` over `ScopeKind` still handles the new kinds —
       **and any that falls through to a `default` fails closed, not open.**
-      TypeScript will not catch that one.
+      TypeScript will not catch that one; `test/scope-kind-fail-closed.test.ts`
+      does, and its union census is what forces a widening to be handled rather
+      than inherited. Run it first after every pull.
 - [ ] `MemoryService` (`src/memory/memory-service.ts`) interface unchanged, or
       `ai-storage` updated
 - [ ] `Harness` (`src/harness/harness.ts`) interface unchanged, or `ai-flows`
@@ -86,11 +88,10 @@ Run after every pull, before committing the merge:
 
 ## Ledger
 
-No modifications yet. `ai-base` is byte-identical to upstream `7f2c916`.
-
 | Date | File | Change | Why | Upstreamable? | Offered |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| 2026-08-02 | `src/triggers/run-trigger.ts` | `actorMayReadScope` enumerates the kinds it grants instead of falling through to `return true` | It granted read on **any** scope kind other than `channel`/`group`, including a malformed or unrecognised one, so a cron or monitor whose home scope did not parse ran the turn for an actor with no membership evidence. Identical behaviour for all five current kinds, with and without a directory | **Yes** — a live fail-open independent of ai-os | not sent |
+| 2026-08-02 | `test/scope-kind-fail-closed.test.ts` | New test: every ACL decision denies a scope kind it does not explicitly handle | [ADR-0003](../doc/adr/0003-storage-scope-axis.md) requires new kinds to fail closed and calls this "the first thing to test". Includes a union census that **fails the day `SCOPE_KINDS` is widened**, forcing the author to give the new kind an explicit row rather than inheriting a default | **Yes** | not sent |
 
 ## Planned, not yet made
 
@@ -108,5 +109,6 @@ generated pull requests.
 
 | Proposal | Status | Notes |
 |---|---|---|
-| Record `forkedFrom { sessionId, upToSeq }` on session fork (`src/api/app-sessions.ts:392`) | not sent | Small, self-contained, useful to them without ai-os. Send first. |
+| `actorMayReadScope` fail-open on an unrecognised scope kind (`src/triggers/run-trigger.ts`) | not sent | A live bug in upstream, not an ai-os concern: a trigger with a malformed `ownerScopeId` runs for a non-member. Fix + test are in the ledger above. **Send first** — it is the only entry with a security consequence. |
+| Record `forkedFrom { sessionId, upToSeq }` on session fork (`src/api/app-sessions.ts:392`) | not sent | Small, self-contained, useful to them without ai-os. Send second. |
 | Add `flow` to `SCOPE_KINDS` | not sent | Only after `ai-flows` exists to justify it |

@@ -107,9 +107,10 @@ async function actorMayReadScope(
 ): Promise<boolean> {
   if (!ref) return false;
   if (kind === "personal") return samePerson(actorId, ref);
-  if (!deps.directory) return kind !== "group" && kind !== "channel";
+  if (kind === "org" || kind === "team") return true;
+  if (kind !== "channel" && kind !== "group") return false;
+  if (!deps.directory) return false;
   if (kind === "group") return isVisible(deps.directory, actorId, { kind: "group", groupId: ref });
-  if (kind !== "channel") return true;
   const isPrivate = await deps.directory.channelPrivacy?.(ref);
   if (isPrivate === undefined) return false;
   return isVisible(deps.directory, actorId, { kind: "channel", channelId: ref, isPrivate });
