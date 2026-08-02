@@ -24,13 +24,13 @@ burden; this file is what makes that burden survivable.
 
 ## Vendoring
 
-| | |
-|---|---|
-| Upstream | `https://github.com/yc-software/qm` |
-| Branch | `main` |
+|             |                                                         |
+| ----------- | ------------------------------------------------------- |
+| Upstream    | `https://github.com/yc-software/qm`                     |
+| Branch      | `main`                                                  |
 | Vendored at | `7f2c916360f1797a8ff2a77ce2ce40c5fabab087` (2026-07-31) |
-| Method | `git subtree --squash` |
-| Cadence | weekly |
+| Method      | `git subtree --squash`                                  |
+| Cadence     | weekly                                                  |
 
 ```bash
 # pull upstream
@@ -44,7 +44,7 @@ forks. **Both assume the repository root is qm** and dispatch on `git remote -v`
 Under our subtree, qm's root is `ai-base/` and `origin` is not a qm fork, so both
 misread the situation. Use `git subtree pull` above instead.
 
-Their *content* still applies and should be read before any upstream push:
+Their _content_ still applies and should be read before any upstream push:
 
 - **Merge, never rebase.** Published history is tracked by other clones.
 - **Nothing under `deploy/layers/` reaches upstream** — not config, not infra
@@ -85,30 +85,37 @@ Run after every pull, before committing the merge:
       updated
 - [ ] Plugin chassis contract unchanged, or `ai-ui` updated
 - [ ] `ai-base/LICENSE` still present and byte-identical
+- [ ] `.github/workflows/ci.yml` **at the repository root** still runs the jobs we
+      depend on. GitHub reads only the root `.github/workflows`, so
+      `ai-base/.github/` is inert here: upstream can add, rename or fix a CI job
+      and nothing about it reaches us. Ours is a deliberate subset — scope guard,
+      typecheck, five test shards, lint, ledger — and it drops upstream's CLI,
+      Postgres and plugin-image jobs, which cover code ai-os does not modify.
 
 ## Ledger
 
-| Date | File | Change | Why | Upstreamable? | Offered |
-|---|---|---|---|---|---|
-| 2026-08-02 | `src/triggers/run-trigger.ts` | `actorMayReadScope` enumerates the kinds it grants instead of falling through to `return true` | It granted read on **any** scope kind other than `channel`/`group`, including a malformed or unrecognised one, so a cron or monitor whose home scope did not parse ran the turn for an actor with no membership evidence. Identical behaviour for all five current kinds, with and without a directory | **Yes** — a live fail-open independent of ai-os | not sent |
-| 2026-08-02 | `test/scope-kind-fail-closed.test.ts` | New test: every ACL decision denies a scope kind it does not explicitly handle | [ADR-0003](../doc/adr/0003-storage-scope-axis.md) requires new kinds to fail closed and calls this "the first thing to test". Includes a union census that **fails the day `SCOPE_KINDS` is widened**, forcing the author to give the new kind an explicit row rather than inheriting a default | **Yes** | not sent |
+| Date       | File                                  | Change                                                                                         | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Upstreamable?                                   | Offered  |
+| ---------- | ------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | -------- |
+| 2026-08-02 | `src/triggers/run-trigger.ts`         | `actorMayReadScope` enumerates the kinds it grants instead of falling through to `return true` | It granted read on **any** scope kind other than `channel`/`group`, including a malformed or unrecognised one, so a cron or monitor whose home scope did not parse ran the turn for an actor with no membership evidence. Identical behaviour for all five current kinds, with and without a directory                                                                                                                                               | **Yes** — a live fail-open independent of ai-os | not sent |
+| 2026-08-02 | `test/scope-kind-fail-closed.test.ts` | New test: every ACL decision denies a scope kind it does not explicitly handle                 | [ADR-0003](../doc/adr/0003-storage-scope-axis.md) requires new kinds to fail closed and calls this "the first thing to test". Includes a union census that **fails the day `SCOPE_KINDS` is widened**, forcing the author to give the new kind an explicit row rather than inheriting a default                                                                                                                                                      | **Yes**                                         | not sent |
+| 2026-08-01 | `package-lock.json`                   | 1,783 lines changed — `cli` version `0.1.0` → `0.1.4`, and nested dependencies re-resolved     | **Unintended.** A local `npm install` during the M1 "run it" pass, committed in PR #1 and not noticed. It is why the entry that used to sit here — "byte-identical to upstream" — was already false when it was written. Left in place rather than reverted mid-CI-work: `npm ci` installs from it and the suite is green against it, so restoring the vendored lock is a dependency-resolution change that deserves its own PR and its own test run | No — revert, do not upstream                    | —        |
 
 ## Planned, not yet made
 
-| File | Change | ADR |
-|---|---|---|
-| `src/types.ts` | Add `flow` and `system` to `SCOPE_KINDS` | [0003](../doc/adr/0003-storage-scope-axis.md) |
-| `src/memory/strategy.ts` | Add promotion strategy to `MemoryStrategyKind` | [0003](../doc/adr/0003-storage-scope-axis.md) |
-| `src/wiring.ts` | Register `ai-storage` as the `MemoryService` | [01](../doc/01-architecture.md) |
-| *(new)* `src/flows/` | Flow service + store | [0002](../doc/adr/0002-flow-as-first-class-object.md) |
+| File                     | Change                                         | ADR                                                   |
+| ------------------------ | ---------------------------------------------- | ----------------------------------------------------- |
+| `src/types.ts`           | Add `flow` and `system` to `SCOPE_KINDS`       | [0003](../doc/adr/0003-storage-scope-axis.md)         |
+| `src/memory/strategy.ts` | Add promotion strategy to `MemoryStrategyKind` | [0003](../doc/adr/0003-storage-scope-axis.md)         |
+| `src/wiring.ts`          | Register `ai-storage` as the `MemoryService`   | [01](../doc/01-architecture.md)                       |
+| _(new)_ `src/flows/`     | Flow service + store                           | [0002](../doc/adr/0002-flow-as-first-class-object.md) |
 
 ## Proposals to send upstream
 
 Human-written text in their `adrs/` format, as `CONTRIBUTING.md` asks — not
 generated pull requests.
 
-| Proposal | Status | Notes |
-|---|---|---|
+| Proposal                                                                                    | Status   | Notes                                                                                                                                                                                                                 |
+| ------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `actorMayReadScope` fail-open on an unrecognised scope kind (`src/triggers/run-trigger.ts`) | not sent | A live bug in upstream, not an ai-os concern: a trigger with a malformed `ownerScopeId` runs for a non-member. Fix + test are in the ledger above. **Send first** — it is the only entry with a security consequence. |
-| Record `forkedFrom { sessionId, upToSeq }` on session fork (`src/api/app-sessions.ts:392`) | not sent | Small, self-contained, useful to them without ai-os. Send second. |
-| Add `flow` to `SCOPE_KINDS` | not sent | Only after `ai-flows` exists to justify it |
+| Record `forkedFrom { sessionId, upToSeq }` on session fork (`src/api/app-sessions.ts:392`)  | not sent | Small, self-contained, useful to them without ai-os. Send second.                                                                                                                                                     |
+| Add `flow` to `SCOPE_KINDS`                                                                 | not sent | Only after `ai-flows` exists to justify it                                                                                                                                                                            |

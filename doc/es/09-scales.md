@@ -256,8 +256,9 @@ kinds actuales. El resto de la superficie de ACL ya estaba bien — cada decisi�
 test lleva un censo que afirma que `SCOPE_KINDS` tiene exactamente los cinco kinds
 de upstream, así que el día que aterrice el ensanchamiento el test falla y quien
 lo haga tiene que darle a `flow` y `system` una decisión explícita en vez de
-dejarlos heredar un default. Es la guarda que pedía ADR-0003, y ahora la sostiene
-CI y no sólo el checklist de pull.
+dejarlos heredar un default. Es la guarda que pedía ADR-0003, y corre como job
+propio de CI — `Fail-closed scope guard` en `.github/workflows/ci.yml`, con
+nombre separado de los cinco shards para que su falla no pase desapercibida.
 
 **La lección general, que vale más que el bug:** el fail-open estaba en un
 fall-through, no en una función de permisos. Nada de la tabla de cuatro preguntas
