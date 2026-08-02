@@ -109,12 +109,11 @@ Run after every pull, before committing the merge:
 
 ## Planned, not yet made
 
-| File                     | Change                                         | ADR                                                   |
-| ------------------------ | ---------------------------------------------- | ----------------------------------------------------- |
-| `src/types.ts`           | Add `flow` and `system` to `SCOPE_KINDS`       | [0003](../doc/adr/0003-storage-scope-axis.md)         |
-| `src/memory/strategy.ts` | Add promotion strategy to `MemoryStrategyKind` | [0003](../doc/adr/0003-storage-scope-axis.md)         |
-| `src/wiring.ts`          | Register `ai-storage` as the `MemoryService`   | [01](../doc/01-architecture.md)                       |
-| _(new)_ `src/flows/`     | Flow service + store                           | [0002](../doc/adr/0002-flow-as-first-class-object.md) |
+| File                     | Change                                         | ADR                                           |
+| ------------------------ | ---------------------------------------------- | --------------------------------------------- |
+| `src/types.ts`           | Add `flow` and `system` to `SCOPE_KINDS`       | [0003](../doc/adr/0003-storage-scope-axis.md) |
+| `src/memory/strategy.ts` | Add promotion strategy to `MemoryStrategyKind` | [0003](../doc/adr/0003-storage-scope-axis.md) |
+| `src/wiring.ts`          | Register `ai-storage` as the `MemoryService`   | [01](../doc/01-architecture.md)               |
 
 ## Sending things upstream — two channels, and picking the wrong one is the mistake
 

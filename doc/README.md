@@ -29,6 +29,7 @@ when the decision is made, never edited afterwards — superseded instead.
 | [0003](adr/0003-storage-scope-axis.md) | Add `flow` and `system` as scope kinds, extending QM's closed union | Accepted |
 | [0004](adr/0004-flows-and-the-subagent-record.md) | A flow reads the subagent record (`tasks`) but does not own it | Accepted |
 | [0005](adr/0005-scale-is-scope.md) | The scale of work is its scope; a project is upstream's group, not `team` | Accepted |
+| [0006](adr/0006-ai-flows-lives-outside-core.md) | `ai-flows` is built against the signed HTTP seam, not inside core | Accepted |
 
 ## House rules for these documents
 

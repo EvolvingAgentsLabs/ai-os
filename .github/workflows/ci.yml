@@ -99,6 +99,41 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/qm
         run: npm run test:pg
 
+  flows:
+    name: ai-flows
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-flows
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: flows
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: ai-base/.node-version
+          cache: npm
+          cache-dependency-path: ai-flows/package-lock.json
+      - name: Install and typecheck
+        run: |
+          npm ci
+          npm run typecheck
+      - name: Tests, both backends
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/flows
+        run: npm test
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -160,8 +195,9 @@ jobs:
       - typecheck
       - tests
       - postgres
+      - flows
       - lint
     steps:
       - name: Checks passed
-        run: echo "scope guard, typecheck, five test shards, postgres and lint passed."
+        run: echo "scope guard, typecheck, five test shards, postgres, ai-flows and lint passed."
         working-directory: .
