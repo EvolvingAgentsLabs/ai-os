@@ -228,12 +228,41 @@ en una sola hora de correr la base de verdad
 
 | # | Supuesto | Estado | El check que lo zanja |
 |---|---|---|---|
-| 1 | Agregar `flow` / `system` a `SCOPE_KINDS` **falla cerrado** en todos los caminos de ACL | **sin verificar** | ADR-0003 ya lo llama "the first thing to test" — escribir ese test *antes* de cualquier escala más allá de la individual |
+| 1 | Agregar `flow` / `system` a `SCOPE_KINDS` **falla cerrado** en todos los caminos de ACL | **probado — y no se cumplía** **[ran]** | `ai-base/test/scope-kind-fail-closed.test.ts`. Ver abajo |
 | 2 | Un paso es un turno de modelo | abierta ([03 #1](03-ai-flows.md#preguntas-abiertas)) | el primer paso que sólo renombra un archivo |
 | 3 | Un flow puede abarcar varias sesiones | abierta ([03 #2](03-ai-flows.md#preguntas-abiertas)) | forzada por la restricción 1 de arriba; zanjarla antes de la celda colectiva |
 | 4 | Un proyecto puede abarcar **uno o más grupos** | **falso hoy** — un proyecto *es* un grupo (`project-store.ts:47`) | necesita una relación nueva y por lo tanto un ADR nuevo; no asumirlo en ningún diseño |
 | 5 | Cada scope kind tiene su propio `MEMORY.md` | **[read]** (`memory-service.ts:6`), observado sólo para `personal:` **[ran]** ([02](02-ai-base.md#qué-cambió-al-correrlo)) | escribir en un scope `group:` y mirar el disco |
 | 6 | Las escalas se diferencian entre sí de un modo que importa | **sin probar** — ver falsación | la tabla de cuatro preguntas, llenada desde flows reales |
+
+### El supuesto 1, corrido
+
+ADR-0003 lo llamaba "the first thing to test". Se probó antes del ensanchamiento,
+y **era falso** — no para los kinds que ai-os planea agregar, sino ya, hoy:
+
+`actorMayReadScope` (`triggers/run-trigger.ts`) terminaba en
+`if (kind !== "channel") return true`, así que un cron o un monitor cuyo
+`ownerScopeId` no parseaba — malformado, o apenas mal capitalizado como
+`PERSONAL:U1` — **corría el turno para un actor sin evidencia de membresía en
+ningún lado.** `currentScopeMembers` devuelve `undefined` para cualquier kind que
+no reconoce, y el llamador lee ese `undefined` como "caé en
+`actorMayReadScope`", que decía que sí.
+
+Corregido enumerando los kinds que otorga; comportamiento idéntico para los cinco
+kinds actuales. El resto de la superficie de ACL ya estaba bien — cada decisión de
+`resolution/scope-membership.ts` termina en `return false`.
+
+**Lo que esto le da al eje de escalas** es un mecanismo y no una tranquilidad: el
+test lleva un censo que afirma que `SCOPE_KINDS` tiene exactamente los cinco kinds
+de upstream, así que el día que aterrice el ensanchamiento el test falla y quien
+lo haga tiene que darle a `flow` y `system` una decisión explícita en vez de
+dejarlos heredar un default. Es la guarda que pedía ADR-0003, y ahora la sostiene
+CI y no sólo el checklist de pull.
+
+**La lección general, que vale más que el bug:** el fail-open estaba en un
+fall-through, no en una función de permisos. Nada de la tabla de cuatro preguntas
+lo habría encontrado, porque la tabla describe qué *debería* responder cada
+escala — y ese código nunca preguntaba.
 
 Los supuestos 1 y 4 son los que cargan peso. **El 4 es el que contradice un
 objetivo declarado**: "un proyecto que abarca uno o más grupos de trabajo" no es

@@ -221,12 +221,40 @@ hour of actually running the base ([02 § What running it changed](02-ai-base.md
 
 | # | Assumption | Status | The check that settles it |
 |---|---|---|---|
-| 1 | Adding `flow` / `system` to `SCOPE_KINDS` **fails closed** in every ACL path | **unverified** | ADR-0003 already names it "the first thing to test" — write that test *before* any scale beyond individual |
+| 1 | Adding `flow` / `system` to `SCOPE_KINDS` **fails closed** in every ACL path | **tested — and it did not hold** **[ran]** | `ai-base/test/scope-kind-fail-closed.test.ts`. See below |
 | 2 | A step is a model turn | open ([03 #1](03-ai-flows.md#open-questions)) | the first step that only renames a file |
 | 3 | A flow may span several sessions | open ([03 #2](03-ai-flows.md#open-questions)) | forced by constraint 1 above; settle it before the collective cell |
 | 4 | A project may span **one or more groups** | **false today** — a project *is* one group (`project-store.ts:47`) | needs a new relation and therefore a new ADR; do not assume it in any design |
 | 5 | Every scope kind gets its own `MEMORY.md` | **[read]** (`memory-service.ts:6`), observed for `personal:` only **[ran]** ([02](02-ai-base.md#what-running-it-changed)) | write to a `group:` scope and look on disk |
 | 6 | The scales differ from each other in a way that matters | **unproven** — see falsification | the four-question table, filled from real flows |
+
+### Assumption 1, run
+
+ADR-0003 called this "the first thing to test". It was tested before the widening,
+and **it was false** — not for the kinds ai-os plans to add, but already, today:
+
+`actorMayReadScope` (`triggers/run-trigger.ts`) ended with
+`if (kind !== "channel") return true`, so a cron or monitor whose `ownerScopeId`
+did not parse — malformed, or merely miscased as `PERSONAL:U1` — **ran the turn
+for an actor with no membership evidence anywhere.** `currentScopeMembers`
+returns `undefined` for any kind it does not recognise, and the caller reads
+`undefined` as "fall back to `actorMayReadScope`", which said yes.
+
+Fixed by enumerating the kinds it grants; identical behaviour for all five
+current kinds. The rest of the ACL surface was already correct — every decision
+in `resolution/scope-membership.ts` ends in `return false`.
+
+**What this buys the scale axis** is a mechanism rather than a reassurance: the
+test carries a census asserting `SCOPE_KINDS` holds exactly the five upstream
+kinds, so the day the widening lands, the test fails and its author has to give
+`flow` and `system` an explicit decision instead of letting them inherit a
+default. That is the guard ADR-0003 asked for, and it is now enforced by CI
+rather than by the pull checklist alone.
+
+**The general lesson, worth more than the bug:** the fail-open was in a
+fall-through, not in a permission function. Nothing in the four-question table
+would have found it, because the table describes what each scale *should*
+answer — and this code never asked.
 
 Assumptions 1 and 4 are the load-bearing ones. **4 is the one that contradicts a
 stated goal**: "a project spanning one or more working groups" is not a thing the
