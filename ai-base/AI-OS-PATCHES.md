@@ -116,13 +116,22 @@ Run after every pull, before committing the merge:
 | `src/wiring.ts`          | Register `ai-storage` as the `MemoryService`   | [01](../doc/01-architecture.md)                       |
 | _(new)_ `src/flows/`     | Flow service + store                           | [0002](../doc/adr/0002-flow-as-first-class-object.md) |
 
-## Proposals to send upstream
+## Sending things upstream — two channels, and picking the wrong one is the mistake
 
-Human-written text in their `adrs/` format, as `CONTRIBUTING.md` asks — not
-generated pull requests.
+**Vulnerabilities go privately.** `SECURITY.md` is explicit: report through the
+repository's **Security → Report a vulnerability** flow, and _"do not open a
+public issue, discussion, or pull request with exploit details."_ A public
+`adrs/` PR describing an authorization bypass is a disclosure, not a
+contribution.
 
-| Proposal                                                                                    | Status   | Notes                                                                                                                                                                                                                 |
-| ------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `actorMayReadScope` fail-open on an unrecognised scope kind (`src/triggers/run-trigger.ts`) | not sent | A live bug in upstream, not an ai-os concern: a trigger with a malformed `ownerScopeId` runs for a non-member. Fix + test are in the ledger above. **Send first** — it is the only entry with a security consequence. |
-| Record `forkedFrom { sessionId, upToSeq }` on session fork (`src/api/app-sessions.ts:392`)  | not sent | Small, self-contained, useful to them without ai-os. Send second.                                                                                                                                                     |
-| Add `flow` to `SCOPE_KINDS`                                                                 | not sent | Only after `ai-flows` exists to justify it                                                                                                                                                                            |
+**Everything else goes as informal human text.** `CONTRIBUTING.md` asks for a
+`.txt` or `.md` file in `adrs/`, _"quite informal — just run your idea by us in
+the same way you would a coworker"_, and adds: **"Please do not have AI
+artificially expand what you'd like to do into a formal proposal."** A polished
+generated document is the wrong artifact here even when the idea is right.
+
+| To send                                                                                     | Channel                                         | Status   | Notes                                                                                                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `actorMayReadScope` fail-open on an unrecognised scope kind (`src/triggers/run-trigger.ts`) | **Private — Security → Report a vulnerability** | not sent | A trigger whose `ownerScopeId` does not parse runs for an actor with no membership evidence. **Send first.** Include affected revision, config, impact, smallest reproduction. The fix is in the ledger above; offer it, do not publish it |
+| Record `forkedFrom { sessionId, upToSeq }` on session fork (`src/api/app-sessions.ts:392`)  | Public — `adrs/`                                | not sent | Small, self-contained, useful to them without ai-os. Send second, and keep it short                                                                                                                                                        |
+| Add `flow` to `SCOPE_KINDS`                                                                 | Public — `adrs/`                                | not sent | Only after `ai-flows` exists to justify it                                                                                                                                                                                                 |
