@@ -1,5 +1,10 @@
 # 06 · Licenciamiento
 
+<img src="../assets/06-licensing.jpg" alt="" width="100%">
+
+<sub>Apache sobre MIT, y qué permite la intersección.</sub>
+
+
 > **El inglés es canónico.** Traducción de [`doc/06-licensing.md`](../06-licensing.md).
 >
 > No es asesoramiento legal. Es un documento de ingeniería que registra qué

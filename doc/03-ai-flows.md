@@ -1,5 +1,10 @@
 # 03 · ai-flows
 
+<img src="assets/03-ai-flows.jpg" alt="" width="100%">
+
+<sub>Six shapes. The last one never finishes, on purpose.</sub>
+
+
 > **Status: specified, not implemented.**
 
 ## The problem

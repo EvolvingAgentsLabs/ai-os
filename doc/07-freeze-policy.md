@@ -1,5 +1,10 @@
 # 07 · Freeze policy
 
+<img src="assets/07-freeze-policy.jpg" alt="" width="100%">
+
+<sub>Twenty-one archived. One still warm.</sub>
+
+
 ai-os is the organisation's primary project. Everything else is frozen. This
 document defines what "frozen" means operationally, because an undefined freeze
 is indistinguishable from abandonment six months later — and this organisation

@@ -1,5 +1,10 @@
 # 00 · Visión
 
+<img src="../assets/00-vision.jpg" alt="" width="100%">
+
+<sub>Conversación dispersa convertida en un objeto durable.</sub>
+
+
 > **El inglés es canónico.** Traducción de [`doc/00-vision.md`](../00-vision.md).
 
 ## La afirmación

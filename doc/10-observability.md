@@ -1,5 +1,10 @@
 # 10 · Observability — can the work be watched at all?
 
+<img src="assets/10-observability.jpg" alt="" width="100%">
+
+<sub>A repeat standing out from noise. Until the noise wins.</sub>
+
+
 > **Status: the module is implemented and tested. The number it depends on has
 > not been measured.** `ai-flows/src/observability.ts` — 20 tests, all passing
 > **[ran]**; 36 across `ai-flows`.
@@ -67,19 +72,9 @@ $$P(\text{caught}) = (1-\delta)^w$$
 | $C(\delta)$ bits | 1.000 | 0.763 | 0.618 | 0.504 | 0.322 | 0.114 | 0.055 |
 | $(1-\delta)^3$ | 1.000 | 0.729 | 0.512 | 0.343 | 0.125 | **0.008** | 0.001 |
 
-```
-1.0 │•                       (1−δ)³ — stuck flows ever noticed
-    │ ••
-    │   ••
-    │     ••
-    │       •••
-    │          •••
-    │             •••••
-    │                  •••••••
-0.0 │                         ••••••••••••••••
-    └─────────────────────────────────────────
-     0                    δ                  1
-```
+<img src="assets/noise-floor.svg" alt="Capacity and detection probability against the noise floor" width="100%">
+
+<sub>Both curves are computed, not drawn — the values come straight from <code>channelCapacity</code> and <code>detectionProbability</code>.</sub>
 
 At δ = 0.8, roughly eight stuck flows in a thousand are ever seen. A flow can be
 dead for a week while the system reports progress, and **waiting longer makes it

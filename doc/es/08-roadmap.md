@@ -1,5 +1,10 @@
 # 08 · Roadmap
 
+<img src="../assets/08-roadmap.jpg" alt="" width="100%">
+
+<sub>Dos milestones sólidos, el resto todavía contornos.</sub>
+
+
 > **El inglés es canónico.** Traducción de [`doc/08-roadmap.md`](../08-roadmap.md).
 
 Milestones en orden de dependencia. Cada uno declara qué significa "listo" y qué

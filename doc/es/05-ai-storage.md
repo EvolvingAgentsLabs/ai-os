@@ -1,5 +1,10 @@
 # 05 · ai-storage — memoria con espacio de direcciones
 
+<img src="../assets/05-ai-storage.jpg" alt="" width="100%">
+
+<sub>Cuatro niveles. Una sola flecha de promoción está construida.</sub>
+
+
 > **El inglés es canónico.** Traducción de [`doc/05-ai-storage.md`](../05-ai-storage.md).
 >
 > **Estado: especificado, no implementado.**

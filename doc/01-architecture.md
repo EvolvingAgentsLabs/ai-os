@@ -1,5 +1,10 @@
 # 01 · Architecture
 
+<img src="assets/01-architecture.jpg" alt="" width="100%">
+
+<sub>Four layers, joined at a few precise points.</sub>
+
+
 ## The stack
 
 ```

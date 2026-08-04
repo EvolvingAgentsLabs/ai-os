@@ -1,5 +1,10 @@
 # 00 · Vision
 
+<img src="assets/00-vision.jpg" alt="" width="100%">
+
+<sub>Scattered talk becoming one durable object.</sub>
+
+
 ## The claim
 
 Agents today are **applications**. ai-os is the argument that they should be an

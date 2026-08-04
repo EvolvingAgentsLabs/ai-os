@@ -1,5 +1,10 @@
 # 07 · Política de congelado
 
+<img src="../assets/07-freeze-policy.jpg" alt="" width="100%">
+
+<sub>Veintiuno archivados. Uno sigue tibio.</sub>
+
+
 > **El inglés es canónico.** Traducción de [`doc/07-freeze-policy.md`](../07-freeze-policy.md).
 
 ai-os es el proyecto principal de la organización. Todo lo demás está congelado.
