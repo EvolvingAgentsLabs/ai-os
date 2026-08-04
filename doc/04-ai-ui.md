@@ -51,6 +51,37 @@ The failure mode to design against: a generated layout that rearranges itself
 under the user's hands. **Rule: the system proposes on state change; it never
 re-arranges what the user has touched.**
 
+## Why a projection rather than a transcript — the sampling reason
+
+The claim above reads as taste. It is not, and the reason is worth stating
+because it converts an aesthetic into a constraint.
+
+A person looks at a flow at some rate — realistically once or twice a day. The
+flow produces attempts at its own rate, which may be several per hour. **A
+viewer sampling at $f_s$ can only faithfully observe change slower than
+$f_s/2$.** Everything faster does not vanish: it *aliases*, and comes back
+disguised as a slow trend that is not there. Three unrelated reversals inside a
+day, sampled once, read as a direction.
+
+A transcript is the raw stream at full rate handed to an observer sampling far
+below it. It is not merely verbose — as a signal it is **wrong**, and wrong in
+the specific direction of manufacturing false narrative.
+
+Two consequences for v1, both cheap:
+
+1. **A projection declares the rate of change it represents.** "State as of the
+   last 6 hours" is a different object from "state now", and a canvas that does
+   not say which one it is showing is inviting the reader to infer a trend from
+   noise.
+2. **Faster-than-sampled change is aggregated, never dropped.** Dropping is what
+   produces aliasing; summarising is what avoids it. Fifteen attempts since you
+   last looked is one object that says *fifteen attempts, this is where it
+   landed* — not the last one, and not all fifteen.
+
+This adds no mechanism. It gives the existing commitment a reason and a testable
+rule, and it is the same argument [10-observability](10-observability.md) makes
+one level down, where the instrument being sampled is the flow itself.
+
 ## Relationship to the existing web-ui
 
 `ai-ui` is a **fifth plugin**, built against the same chassis as `web-ui`,

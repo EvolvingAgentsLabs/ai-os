@@ -72,6 +72,18 @@ El `ai-flows` más chico y honesto: **una forma (`Open`), persistida, reanudable
 5. Rutas de API para crear / avanzar / inspeccionar
 6. **Completa en `pi`, sin subagentes y sin filas de tasks**
    ([ADR-0004](adr/0004-flows-and-the-subagent-record.md))
+7. **Una observación por intento, capturada al cerrarlo**
+   ([ADR-0007](adr/0007-observation-captured-not-derived.md)) — no un agregado a
+   M2 sino el instrumento que la propia falsación de M2 ya exige. Sin él la
+   comparación de §Cómo se falsifica es una anécdota, y la telemetría de upstream
+   se borra una hora después del intento que la produjo
+
+**Y un número que M2 debe antes de poder interpretar su propio resultado:** δ, la
+tasa a la que trabajo idéntico produce estado distinto. Toda afirmación del tipo
+"el flow conservó su trabajo y la sesión lo perdió" es una afirmación de que dos
+estados difieren, y esa afirmación vale lo que vale el instrumento que la hace
+([10](10-observability.md)). Medir δ es una tarde, y puede invalidar temprano toda
+la maquinaria de deriva — que es el mejor resultado posible para una tarde.
 
 Fuera de M2: formas más allá de `Open`, merge, canvas, memoria nueva.
 

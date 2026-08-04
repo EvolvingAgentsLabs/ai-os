@@ -64,6 +64,76 @@ Real-time co-presence is a legitimate goal and not the one we are building
 toward first. Handing off work that is still running, without losing what it
 learned, is the harder half and the part nobody has.
 
+## Before the interface: can a flow even be watched?
+
+Multiplayer means a second person opens running work and asks *is this fine?*
+That is an instrument question before it is an interface question — and every
+instrument has noise.
+
+A flow records a fingerprint of the state each attempt produced. Comparing two of
+them looks binary. The channel is not symmetric:
+
+```
+state unchanged ──(1−δ)──▶ same fingerprint
+                ──( δ )──▶ different          ← noise, not progress
+state changed   ──( 1 )──▶ different
+```
+
+Only a real change can *break* a repeat, but non-determinism can invent a
+difference out of nothing. So:
+
+> **A repeat is proof. A difference is a rumour.**
+
+**δ** is the rate at which *identical* work produces *different* fingerprints. It
+is not a constant of nature — it moves with the model, the harness, and what the
+fingerprint is taken over — so it has to be measured, not assumed. Two curves say
+why measuring it comes first.
+
+**What one comparison can carry.** This is a Z-channel, and its capacity is
+
+$$C(\delta) = \log_2\left(1 + (1-\delta)\,\delta^{\frac{\delta}{1-\delta}}\right)$$
+
+```
+bits                                            stuck flows noticed, window 3
+1.0 │•                                      1.0 │•
+    │ ••                                        │ ••
+    │   •••                                     │   ••
+    │      ••••                                 │     ••
+    │          •••••                            │       •••
+    │               ••••••                      │          •••
+    │                     •••••••               │             •••••
+    │                            ••••••••       │                  •••••••
+0.0 │                                    ••     0.0 │                         ••••••••
+    └────────────────────────────────────       └─────────────────────────────────────
+     0                    δ               1      0                    δ              1
+```
+
+The right-hand curve is $(1-\delta)^w$ — a stuck flow announces itself **only** by
+repeating, and noise breaks the repeat.
+
+| δ | 0.0 | 0.2 | 0.5 | 0.8 |
+|---|---|---|---|---|
+| bits per comparison | 1.000 | 0.618 | 0.322 | 0.114 |
+| stuck flows ever noticed | 100% | 51% | 13% | **0.8%** |
+
+At δ = 0.8 a flow can sit dead for a week while the system reports progress.
+Waiting longer does not help; waiting is precisely what the noise is destroying.
+
+**So the gate goes on the instrument, not on the flow.** Before drift detection,
+budgets or any convergence rule mean anything, δ has to be a number.
+[`observabilityOf`](ai-flows/src/observability.ts) refuses to call a flow
+*progressing* when δ says a stuck one would have gone unseen; it answers
+`unreadable`, which is a claim about the recording rather than about the work.
+
+That is the distinction flows actually need. **Drift** — visible and not moving —
+wants more steps. **Unreadable** — moving as far as anyone can tell — wants a
+better instrument, and no number of steps substitutes for one.
+
+> **Status:** the module is implemented and tested. **δ has not been measured on
+> real work yet.** If that experiment comes back saying fingerprints never
+> repeat, the approach dies and gets reported dead —
+> [doc/10-observability.md](doc/10-observability.md).
+
 ## Why this exists
 
 QM solves the part most agent projects get wrong: a real multi-tenant harness
