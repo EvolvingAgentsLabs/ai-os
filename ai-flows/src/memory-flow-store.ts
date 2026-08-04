@@ -12,7 +12,10 @@ export function createMemoryFlowStore(opts: { now?: () => number; id?: () => str
   const nextId = opts.id ?? randomUUID;
   const rows = new Map<string, Row>();
 
-  const cloneAttempt = (a: Attempt): Attempt => ({ ...a });
+  const cloneAttempt = (a: Attempt): Attempt => ({
+    ...a,
+    observation: a.observation ? { ...a.observation } : null,
+  });
   const cloneStep = (s: Step): Step => ({
     ...s,
     attempts: s.attempts.map(cloneAttempt),
@@ -123,6 +126,7 @@ export function createMemoryFlowStore(opts: { now?: () => number; id?: () => str
         runId: input.runId ?? null,
         sessionId: input.sessionId ?? null,
         error: null,
+        observation: null,
         startedAt: at,
         finishedAt: null,
       };
@@ -141,6 +145,7 @@ export function createMemoryFlowStore(opts: { now?: () => number; id?: () => str
       attempt.state = input.state;
       attempt.error = input.error ?? null;
       attempt.finishedAt = at;
+      if (input.observation) attempt.observation = { ...input.observation, at: input.observation.at ?? at };
       step.state = input.state === "done" ? "done" : "failed";
       if (input.result !== undefined) step.result = input.result;
       step.updatedAt = at;

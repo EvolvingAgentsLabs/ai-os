@@ -1,4 +1,13 @@
-import type { Attempt, CreateFlowInput, Flow, FlowState, FlowWithSteps, Step, StepState } from "./types.ts";
+import type {
+  Attempt,
+  CreateFlowInput,
+  Flow,
+  FlowState,
+  FlowWithSteps,
+  Observation,
+  Step,
+  StepState,
+} from "./types.ts";
 
 export interface AppendStepInput {
   flowId: string;
@@ -16,6 +25,13 @@ export interface FinishAttemptInput {
   state: "done" | "failed";
   result?: string;
   error?: string;
+  /**
+   * Optional. Nothing requires an observation and nothing infers one — an
+   * attempt closed without it stays `null` forever, because the upstream
+   * telemetry it could have been rebuilt from is gone within the hour
+   * (ADR-0007).
+   */
+  observation?: Omit<Observation, "at"> & { at?: number };
 }
 
 export interface ForkInput {

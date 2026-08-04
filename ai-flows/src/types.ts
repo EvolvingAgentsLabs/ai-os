@@ -26,6 +26,29 @@ export interface FlowLineage {
   atStep: number;
 }
 
+/**
+ * What an attempt was observed to produce, captured when the attempt closes.
+ *
+ * Captured rather than derived, and that is forced by upstream rather than
+ * chosen: run activity is deleted after `RUN_ACTIVITY_TTL_MS` — one hour — in
+ * both backends (`ai-base/src/runs/run-activity-store.ts:16`,
+ * `postgres-run-activity-store.ts:30`) and is exposed on no route. A flow
+ * spanning days cannot reconstruct what its attempts did. See ADR-0007.
+ *
+ * Deliberately not a score. `digest` answers "can two states be told apart",
+ * which is defined for every shape; `value` answers "by how much", which is
+ * defined only where a shape declares a metric, and today no shape does.
+ */
+export interface Observation {
+  /** Fingerprint of the state this attempt produced. Opaque to the store. */
+  digest: string;
+  /** Present only where the shape declares a metric. `null` for `open`. */
+  value: number | null;
+  /** What produced the digest. Recorded so two flows are comparable, never inferred. */
+  source: string;
+  at: number;
+}
+
 export interface Attempt {
   id: string;
   stepId: string;
@@ -34,6 +57,8 @@ export interface Attempt {
   runId: string | null;
   sessionId: string | null;
   error: string | null;
+  /** `null` when the caller closed the attempt without one. Never fabricated. */
+  observation: Observation | null;
   startedAt: number;
   finishedAt: number | null;
 }

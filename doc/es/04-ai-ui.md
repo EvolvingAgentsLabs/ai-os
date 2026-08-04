@@ -56,6 +56,38 @@ El modo de falla contra el que hay que diseñar: un layout generado que se
 reacomoda bajo las manos del usuario. **Regla: el sistema propone cuando cambia el
 estado; nunca reacomoda lo que el usuario tocó.**
 
+## Por qué una proyección y no un transcripto — la razón de muestreo
+
+La afirmación de arriba se lee como gusto personal. No lo es, y vale la pena
+decir por qué, porque convierte una estética en una restricción.
+
+Una persona mira un flow a cierta tasa — realistamente una o dos veces por día.
+El flow produce intentos a su propia tasa, que puede ser de varios por hora. **Un
+observador que muestrea a $f_s$ solo puede observar fielmente cambios más lentos
+que $f_s/2$.** Todo lo más rápido no desaparece: *aliasea*, y vuelve disfrazado
+de tendencia lenta que no existe. Tres reversiones no relacionadas dentro de un
+día, muestreadas una vez, se leen como una dirección.
+
+Un transcripto es el stream crudo a tasa completa entregado a un observador que
+muestrea muy por debajo. No es apenas verboso — como señal está **mal**, y mal en
+la dirección específica de fabricar narrativa falsa.
+
+Dos consecuencias para v1, ambas baratas:
+
+1. **Una proyección declara la tasa de cambio que representa.** "Estado de las
+   últimas 6 horas" es un objeto distinto de "estado ahora", y un canvas que no
+   dice cuál está mostrando está invitando al lector a inferir una tendencia a
+   partir de ruido.
+2. **El cambio más rápido que el muestreo se agrega, nunca se descarta.**
+   Descartar es lo que produce aliasing; resumir es lo que lo evita. Quince
+   intentos desde la última vez que miraste son un objeto que dice *quince
+   intentos, acá quedó* — no el último, y no los quince.
+
+Esto no agrega mecanismo. Le da una razón y una regla testeable a un compromiso
+que ya estaba tomado, y es el mismo argumento que hace
+[10-observabilidad](10-observability.md) un nivel más abajo, donde el instrumento
+muestreado es el flow mismo.
+
 ## Relación con la web-ui existente
 
 `ai-ui` es un **quinto plugin**, construido contra el mismo chassis que `web-ui`,

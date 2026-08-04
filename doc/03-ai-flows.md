@@ -66,6 +66,8 @@ Step
 ├─ state        — pending | running | waiting | done | failed | skipped
 ├─ result       — structured output + a pointer to the run that produced it
 └─ attempts[]   — every try, kept; failure is history, not an overwrite
+      └─ observation — what this attempt was observed to produce, captured
+                       when it closes. Optional, never inferred (ADR-0007)
 ```
 
 Keeping `attempts[]` rather than overwriting is the direct lesson from
@@ -104,6 +106,11 @@ handoff and termination are unspecified is a name, not a definition.
 - **Next step:** the agent decides each time.
 - **Done:** the agent declares it, or a person does.
 - **Fails when:** the goal has not moved across N steps — drift, not failure.
+  **And "has not moved" is a measurement, not an observation**: two attempts of
+  identical work do not reliably produce identical state, so this rule has a
+  false-change rate and it has to be known before the rule means anything. The
+  split it hides — *drift* (legible, stopped) versus *unreadable* (moving as far
+  as anyone can tell) — is [10-observability](10-observability.md).
 - **Handoff:** anyone in scope reads the goal and the step history and continues.
   This is the minimum multiplayer contract and every other shape inherits it.
 - **Without subagents:** natively — it is one agent working.
@@ -143,6 +150,17 @@ Requiring the shape up front is how workflow tools become things nobody starts.
 - **Handoff:** a person can change the *condition* mid-flight. That is the
   interesting multiplayer move: redirecting the target without discarding the
   attempts already made.
+
+  **Recorded as a risk, not designed against yet.** Two people adjusting one
+  loop's target, each reacting to results produced before the other's change
+  landed, is delayed feedback around a closed loop, and it oscillates. Inside a
+  single run this cannot happen — runs are serialised per session and `steer`
+  interleaves through one live run ([The concurrency
+  constraint](#the-concurrency-constraint)) — so the exposure is *across* runs
+  and days, which is precisely the handoff this field advertises. The standard
+  remedies are one controller at a time, rate-limited redirection, or explicit
+  damping. **None is chosen here.** `Loop` is M6; picking a remedy before
+  observing the failure is guessing with extra steps.
 - **Without subagents:** natively — iterations are sequential.
 - **Do not use for:** work with no measurable condition. Without one this is an
   `Open` flow with a false promise of termination.

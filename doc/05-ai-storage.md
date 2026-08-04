@@ -27,6 +27,25 @@ an improvement, and the burden of proof is on the axis.* This document therefore
 specifies the cheapest possible version of each idea and names what would falsify
 it, rather than specifying the elaborate version and assuming it wins.
 
+### The standing rule this becomes
+
+The result above is not a war story about one experiment. It is the rule for
+every axis proposed after it:
+
+> **No new memory axis ships without a benchmark the baseline could lose, named
+> before the axis is built.**
+
+Memory design attracts structural proposals with a great deal of prior appeal —
+episodic versus semantic, short- versus long-term, consolidation passes, decay
+curves, replay. Each is a real distinction somewhere. **None of them is evidence
+that a retrieval system gets better by encoding it**, and the measurement above
+is what an appealing structure looks like when it is finally asked for a number:
+80%, 80%, 80%.
+
+The rule costs one sentence up front and it is the cheapest guard this pillar
+has. An axis that cannot name the benchmark it expects to win is not being
+proposed; it is being assumed.
+
 ## There is already a memory benchmark upstream
 
 Found after this document was first written, which is its own small lesson:

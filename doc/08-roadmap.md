@@ -64,6 +64,18 @@ The smallest honest `ai-flows`: **one shape (`Open`), persisted, resumable.**
 5. API routes for create / advance / inspect
 6. **Completes on `pi`, with no subagents and no task rows**
    ([ADR-0004](adr/0004-flows-and-the-subagent-record.md))
+7. **An observation per attempt, captured when it closes**
+   ([ADR-0007](adr/0007-observation-captured-not-derived.md)) — not an addition
+   to M2 but the instrument M2's own falsification already requires. Without it
+   the comparison in §How this gets falsified is an anecdote, and upstream's
+   telemetry is deleted an hour after the attempt that produced it
+
+**And one number M2 owes before it can interpret its own result:** δ, the rate at
+which identical work produces different state. Every "the flow kept its work and
+the session lost it" claim is a claim that two states differ, and that claim is
+only as good as the instrument making it ([10](10-observability.md)). Measuring
+δ is an afternoon, and it can invalidate the drift machinery early — which is the
+best possible outcome for an afternoon.
 
 Not in M2: shapes beyond `Open`, merge, canvas, new memory.
 

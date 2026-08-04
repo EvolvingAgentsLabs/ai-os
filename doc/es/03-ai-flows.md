@@ -67,6 +67,8 @@ Step
 ├─ state        — pending | running | waiting | done | failed | skipped
 ├─ result       — salida estructurada + puntero al run que la produjo
 └─ attempts[]   — cada intento, conservado; el fracaso es historia, no sobrescritura
+      └─ observation — qué se observó que produjo este intento, capturado al
+                       cerrarlo. Opcional, nunca inferido (ADR-0007)
 ```
 
 Conservar `attempts[]` en vez de sobrescribir es la lección directa de
@@ -106,6 +108,12 @@ definición.
 - **Paso siguiente:** lo decide el agente cada vez.
 - **Listo:** lo declara el agente, o una persona.
 - **Falla cuando:** el objetivo no se movió en N pasos — deriva, no fracaso.
+  **Y "no se movió" es una medición, no una observación**: dos intentos de trabajo
+  idéntico no producen de manera confiable el mismo estado, así que esta regla
+  tiene una tasa de cambio falso y hay que conocerla antes de que la regla
+  signifique algo. La división que esconde — *deriva* (legible, detenido) contra
+  *ilegible* (moviéndose hasta donde se puede saber) — es
+  [10-observabilidad](10-observability.md).
 - **Handoff:** cualquiera dentro del scope lee el objetivo y el historial de pasos
   y continúa. Este es el contrato multijugador mínimo y todas las demás formas lo
   heredan.
@@ -147,6 +155,17 @@ de workflow se vuelven cosas que nadie arranca.
 - **Handoff:** una persona puede cambiar la *condición* en vuelo. Esa es la jugada
   multijugador interesante: redirigir el objetivo sin descartar los intentos ya
   hechos.
+
+  **Asentado como riesgo, todavía no diseñado contra él.** Dos personas ajustando
+  el objetivo de un mismo lazo, cada una reaccionando a resultados producidos
+  antes de que aterrizara el cambio de la otra, es realimentación con retardo
+  alrededor de un lazo cerrado, y oscila. Dentro de un mismo run esto no puede
+  pasar — los runs están serializados por sesión y `steer` interfolia a través de
+  un único run vivo (ver la restricción de concurrencia) — así que la exposición
+  es *entre* runs y entre días, que es precisamente el handoff que este campo
+  publicita. Los remedios estándar son un controlador por vez, redirección con
+  límite de tasa, o amortiguamiento explícito. **Ninguno se elige acá.** `Loop` es
+  M6; elegir un remedio antes de observar la falla es adivinar con pasos de más.
 - **Sin subagentes:** nativamente — las iteraciones son secuenciales.
 - **No usar para:** trabajo sin condición medible. Sin ella esto es un flow `Open`
   con una falsa promesa de terminación.

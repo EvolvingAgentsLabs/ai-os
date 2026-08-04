@@ -39,6 +39,14 @@ const SCHEMA = [
      finished_at BIGINT)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS flow_attempts_number_idx ON flow_attempts(step_id, n)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS flow_attempts_one_open_idx ON flow_attempts(step_id) WHERE state = 'running'`,
+  // Observation, added after the first slice. All four nullable: an attempt
+  // closed without one is the normal case, not a defect (ADR-0007). Stated as
+  // ALTERs rather than folded into the CREATE above so a database made by the
+  // first slice reaches the same shape as a fresh one.
+  `ALTER TABLE flow_attempts ADD COLUMN IF NOT EXISTS obs_digest TEXT`,
+  `ALTER TABLE flow_attempts ADD COLUMN IF NOT EXISTS obs_value DOUBLE PRECISION`,
+  `ALTER TABLE flow_attempts ADD COLUMN IF NOT EXISTS obs_source TEXT`,
+  `ALTER TABLE flow_attempts ADD COLUMN IF NOT EXISTS obs_at BIGINT`,
 ];
 
 type Row = Record<string, unknown>;
@@ -81,6 +89,15 @@ function toAttempt(r: Row): Attempt {
     runId: (r.run_id as string | null) ?? null,
     sessionId: (r.session_id as string | null) ?? null,
     error: (r.error as string | null) ?? null,
+    observation:
+      r.obs_digest === null || r.obs_digest === undefined
+        ? null
+        : {
+            digest: r.obs_digest as string,
+            value: r.obs_value === null || r.obs_value === undefined ? null : Number(r.obs_value),
+            source: (r.obs_source as string | null) ?? "",
+            at: Number(r.obs_at),
+          },
     startedAt: Number(r.started_at),
     finishedAt: r.finished_at === null || r.finished_at === undefined ? null : Number(r.finished_at),
   };
@@ -225,10 +242,24 @@ export function createPostgresFlowStore(
     async finishAttempt(input: FinishAttemptInput): Promise<Attempt | null> {
       const at = now();
       return tx(async (c) => {
+        const obs = input.observation;
         const { rows } = await c.query(
-          `UPDATE flow_attempts SET state=$2, error=$3, finished_at=$4
+          `UPDATE flow_attempts SET state=$2, error=$3, finished_at=$4,
+             obs_digest=COALESCE($5, obs_digest),
+             obs_value=COALESCE($6, obs_value),
+             obs_source=COALESCE($7, obs_source),
+             obs_at=COALESCE($8, obs_at)
            WHERE id=$1 AND state='running' RETURNING *`,
-          [input.attemptId, input.state, input.error ?? null, at],
+          [
+            input.attemptId,
+            input.state,
+            input.error ?? null,
+            at,
+            obs?.digest ?? null,
+            obs?.value ?? null,
+            obs?.source ?? null,
+            obs ? (obs.at ?? at) : null,
+          ],
         );
         const attempt = rows[0] as Row | undefined;
         if (!attempt) return null;

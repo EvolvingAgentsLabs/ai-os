@@ -167,6 +167,68 @@ for (const backend of backends) {
       assert.equal(await store.finishAttempt({ attemptId: attempt!.id, state: "failed" }), null);
     });
 
+    it("an attempt closed without an observation keeps none — absence is not sameness", async () => {
+      const flow = await store.createFlow({ scopeId: SCOPE, title: "t", goal: "g" });
+      const step = await store.appendStep({ flowId: flow.id, intent: "one" });
+      const attempt = await store.startAttempt({ stepId: step!.id });
+      await store.finishAttempt({ attemptId: attempt!.id, state: "done" });
+
+      const read = await store.getFlow(flow.id);
+      assert.equal(read?.steps[0]!.attempts[0]!.observation, null);
+    });
+
+    it("an observation is captured on the attempt, because upstream telemetry expires within the hour", async () => {
+      const flow = await store.createFlow({ scopeId: SCOPE, title: "t", goal: "g" });
+      const step = await store.appendStep({ flowId: flow.id, intent: "one" });
+      const attempt = await store.startAttempt({ stepId: step!.id });
+      await store.finishAttempt({
+        attemptId: attempt!.id,
+        state: "done",
+        observation: { digest: "beef", value: null, source: "files-touched", at: 1_700_000_000 },
+      });
+
+      const read = await store.getFlow(flow.id);
+      const obs = read?.steps[0]!.attempts[0]!.observation;
+      assert.equal(obs?.digest, "beef");
+      assert.equal(obs?.value, null);
+      assert.equal(obs?.source, "files-touched");
+      assert.equal(obs?.at, 1_700_000_000);
+    });
+
+    it("every attempt keeps its own observation, so a repeat is visible across retries", async () => {
+      const flow = await store.createFlow({ scopeId: SCOPE, title: "t", goal: "g" });
+      const step = await store.appendStep({ flowId: flow.id, intent: "one" });
+
+      for (const digest of ["a1", "a1", "b2"]) {
+        const attempt = await store.startAttempt({ stepId: step!.id });
+        await store.transitionStep(step!.id, "running", "pending");
+        await store.finishAttempt({
+          attemptId: attempt!.id,
+          state: "failed",
+          observation: { digest, value: null, source: "files-touched" },
+        });
+        await store.transitionStep(step!.id, "failed", "pending");
+      }
+
+      const read = await store.getFlow(flow.id);
+      const digests = read?.steps[0]!.attempts.map((a) => a.observation?.digest);
+      assert.deepEqual(digests, ["a1", "a1", "b2"]);
+    });
+
+    it("a numeric value rides alongside the digest for shapes that declare a metric", async () => {
+      const flow = await store.createFlow({ scopeId: SCOPE, title: "t", goal: "g" });
+      const step = await store.appendStep({ flowId: flow.id, intent: "one" });
+      const attempt = await store.startAttempt({ stepId: step!.id });
+      await store.finishAttempt({
+        attemptId: attempt!.id,
+        state: "done",
+        observation: { digest: "c3", value: 0.75, source: "eval" },
+      });
+
+      const read = await store.getFlow(flow.id);
+      assert.equal(read?.steps[0]!.attempts[0]!.observation?.value, 0.75);
+    });
+
     it("a fork records its ancestor and the step it left from", async () => {
       const parent = await newFlow();
       const first = await store.appendStep({

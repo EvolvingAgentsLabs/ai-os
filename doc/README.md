@@ -16,6 +16,7 @@ Read in order the first time:
 | 07 | [Freeze policy](07-freeze-policy.md) | What "frozen" means for the other repositories, operationally |
 | 08 | [Roadmap](08-roadmap.md) | Milestones, in dependency order, with the honest blockers |
 | 09 | [Scales](09-scales.md) | Individual, collective, project, system — one axis for flows and memory, and it is `scopeId` |
+| 10 | [Observability](10-observability.md) | Can a flow's progress be read at all? Drift versus unreadable, and the noise floor that separates them |
 
 ## Decisions
 
@@ -30,6 +31,7 @@ when the decision is made, never edited afterwards — superseded instead.
 | [0004](adr/0004-flows-and-the-subagent-record.md) | A flow reads the subagent record (`tasks`) but does not own it | Accepted |
 | [0005](adr/0005-scale-is-scope.md) | The scale of work is its scope; a project is upstream's group, not `team` | Accepted |
 | [0006](adr/0006-ai-flows-lives-outside-core.md) | `ai-flows` is built against the signed HTTP seam, not inside core | Accepted |
+| [0007](adr/0007-observation-captured-not-derived.md) | An attempt's observation is captured when it closes, never derived later | Accepted |
 
 ## House rules for these documents
 

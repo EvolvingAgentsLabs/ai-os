@@ -30,6 +30,25 @@ automáticamente una mejora, y la carga de la prueba está sobre el eje.* Por es
 este documento especifica la versión más barata posible de cada idea y nombra qué
 la falsaría, en vez de especificar la versión elaborada y asumir que gana.
 
+### La regla permanente en que esto se convierte
+
+El resultado de arriba no es una anécdota sobre un experimento. Es la regla para
+todo eje propuesto después de él:
+
+> **Ningún eje nuevo de memoria entra sin un benchmark que el baseline pudiera
+> perder, nombrado antes de construir el eje.**
+
+El diseño de memoria atrae propuestas estructurales con muchísimo atractivo
+previo — episódica contra semántica, corto contra largo plazo, pasadas de
+consolidación, curvas de decaimiento, replay. Cada una es una distinción real en
+algún lado. **Ninguna es evidencia de que un sistema de recuperación mejore por
+codificarla**, y la medición de arriba es cómo se ve una estructura atractiva
+cuando por fin le piden un número: 80%, 80%, 80%.
+
+La regla cuesta una oración por adelantado y es la guarda más barata que tiene
+este pilar. Un eje que no puede nombrar el benchmark que espera ganar no se está
+proponiendo; se está asumiendo.
+
 ## Ya existe un benchmark de memoria upstream
 
 Encontrado después de escribir la primera versión de este documento, lo cual es

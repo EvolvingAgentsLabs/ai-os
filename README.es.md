@@ -71,6 +71,78 @@ La co-presencia en tiempo real es un objetivo legítimo y no es hacia el que
 construimos primero. Delegar trabajo que *sigue corriendo*, sin perder lo que
 aprendió, es la mitad difícil y la parte que no tiene nadie.
 
+## Antes de la interfaz: ¿un flow se puede mirar siquiera?
+
+Multijugador significa que una segunda persona abre trabajo en curso y pregunta
+*¿esto está bien?* Eso es una pregunta de instrumento antes que de interfaz — y
+todo instrumento tiene ruido.
+
+Un flow registra una huella del estado que produjo cada intento. Comparar dos
+parece binario. El canal no es simétrico:
+
+```
+estado sin cambio ──(1−δ)──▶ huella igual
+                  ──( δ )──▶ distinta         ← ruido, no progreso
+estado cambiado   ──( 1 )──▶ distinta
+```
+
+Solo un cambio real puede *romper* una repetición, pero el no determinismo puede
+inventar una diferencia de la nada. Entonces:
+
+> **Una repetición es prueba. Una diferencia es un rumor.**
+
+**δ** es la tasa a la que trabajo *idéntico* produce huellas *distintas*. No es
+una constante de la naturaleza — se mueve con el modelo, el harness y sobre qué
+se toma la huella — así que hay que medirla, no asumirla. Dos curvas explican por
+qué medirla va primero.
+
+**Cuánto puede llevar una comparación.** Esto es un canal Z, y su capacidad es
+
+$$C(\delta) = \log_2\left(1 + (1-\delta)\,\delta^{\frac{\delta}{1-\delta}}\right)$$
+
+```
+bits                                        flows trabados detectados, ventana 3
+1.0 │•                                      1.0 │•
+    │ ••                                        │ ••
+    │   •••                                     │   ••
+    │      ••••                                 │     ••
+    │          •••••                            │       •••
+    │               ••••••                      │          •••
+    │                     •••••••               │             •••••
+    │                            ••••••••       │                  •••••••
+0.0 │                                    ••     0.0 │                         ••••••••
+    └────────────────────────────────────       └─────────────────────────────────────
+     0                    δ               1      0                    δ              1
+```
+
+La curva de la derecha es $(1-\delta)^w$ — un flow trabado se delata **solo**
+repitiendo, y el ruido rompe la repetición.
+
+| δ | 0.0 | 0.2 | 0.5 | 0.8 |
+|---|---|---|---|---|
+| bits por comparación | 1.000 | 0.618 | 0.322 | 0.114 |
+| flows trabados detectados | 100% | 51% | 13% | **0.8%** |
+
+Con δ = 0.8 un flow puede estar muerto una semana mientras el sistema informa
+progreso. Esperar más no ayuda; esperar es justo lo que el ruido está destruyendo.
+
+**Así que la compuerta va sobre el instrumento, no sobre el flow.** Antes de que
+la detección de deriva, los presupuestos o cualquier regla de convergencia
+signifiquen algo, δ tiene que ser un número.
+[`observabilityOf`](ai-flows/src/observability.ts) se niega a llamar
+*progressing* a un flow cuando δ dice que uno trabado habría pasado
+desapercibido; responde `unreadable`, que es una afirmación sobre el registro y
+no sobre el trabajo.
+
+Esa es la distinción que los flows realmente necesitan. **Deriva** — visible y
+detenido — quiere más pasos. **Ilegible** — moviéndose hasta donde se puede saber
+— quiere un instrumento mejor, y ninguna cantidad de pasos lo reemplaza.
+
+> **Estado:** el módulo está implementado y testeado. **δ no fue medido sobre
+> trabajo real todavía.** Si ese experimento vuelve diciendo que las huellas nunca
+> se repiten, el enfoque muere y se informa muerto —
+> [doc/es/10-observability.md](doc/es/10-observability.md).
+
 ## Por qué existe
 
 QM resuelve la parte que la mayoría de los proyectos de agentes hace mal: un

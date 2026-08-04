@@ -19,6 +19,7 @@ Leer en orden la primera vez:
 | 07 | [Política de congelado](07-freeze-policy.md) | Qué significa "congelado", operativamente |
 | 08 | [Roadmap](08-roadmap.md) | Milestones, en orden de dependencia, con los bloqueos dichos con honestidad |
 | 09 | [Escalas](09-scales.md) | Individual, colectivo, proyecto, sistema — un solo eje para flows y memoria, y es el `scopeId` |
+| 10 | [Observabilidad](10-observability.md) | ¿Se puede leer el progreso de un flow? Deriva contra ilegible, y el piso de ruido que las separa |
 
 ## Decisiones
 
@@ -33,6 +34,7 @@ escrito cuando se toma, **nunca editado después** — se reemplaza (*superseded
 | [0004](adr/0004-flows-and-the-subagent-record.md) | Un flow lee el registro de subagentes (`tasks`) pero no lo posee | Aceptada |
 | [0005](adr/0005-scale-is-scope.md) | La escala del trabajo es su scope; un proyecto es el grupo de upstream, no `team` | Aceptada |
 | [0006](adr/0006-ai-flows-lives-outside-core.md) | `ai-flows` se construye contra el seam HTTP firmado, no adentro del core | Aceptada |
+| [0007](adr/0007-observation-captured-not-derived.md) | La observación de un intento se captura al cerrarlo, nunca se deriva después | Aceptada |
 
 ## Reglas de la casa para estos documentos
 
