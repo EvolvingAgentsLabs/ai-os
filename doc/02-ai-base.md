@@ -1,5 +1,10 @@
 # 02 · ai-base — what QM gives us
 
+<img src="assets/02-ai-base.jpg" alt="" width="100%">
+
+<sub>One foundation, split by a seam that still holds.</sub>
+
+
 > Everything here was read at `ai-base` commit `7f2c916`
 > (upstream `yc-software/qm@main`, 2026-07-31). QM pushes daily. **Re-verify
 > before relying on any line number in this document.**

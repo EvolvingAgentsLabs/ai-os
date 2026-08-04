@@ -1,5 +1,10 @@
 # 04 · ai-ui — the intelligent canvas
 
+<img src="assets/04-ai-ui.jpg" alt="" width="100%">
+
+<sub>A stream rearranged into a map.</sub>
+
+
 > **Status: specified, not implemented.**
 
 ## The problem

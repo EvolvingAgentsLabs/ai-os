@@ -1,5 +1,10 @@
 # 01 · Arquitectura
 
+<img src="../assets/01-architecture.jpg" alt="" width="100%">
+
+<sub>Cuatro capas, unidas en unos pocos puntos precisos.</sub>
+
+
 > **El inglés es canónico.** Traducción de [`doc/01-architecture.md`](../01-architecture.md).
 
 ## El stack

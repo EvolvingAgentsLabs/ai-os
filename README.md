@@ -1,4 +1,8 @@
+<img src="doc/assets/icon.png" alt="" width="76" align="left" hspace="14">
+
 # ai-os
+
+<img src="doc/assets/hero.jpg" alt="" width="100%">
 
 **An agent-based operating system.** Built on top of [QM](https://github.com/yc-software/qm),
 and going past it in four directions: how work is *shaped* (`ai-flows`), how the
@@ -93,23 +97,9 @@ why measuring it comes first.
 
 $$C(\delta) = \log_2\left(1 + (1-\delta)\,\delta^{\frac{\delta}{1-\delta}}\right)$$
 
-```
-bits                                            stuck flows noticed, window 3
-1.0 │•                                      1.0 │•
-    │ ••                                        │ ••
-    │   •••                                     │   ••
-    │      ••••                                 │     ••
-    │          •••••                            │       •••
-    │               ••••••                      │          •••
-    │                     •••••••               │             •••••
-    │                            ••••••••       │                  •••••••
-0.0 │                                    ••     0.0 │                         ••••••••
-    └────────────────────────────────────       └─────────────────────────────────────
-     0                    δ               1      0                    δ              1
-```
+<img src="doc/assets/noise-floor.svg" alt="Capacity and detection probability against the noise floor" width="100%">
 
-The right-hand curve is $(1-\delta)^w$ — a stuck flow announces itself **only** by
-repeating, and noise breaks the repeat.
+<sub>Computed, not drawn — straight from <code>channelCapacity</code> and <code>detectionProbability</code>. The right-hand curve is $(1-\delta)^w$: a stuck flow announces itself <b>only</b> by repeating, and noise breaks the repeat.</sub>
 
 | δ | 0.0 | 0.2 | 0.5 | 0.8 |
 |---|---|---|---|---|

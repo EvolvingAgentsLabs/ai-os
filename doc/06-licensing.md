@@ -1,5 +1,10 @@
 # 06 · Licensing
 
+<img src="assets/06-licensing.jpg" alt="" width="100%">
+
+<sub>Apache over MIT, and what the overlap permits.</sub>
+
+
 > Not legal advice. This is an engineering document recording what we did and
 > why. If ai-os is ever commercialised or contributed to by non-employees, have
 > a lawyer read this page.

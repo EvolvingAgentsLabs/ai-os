@@ -1,5 +1,10 @@
 # 09 · Escalas — a quién pertenece un flow
 
+<img src="../assets/09-scales.jpg" alt="" width="100%">
+
+<sub>De individual a sistema — un solo eje, y es el scope.</sub>
+
+
 > **El inglés es canónico.** Traducción de [`doc/09-scales.md`](../09-scales.md).
 
 > **Estado: el eje está especificado. Sólo la escala individual entra en M2.**

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+<rect width="1280" height="640" fill="#0B0D0F"/>
+<line x1="0" y1="96" x2="1280" y2="96" stroke="#6B7076" stroke-width="1" opacity="0.26"/>
+<line x1="0" y1="140" x2="1280" y2="140" stroke="#6B7076" stroke-width="1" opacity="0.16"/>
+<line x1="0" y1="184" x2="1280" y2="184" stroke="#6B7076" stroke-width="1" opacity="0.16"/>
+<line x1="0" y1="228" x2="1280" y2="228" stroke="#6B7076" stroke-width="1" opacity="0.26"/>
+<line x1="0" y1="272" x2="1280" y2="272" stroke="#6B7076" stroke-width="1" opacity="0.16"/>
+<line x1="0" y1="316" x2="1280" y2="316" stroke="#6B7076" stroke-width="1" opacity="0.16"/>
+<line x1="0" y1="360" x2="1280" y2="360" stroke="#6B7076" stroke-width="1" opacity="0.26"/>
+<line x1="0" y1="404" x2="1280" y2="404" stroke="#6B7076" stroke-width="1" opacity="0.16"/>
+<line x1="0" y1="448" x2="1280" y2="448" stroke="#6B7076" stroke-width="1" opacity="0.16"/>
+<line x1="0" y1="492" x2="1280" y2="492" stroke="#6B7076" stroke-width="1" opacity="0.26"/>
+<line x1="0" y1="536" x2="1280" y2="536" stroke="#6B7076" stroke-width="1" opacity="0.16"/>
+<line x1="100" y1="320" x2="400" y2="320" stroke="#E8A33D" stroke-width="13" stroke-linecap="round"/>
+<rect x="231" y="188" width="38" height="264" fill="#0B0D0F"/>
+<rect x="231" y="188" width="38" height="264" fill="none" stroke="#F2EFE9" stroke-width="9"/>
+<circle cx="162" cy="320" r="24" fill="#E8A33D"/>
+<circle cx="162" cy="320" r="9" fill="#0B0D0F"/>
+<circle cx="338" cy="320" r="24" fill="#E8A33D"/>
+<circle cx="338" cy="320" r="9" fill="#0B0D0F"/>
+<text x="470" y="286" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="104" font-weight="700" fill="#F2EFE9" letter-spacing="-2">ai-os</text>
+<text x="474" y="346" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="27" fill="#4A7C7E">an agent operating system</text>
+<text x="474" y="412" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="25" fill="#E8A33D">A repeat is proof.</text>
+<text x="474" y="450" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="25" fill="#6B7076">A difference is a rumour.</text>
+<line x1="474" y1="492" x2="700" y2="492" stroke="#6B7076" stroke-width="1.5" opacity="0.6"/>
+<text x="474" y="530" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#6B7076">EvolvingAgentsLabs  ·  Apache 2.0</text>
+</svg>

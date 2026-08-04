@@ -1,5 +1,10 @@
 # 10 · Observabilidad — ¿el trabajo se puede mirar siquiera?
 
+<img src="../assets/10-observability.jpg" alt="" width="100%">
+
+<sub>Una repetición destacándose del ruido. Hasta que el ruido gana.</sub>
+
+
 > **Estado: el módulo está implementado y testeado. El número del que depende no
 > está medido.** `ai-flows/src/observability.ts` — 20 tests, todos pasando
 > **[ran]**; 36 en todo `ai-flows`.
@@ -66,19 +71,9 @@ $$P(\text{detectado}) = (1-\delta)^w$$
 | $C(\delta)$ bits | 1.000 | 0.763 | 0.618 | 0.504 | 0.322 | 0.114 | 0.055 |
 | $(1-\delta)^3$ | 1.000 | 0.729 | 0.512 | 0.343 | 0.125 | **0.008** | 0.001 |
 
-```
-1.0 │•                       (1−δ)³ — flows trabados alguna vez detectados
-    │ ••
-    │   ••
-    │     ••
-    │       •••
-    │          •••
-    │             •••••
-    │                  •••••••
-0.0 │                         ••••••••••••••••
-    └─────────────────────────────────────────
-     0                    δ                  1
-```
+<img src="../assets/noise-floor.svg" alt="Capacidad y probabilidad de detección contra el piso de ruido" width="100%">
+
+<sub>Las dos curvas están computadas, no dibujadas — los valores salen directo de <code>channelCapacity</code> y <code>detectionProbability</code>.</sub>
 
 Con δ = 0.8, unos ocho flows trabados de cada mil se ven alguna vez. Un flow
 puede estar muerto una semana mientras el sistema informa progreso, y **esperar

@@ -1,5 +1,10 @@
 # 02 · ai-base — qué nos da QM
 
+<img src="../assets/02-ai-base.jpg" alt="" width="100%">
+
+<sub>Una base, partida por una junta que igual sostiene.</sub>
+
+
 > **El inglés es canónico.** Traducción de [`doc/02-ai-base.md`](../02-ai-base.md).
 >
 > Todo acá fue leído en el commit `7f2c916` de `ai-base` (upstream

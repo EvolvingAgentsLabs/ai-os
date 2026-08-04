@@ -1,5 +1,10 @@
 # 05 · ai-storage — memory with an address space
 
+<img src="assets/05-ai-storage.jpg" alt="" width="100%">
+
+<sub>Four levels. Only one promotion arrow is built.</sub>
+
+
 > **Status: specified, not implemented.**
 >
 > **Read the "Prior result" section before designing anything here.** A closely

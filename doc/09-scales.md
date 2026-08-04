@@ -1,5 +1,10 @@
 # 09 · Scales — who a flow belongs to
 
+<img src="assets/09-scales.jpg" alt="" width="100%">
+
+<sub>Individual to system — one axis, and it is the scope.</sub>
+
+
 > **Status: the axis is specified. Only the individual scale is in M2 scope.**
 >
 > This document exists because the same question was about to be answered twice —

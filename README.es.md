@@ -1,4 +1,8 @@
+<img src="doc/assets/icon.png" alt="" width="76" align="left" hspace="14">
+
 # ai-os
+
+<img src="doc/assets/hero.jpg" alt="" width="100%">
 
 **Un sistema operativo basado en agentes.** Construido sobre
 [QM](https://github.com/yc-software/qm), y yendo más allá en cuatro direcciones:
@@ -100,23 +104,9 @@ qué medirla va primero.
 
 $$C(\delta) = \log_2\left(1 + (1-\delta)\,\delta^{\frac{\delta}{1-\delta}}\right)$$
 
-```
-bits                                        flows trabados detectados, ventana 3
-1.0 │•                                      1.0 │•
-    │ ••                                        │ ••
-    │   •••                                     │   ••
-    │      ••••                                 │     ••
-    │          •••••                            │       •••
-    │               ••••••                      │          •••
-    │                     •••••••               │             •••••
-    │                            ••••••••       │                  •••••••
-0.0 │                                    ••     0.0 │                         ••••••••
-    └────────────────────────────────────       └─────────────────────────────────────
-     0                    δ               1      0                    δ              1
-```
+<img src="doc/assets/noise-floor.svg" alt="Capacidad y probabilidad de detección contra el piso de ruido" width="100%">
 
-La curva de la derecha es $(1-\delta)^w$ — un flow trabado se delata **solo**
-repitiendo, y el ruido rompe la repetición.
+<sub>Computadas, no dibujadas — directo de <code>channelCapacity</code> y <code>detectionProbability</code>. La curva de la derecha es $(1-\delta)^w$: un flow trabado se delata <b>solo</b> repitiendo, y el ruido rompe la repetición.</sub>
 
 | δ | 0.0 | 0.2 | 0.5 | 0.8 |
 |---|---|---|---|---|

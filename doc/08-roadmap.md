@@ -1,5 +1,10 @@
 # 08 · Roadmap
 
+<img src="assets/08-roadmap.jpg" alt="" width="100%">
+
+<sub>Two milestones solid, the rest still outlines.</sub>
+
+
 Milestones in dependency order. Each states what "done" means and what would
 show it was not worth doing. No dates — this organisation's estimates have not
 been informative.

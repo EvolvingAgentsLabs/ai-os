@@ -1,5 +1,10 @@
 # 04 · ai-ui — el canvas inteligente
 
+<img src="../assets/04-ai-ui.jpg" alt="" width="100%">
+
+<sub>Un stream reordenado como mapa.</sub>
+
+
 > **El inglés es canónico.** Traducción de [`doc/04-ai-ui.md`](../04-ai-ui.md).
 >
 > **Estado: especificado, no implementado.**

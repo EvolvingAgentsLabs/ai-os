@@ -1,5 +1,10 @@
 # 03 · ai-flows
 
+<img src="../assets/03-ai-flows.jpg" alt="" width="100%">
+
+<sub>Seis formas. La última no termina nunca, a propósito.</sub>
+
+
 > **El inglés es canónico.** Traducción de [`doc/03-ai-flows.md`](../03-ai-flows.md).
 >
 > **Estado: especificado, no implementado.**
