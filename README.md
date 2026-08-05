@@ -119,10 +119,13 @@ That is the distinction flows actually need. **Drift** — visible and not movin
 wants more steps. **Unreadable** — moving as far as anyone can tell — wants a
 better instrument, and no number of steps substitutes for one.
 
-> **Status:** the module is implemented and tested. **δ has not been measured on
-> real work yet.** If that experiment comes back saying fingerprints never
-> repeat, the approach dies and gets reported dead —
-> [doc/10-observability.md](doc/10-observability.md).
+> **Status: measured.** 22 turns on `pi` / `deepseek-v4-flash`, repeating identical
+> work. **δ = 21.1% over raw reply text, 0% once normalized** — and every divergence
+> was presentation, in the worst group literally backticks. Zero observed is not
+> zero: the 95% upper bound is 14.6%, so a stuck flow is still caught at least 62%
+> of the time. **The measurement changed the code** — `digestOf` normalizes now,
+> because it did not before. Full result, and the three things it does *not*
+> establish, in [doc/10-observability.md](doc/10-observability.md).
 
 ## Why this exists
 

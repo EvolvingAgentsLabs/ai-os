@@ -128,10 +128,13 @@ Esa es la distinción que los flows realmente necesitan. **Deriva** — visible 
 detenido — quiere más pasos. **Ilegible** — moviéndose hasta donde se puede saber
 — quiere un instrumento mejor, y ninguna cantidad de pasos lo reemplaza.
 
-> **Estado:** el módulo está implementado y testeado. **δ no fue medido sobre
-> trabajo real todavía.** Si ese experimento vuelve diciendo que las huellas nunca
-> se repiten, el enfoque muere y se informa muerto —
-> [doc/es/10-observability.md](doc/es/10-observability.md).
+> **Estado: medido.** 22 turnos en `pi` / `deepseek-v4-flash`, repitiendo trabajo
+> idéntico. **δ = 21.1% sobre el texto crudo, 0% una vez normalizado** — y toda la
+> divergencia era presentación: en el peor grupo, literalmente backticks. Cero
+> observado no es cero: la cota al 95% es 14.6%, así que un flow trabado igual se
+> detecta al menos el 62% de las veces. **La medición cambió el código** —
+> `digestOf` ahora normaliza, porque antes no. Resultado completo, y las tres cosas
+> que *no* establece, en [doc/es/10-observability.md](doc/es/10-observability.md).
 
 ## Por qué existe
 

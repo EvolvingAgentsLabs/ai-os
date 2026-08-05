@@ -22,9 +22,30 @@ import { createHash } from "node:crypto";
  * Nothing here consumes a flow's state. It reports; the engine decides.
  */
 
-/** One candidate fingerprint, not the decision. Which digest to use is settled by measurement. */
+/**
+ * The default fingerprint, and it normalizes before hashing. **[ran]**
+ *
+ * Measured on `pi` / `deepseek/deepseek-v4-flash`, 22 turns of repeated identical
+ * work: δ was 21.1% pooled over the raw text and **0% once normalized**. Every
+ * observed divergence was presentation — in the worst group, the model returned
+ * `src/types.ts` three times and `` `src/types.ts` `` five times. Backticks alone
+ * drove that group's raw δ to 53.6%, which is enough noise to hide half the stuck
+ * flows in the window.
+ *
+ * So casing, punctuation and spacing are stripped: they are the part the model is
+ * free to vary without the state having changed, and a fingerprint that counts
+ * them is measuring prose style rather than work.
+ *
+ * This is a floor, not a ceiling. A caller with something better — the set of
+ * files touched, a structured result — should fingerprint that and say so in
+ * `Observation.source`. See doc/10-observability.md § What was measured.
+ */
 export function digestOf(text: string): string {
-  return createHash("sha256").update(text).digest("hex").slice(0, 16);
+  const normalized = text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  return createHash("sha256").update(normalized).digest("hex").slice(0, 16);
 }
 
 /**

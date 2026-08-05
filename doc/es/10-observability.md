@@ -5,9 +5,62 @@
 <sub>Una repetición destacándose del ruido. Hasta que el ruido gana.</sub>
 
 
-> **Estado: el módulo está implementado y testeado. El número del que depende no
-> está medido.** `ai-flows/src/observability.ts` — 20 tests, todos pasando
-> **[ran]**; 36 en todo `ai-flows`.
+> **Estado: implementado, testeado, y δ medido una vez.** `ai-flows/src/observability.ts`
+> — 23 tests **[ran]**; 39 en todo `ai-flows`. La medición está abajo y cambió el
+> código.
+
+## Qué se midió **[ran]**
+
+2026-08-04, sobre el harness objetivo y no sobre un proxy: `HARNESS=pi`,
+`deepseek/deepseek-v4-flash` vía OpenRouter, en proceso con `app.turn`.
+**22 turnos, todos `ok`** — tres tareas que representan tres tipos de paso: uno de
+planificación (qué archivos hay que cambiar), uno de evaluación (un veredicto de
+una palabra) y uno de herramienta (un comando en el sandbox). Cada uno repetido
+desde un estado inicial idéntico, en un thread nuevo. Scripts:
+`ai-flows/scripts/delta-probe.ts` y `delta-report.ts`, que importa las mismas
+funciones que describe este documento, así el reporte no puede desviarse de la
+implementación que reporta.
+
+| Huella tomada sobre | δ agrupado | C(δ) | (1−δ)³ |
+|---|---|---|---|
+| texto crudo de la respuesta | **21.1%** | 0.604 | 49.1% |
+| texto normalizado | **0%** | 1.000 | 100% |
+| payload extraído | **0%** | 1.000 | 100% |
+
+**Toda la divergencia era presentación.** El peor grupo fue el paso de
+planificación, δ crudo = 53.6% — y la diferencia entera era que el modelo escribió
+``​`src/types.ts`​`` cinco veces y `src/types.ts` tres veces. Backticks. Con
+normalización los grupos colapsan a un solo valor cada uno: `src/types.ts` 8/8,
+`YES` 8/8, `a-b-c` 6/6.
+
+**Cero observado no es cero.** Con 8+8+6 muestras la cota superior al 95% sobre δ
+es **14.6%**, así que la detección con *w* = 3 es en el peor caso **62.3%** —
+cómodamente por encima del piso de 5% donde el instrumento deja de ver flows
+trabados. El módulo sobrevive su primera prueba de falsación, y la sobrevive en el
+extremo pesimista del intervalo, no solo en la estimación puntual.
+
+### Qué cambió
+
+`digestOf` ahora normaliza antes de hashear. Antes no lo hacía, y shippearlo así
+habría metido 21% de ruido en cada comparación a cambio de nada — los bytes crudos
+medían estilo de redacción, no trabajo. El caso de los backticks quedó como test de
+regresión, con el dato medido en el comentario.
+
+### Qué no establece esto
+
+Dicho porque el resultado es lo bastante limpio como para leerse de más.
+
+1. **Las tareas eran breves por instrucción** — "solo los paths", "exactamente una
+   palabra". Un paso `Open` discursivo tiene muchísimo más margen para variar, y δ
+   sobre uno de esos no está medido. Este número es honesto para observaciones
+   *estructuradas*, que es sobre lo que conviene tomar `Observation.digest` de
+   todos modos, y optimista para cualquier otra cosa.
+2. **La tarea de evaluación tenía respuesta inequívoca**, y los 8 turnos la
+   encontraron. Un veredicto al límite es donde una huella de eval se pondría
+   realmente a prueba.
+3. **δ depende del harness por definición.** Esto es un modelo sobre un harness.
+   Otro modelo, o `claude`/`codex`, necesita su propio número — y por eso la sonda
+   es un script commiteado y no un párrafo.
 
 ## La pregunta que esta hace y las otras no
 

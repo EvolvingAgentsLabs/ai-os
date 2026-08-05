@@ -139,4 +139,20 @@ describe("the fingerprint helper", () => {
     assert.equal(digestOf("same").length, 16);
     assert.notEqual(digestOf("same"), digestOf("different"));
   });
+
+  it("ignores the backticks that drove measured δ to 53.6% on raw text", () => {
+    // Verbatim from the probe: the model answered `src/types.ts` three times and
+    // src/types.ts five times, and nothing about the state differed.
+    assert.equal(digestOf("`src/types.ts`"), digestOf("src/types.ts"));
+  });
+
+  it("ignores casing, spacing and trailing punctuation", () => {
+    assert.equal(digestOf("Done: src/types.ts."), digestOf("done   src/types.ts"));
+    assert.equal(digestOf("  YES  "), digestOf("yes"));
+  });
+
+  it("still separates states that genuinely differ", () => {
+    assert.notEqual(digestOf("src/types.ts"), digestOf("src/flow-store.ts"));
+    assert.notEqual(digestOf("YES"), digestOf("NO"));
+  });
 });
