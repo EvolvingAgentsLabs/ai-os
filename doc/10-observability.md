@@ -16,9 +16,9 @@
 **22 turns, all `ok`** — three tasks standing in for three kinds of flow step: a
 planning step (which files must change), an eval step (a one-word verdict), and a
 tool step (a command run in the sandbox). Each repeated from an identical starting
-state on a fresh thread. Scripts: `ai-base/scripts/delta-probe.ts` and
-`ai-flows/scripts/delta-report.ts`, the latter importing the same functions this
-document describes.
+state on a fresh thread. Scripts: `ai-flows/scripts/delta-probe.ts` and
+`delta-report.ts`, the latter importing the same functions this document describes,
+so the report cannot drift from the implementation it reports on.
 
 | Fingerprint taken over | δ pooled | C(δ) | (1−δ)³ |
 |---|---|---|---|

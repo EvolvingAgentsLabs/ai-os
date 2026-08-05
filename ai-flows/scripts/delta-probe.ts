@@ -13,15 +13,20 @@
  * Writes raw results as JSON. It computes no δ itself: that is done by
  * ai-flows/src/observability.ts, so the number comes from the shipped code.
  *
- *   node --env-file-if-exists=.env scripts/delta-probe.ts [repeats] > out.json
+ * Lives here rather than in ai-base/scripts: everything under ai-base/ is vendored
+ * upstream, where org-specific files do not belong and the house style is zero
+ * comments. It reaches into the base by relative path, which is a measurement
+ * reading the machine — not ai-flows depending on core (ADR-0006).
+ *
+ *   cd ai-flows && node --env-file-if-exists=../ai-base/.env scripts/delta-probe.ts 8 > /tmp/delta.json
  */
 import { createHash } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadConfig } from "../src/config.ts";
-import { buildApp } from "../src/wiring.ts";
-import type { TurnRequest } from "../src/types.ts";
+import { loadConfig } from "../../ai-base/src/config.ts";
+import { buildApp } from "../../ai-base/src/wiring.ts";
+import type { TurnRequest } from "../../ai-base/src/types.ts";
 
 const REPEATS = Number(process.argv[2] ?? 8);
 const sha = (s: string) => createHash("sha256").update(s).digest("hex").slice(0, 16);
@@ -42,7 +47,10 @@ interface Task {
 }
 
 const sortedTokens = (re: RegExp) => (reply: string) =>
-  [...new Set(reply.match(re) ?? [])].map((s) => s.toLowerCase()).sort().join(",");
+  [...new Set(reply.match(re) ?? [])]
+    .map((s) => s.toLowerCase())
+    .sort()
+    .join(",");
 
 const TASKS: Task[] = [
   {

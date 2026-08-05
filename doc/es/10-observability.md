@@ -17,8 +17,9 @@
 planificación (qué archivos hay que cambiar), uno de evaluación (un veredicto de
 una palabra) y uno de herramienta (un comando en el sandbox). Cada uno repetido
 desde un estado inicial idéntico, en un thread nuevo. Scripts:
-`ai-base/scripts/delta-probe.ts` y `ai-flows/scripts/delta-report.ts`, que importa
-las mismas funciones que describe este documento.
+`ai-flows/scripts/delta-probe.ts` y `delta-report.ts`, que importa las mismas
+funciones que describe este documento, así el reporte no puede desviarse de la
+implementación que reporta.
 
 | Huella tomada sobre | δ agrupado | C(δ) | (1−δ)³ |
 |---|---|---|---|
