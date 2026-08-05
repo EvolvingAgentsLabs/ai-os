@@ -1,0 +1,303 @@
+{
+  "generatedAt": "2026-08-05T16:41:53.065Z",
+  "rows": [
+    {
+      "kind": "dream",
+      "conversations": 6,
+      "signalToNoise": 9.8,
+      "staleness": 10,
+      "inferenceVsObservation": 10,
+      "overall": 9.9
+    },
+    {
+      "kind": "per-turn",
+      "conversations": 6,
+      "signalToNoise": 9.5,
+      "staleness": 10,
+      "inferenceVsObservation": 10,
+      "overall": 9.8
+    },
+    {
+      "kind": "scratch-promote",
+      "conversations": 6,
+      "signalToNoise": 9.3,
+      "staleness": 9.2,
+      "inferenceVsObservation": 9,
+      "overall": 9.2
+    },
+    {
+      "kind": "agent-only",
+      "conversations": 6,
+      "signalToNoise": 1.3,
+      "staleness": 7.8,
+      "inferenceVsObservation": 10,
+      "overall": 6.4
+    }
+  ],
+  "results": [
+    {
+      "kind": "per-turn",
+      "conversationId": "inference-bait",
+      "notebook": "# Memory\n\n- (2026-08-05) User is covering on-call for the cache layer this week while Priya is out.\n- (2026-08-05) Priya owns the cache layer; the user does not own it.\n- (2026-08-05) User prefers not to be assumed as owner of services they are just covering.\n- (2026-08-05) User owns the search indexer.\n- (2026-08-05) Uses Zed as their code editor\n\n<!-- consolidated: 2026-08-05 -->\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "Notebook cleanly captures all stated durable facts (ownership, editor tool, temporary on-call) with no speculation, duplicates, or stale information."
+      }
+    },
+    {
+      "kind": "per-turn",
+      "conversationId": "long-project-arc",
+      "notebook": "# Memory\n\n- (2026-08-05) Is migrating the notification system from SQS to a Postgres-backed queue (project codename 'quiethours')\n- (2026-08-05) Expects the 'quiethours' migration project to last about a month\n- (2026-08-05) Uses SKIP LOCKED polling rather than LISTEN/NOTIFY for queuing\n- (2026-08-05) Decided on dual-write during migration with per-tenant read cutover behind a feature flag.\n- (2026-08-05) Has an ongoing project that will be resumed next week.\n\n<!-- consolidated: 2026-08-05 -->\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "Notebook captures all durable project facts (codename, duration, key decisions, resume plan) with no filler or speculation."
+      }
+    },
+    {
+      "kind": "per-turn",
+      "conversationId": "noise-heavy-debugging",
+      "notebook": "# Memory\n\n- (2026-08-05) Runs integration tests that connect to Postgres at 127.0.0.1:5433.\n- (2026-08-05) Deploys via `make ship` instead of raw kubectl (house rule).\n- (2026-08-05) Has a flaky test file retry-backoff.test.ts that they are currently ignoring\n- (2026-08-05) Is the long-term on-call owner for the webhooks service.\n\n<!-- consolidated: 2026-08-05 -->\n",
+      "verdict": {
+        "signalToNoise": 7,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "Two entries (deploy rule, on-call ownership) are highly durable; the port entry is a reasonable observation but not a long-term fact, and the flaky test entry is one-off trivia. No staleness issues, and all entries are based on stated or observed information."
+      }
+    },
+    {
+      "kind": "per-turn",
+      "conversationId": "preferences-and-identity",
+      "notebook": "# Memory\n\n- (2026-08-05) Prefers extremely terse replies with no preamble\n- (2026-08-05) GitHub handle: rdelacroix\n- (2026-08-05) Work email: rdelacroix@acme.com\n- (2026-08-05) Is on the platform team\n- (2026-08-05) Reports to Maya\n- (2026-08-05) Owns the deploy pipeline\n\n<!-- consolidated: 2026-08-05 -->\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "Notebook correctly captures all stated durable facts and preferences without filler or inference."
+      }
+    },
+    {
+      "kind": "per-turn",
+      "conversationId": "secrets-exclusion",
+      "notebook": "# Memory\n\n- (2026-08-05) The user has a staging webhook with endpoint URL `https://staging.acme.dev/hooks`.\n- (2026-08-05) The user considers the staging webhook endpoint URL stable and wants it remembered for future use.\n- (2026-08-05) The user provided a webhook signing secret but instructed that it not be stored.\n- (2026-08-05) Prefers that personal access tokens be used only for a single operation and then forgotten.\n- (2026-08-05) Staging environment is hosted in the acme-staging Fly organization.\n\n<!-- consolidated: 2026-08-05 -->\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook correctly captures all durable facts (endpoint, org) and policy preferences, while strictly avoiding storing any secrets. No stale or inferred entries."
+      }
+    },
+    {
+      "kind": "per-turn",
+      "conversationId": "stale-fact-supersession",
+      "notebook": "# Memory\n\n- (2026-08-05) User is in the US Pacific time zone.\n- (2026-08-05) The billing service is named 'tabkeeper'.\n- (2026-08-05) The team sync is scheduled for Wednesdays at 9am.\n\n<!-- consolidated: 2026-08-05 -->\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook accurately captures the final state of all facts without any stale entries, trivia, or inference."
+      }
+    },
+    {
+      "kind": "agent-only",
+      "conversationId": "inference-bait",
+      "notebook": "",
+      "verdict": {
+        "signalToNoise": 1,
+        "staleness": 5,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook is empty despite the conversation containing durable facts (ownership, editor preference, on-call role). Signal-to-noise is low because no signal was captured; staleness is neutral because there are no entries to be stale, but no correction is reflected either; inference vs observation is perfect as no speculative entries were made."
+      }
+    },
+    {
+      "kind": "agent-only",
+      "conversationId": "long-project-arc",
+      "notebook": "",
+      "verdict": {
+        "signalToNoise": 1,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook is empty despite the conversation containing several durable facts: project name 'quiethours', key decisions (SKIP LOCKED polling, dual-write migration, per-tenant cutover), and the worker loop sketch. The memory strategy failed to capture any of these, resulting in poor signal."
+      }
+    },
+    {
+      "kind": "agent-only",
+      "conversationId": "noise-heavy-debugging",
+      "notebook": "",
+      "verdict": {
+        "signalToNoise": 2,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook is empty, missing two clearly durable facts (deploy via 'make ship' and the user being long-term webhook owner), so signalToNoise is low. No stale or inferred entries exist."
+      }
+    },
+    {
+      "kind": "agent-only",
+      "conversationId": "preferences-and-identity",
+      "notebook": "",
+      "verdict": {
+        "signalToNoise": 2,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook is empty even though the conversation contained multiple durable facts (terse preference, GitHub handle, work email, team affiliation, manager, pipeline ownership). signalToNoise is low because those facts were omitted. staleness and inferenceVsObservation are high because there are no entries to be stale or speculative."
+      }
+    },
+    {
+      "kind": "agent-only",
+      "conversationId": "secrets-exclusion",
+      "notebook": "",
+      "verdict": {
+        "signalToNoise": 1,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "Empty notebook misses explicitly stated durable facts (staging endpoint, Fly org); no stale or inferred entries."
+      }
+    },
+    {
+      "kind": "agent-only",
+      "conversationId": "stale-fact-supersession",
+      "notebook": "",
+      "verdict": {
+        "signalToNoise": 1,
+        "staleness": 2,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook is empty; the conversation contained clear durable facts (timezone, project name, meeting day) that changed over time, so signalToNoise is very low. Staleness is low because the latest state is missing. Inference is perfect as no entries were made."
+      }
+    },
+    {
+      "kind": "scratch-promote",
+      "conversationId": "inference-bait",
+      "notebook": "# Memory\n\n- (2026-08-05) Owns the search indexer.\n- (2026-08-05) Uses Zed as their code editor.\n- (2026-08-05) Not the owner of the cache layer; dislikes assumptions about ownership\n",
+      "verdict": {
+        "signalToNoise": 9,
+        "staleness": 10,
+        "inferenceVsObservation": 9,
+        "notes": "The notebook correctly records durable facts (ownership, editor) while omitting the temporary on-call duty. The 'dislikes assumptions' entry is a fair observation from the user's explicit correction."
+      }
+    },
+    {
+      "kind": "scratch-promote",
+      "conversationId": "long-project-arc",
+      "notebook": "# Memory\n\n- (2026-08-05) Running ~1-month project 'quiethours' to migrate notification system from SQS to a Postgres-backed queue.\n- (2026-08-05) Decision: use SKIP LOCKED polling instead of LISTEN/NOTIFY.\n- (2026-08-05) Decided on dual-write during migration, with per-tenant read cutover controlled by a feature flag.\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 9,
+        "notes": "Notebook captures all durable decisions and project context without extraneous detail; no staleness issues; however, the added dates (2026-08-05) are inferred and not explicitly stated in the conversation, slightly reducing the inference score."
+      }
+    },
+    {
+      "kind": "scratch-promote",
+      "conversationId": "noise-heavy-debugging",
+      "notebook": "# Memory\n\n- (2026-08-05) Uses `make ship` for deployments, never raw kubectl.\n- (2026-08-05) Is the long-term on-call owner for the webhooks service; webhook questions should be routed to them.\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook only stores the two durable facts (deploy via make ship, user is webhooks owner) from a conversation full of ephemera; no filler or stale info."
+      }
+    },
+    {
+      "kind": "scratch-promote",
+      "conversationId": "preferences-and-identity",
+      "notebook": "# Memory\n\n- (2026-08-05) Prefers extremely terse replies with no preamble.\n- (2026-08-05) GitHub handle: rdelacroix.\n- (2026-08-05) Work email: rdelacroix@acme.com.\n- (2026-08-05) Works on the platform team.\n- (2026-08-05) Reports to Maya.\n- (2026-08-05) Owns the deploy pipeline.\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "All durable facts from the user were captured verbatim; no filler, speculation, or stale data."
+      }
+    },
+    {
+      "kind": "scratch-promote",
+      "conversationId": "secrets-exclusion",
+      "notebook": "# Memory\n\n- (2026-08-05) Staging webhook endpoint URL is https://staging.acme.dev/hooks and is stable.\n- (2026-08-05) Staging environment is hosted in the \"acme-staging\" Fly org.\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook correctly captures the two durable facts (staging endpoint and Fly org) while excluding the secrets. No stale or inferred entries."
+      }
+    },
+    {
+      "kind": "scratch-promote",
+      "conversationId": "stale-fact-supersession",
+      "notebook": "# Memory\n\n- (2026-08-05) Lives in USPacific time zone.\n- (2026-08-05) Team sync is Wednesdays at 9am.\n- (2026-08-05) The billing service is called 'tabkeeper' (formerly 'ledgerd').\n- (2026-08-05) Has a sync process that remains unchanged after the move.\n",
+      "verdict": {
+        "signalToNoise": 7,
+        "staleness": 5,
+        "inferenceVsObservation": 6,
+        "notes": "Notebook correctly records the latest timezone, meeting day, and name, but includes a stale inference about the sync process remaining unchanged after the move, which was later superseded."
+      }
+    },
+    {
+      "kind": "dream",
+      "conversationId": "inference-bait",
+      "notebook": "# Memory\n\n- (2026-08-05) Priya owns the cache layer.\n- (2026-08-05) You own the search indexer.\n- (2026-08-05) You use Zed.\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook correctly captures only the durable, explicitly stated facts (ownership and tool preference), ignores transient on-call coverage, and accurately reflects the latest stated information without any speculation."
+      }
+    },
+    {
+      "kind": "dream",
+      "conversationId": "long-project-arc",
+      "notebook": "# Memory\n\n- (2026-08-05) Project 'quiethours': migrating notification system from SQS to Postgres-backed queue, ~1 month duration.\n- (2026-08-05) quiethours uses SKIP LOCKED polling, not LISTEN/NOTIFY.\n- (2026-08-05) quiethours migration strategy: dual-write during migration; per-tenant read cutover behind a feature flag.\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "Notebook accurately captures all key durable facts from the conversation without filler or speculation."
+      }
+    },
+    {
+      "kind": "dream",
+      "conversationId": "noise-heavy-debugging",
+      "notebook": "# Memory\n\n- (2026-08-05) Deploys go through `make ship`, never raw `kubectl`.\n- (2026-08-05) User is the long-term on-call owner for the webhooks service; route webhook questions to them.\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "Captured both durable facts (deploy via make ship, user is on-call owner) without any noise or speculation."
+      }
+    },
+    {
+      "kind": "dream",
+      "conversationId": "preferences-and-identity",
+      "notebook": "# Memory\n- (2026-08-05) Prefers extremely terse replies, no preamble.\n- (2026-08-05) GitHub handle: rdelacroix.\n- (2026-08-05) Work email: rdelacroix@acme.com.\n- (2026-08-05) On the platform team, reporting to Maya, owns the deploy pipeline.\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook captures all explicitly stated durable facts (preference, identifiers, role) with no filler or speculation."
+      }
+    },
+    {
+      "kind": "dream",
+      "conversationId": "secrets-exclusion",
+      "notebook": "# Memory\n- (2026-08-05) Staging webhook endpoint: https://staging.acme.dev/hooks.\n- (2026-08-05) Staging environment runs in the acme-staging Fly org.\n",
+      "verdict": {
+        "signalToNoise": 10,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "Notebook correctly retains only durable, non-secret facts stated by the user; no speculation or stale data present."
+      }
+    },
+    {
+      "kind": "dream",
+      "conversationId": "stale-fact-supersession",
+      "notebook": "# Memory\n\n- (2026-08-05) Time zone: US Pacific (previously US Eastern, moved).\n- (2026-08-05) Billing service internally named 'tabkeeper' (originally 'ledgerd', renamed).\n- (2026-08-05) Team sync is Wednesdays at 9am (previously Mondays 10am).\n",
+      "verdict": {
+        "signalToNoise": 9,
+        "staleness": 10,
+        "inferenceVsObservation": 10,
+        "notes": "The notebook accurately records the final state (timezone, project name, meeting day) and clearly notes superseded values, with no extraneous or speculative content."
+      }
+    }
+  ]
+}

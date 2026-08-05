@@ -4,7 +4,6 @@
 
 <sub>Two milestones solid, the rest still outlines.</sub>
 
-
 Milestones in dependency order. Each states what "done" means and what would
 show it was not worth doing. No dates — this organisation's estimates have not
 been informative.
@@ -121,6 +120,24 @@ comes out.**
 That is the claim four levels exist to make; without it the upstream flat file
 wins and this pillar is dropped.
 
+**One experiment runs ahead of this milestone**, because it needs M4's instrument
+and none of M4's design: `MEMORY_STRATEGY=dream` distils the notebook from the raw
+episodic log instead of from per-turn extractions, reusing `scratch-promote`'s
+prompt verbatim so the comparison is one variable wide
+([05 § Experiment 1](05-ai-storage.md#experiment-1--distil-at-rest-memory_strategydream)).
+It is the cheapest test of the mechanism this organisation invented first and the
+vendored tree does not have. Building it also repaired the benchmark: its
+credential guard hard-exited on `ANTHROPIC_API_KEY`, so **the only benchmark in the
+tree could not run on the configuration M1 verified** — a reminder that an
+instrument nobody has run on the current setup is not yet an instrument.
+
+**It came back falsified, and it took M4's measurement plan with it [ran].**
+`dream` and `per-turn` both score `staleness` 10.0; `per-turn` is at a perfect
+10/10/10 on five of six conversations. The benchmark is **saturated**, so it cannot
+settle this question — and M4 above proposes scoring level-ordered recall on the
+same axis against the same ceiling. **M4's falsification condition needs rewriting
+before M4 starts**, against an instrument with headroom that is checkable up front.
+
 ## M5 · ai-ui v1 — **not started**
 
 One running flow on a canvas, live, with persisted layout, as a fifth plugin on
@@ -171,7 +188,7 @@ distribution the new project has.
 **Replacing `web-ui`.** `ai-ui` is a fifth plugin. Running both is what makes the
 canvas comparison possible instead of asserted.
 
-**A general workflow runtime.** `ai-flows` sequences *agent work*. The moment it
+**A general workflow runtime.** `ai-flows` sequences _agent work_. The moment it
 starts growing arbitrary code execution, retries-with-backoff and a DSL, it has
 become Airflow, and Airflow exists.
 

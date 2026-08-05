@@ -19,17 +19,22 @@ import {
   type BenchResult,
 } from "../src/memory/bench.ts";
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error("ANTHROPIC_API_KEY not set — the benchmark replays extraction and judges with a live model.");
+const MODEL_KEY_ENV = ["ANTHROPIC_API_KEY", "OPENROUTER_API_KEY", "OPENAI_API_KEY"] as const;
+if (!MODEL_KEY_ENV.some((k) => process.env[k])) {
+  console.error(
+    `no model credential set (one of ${MODEL_KEY_ENV.join(", ")}) — ` +
+      "the benchmark replays extraction and judges with a live model.",
+  );
   process.exit(1);
 }
 
-const KNOWN_KINDS: MemoryStrategyKind[] = ["per-turn", "agent-only"];
+const KNOWN_KINDS: MemoryStrategyKind[] = ["per-turn", "agent-only", "scratch-promote", "dream"];
+const DEFAULT_KINDS: MemoryStrategyKind[] = ["per-turn", "dream"];
 const requested = (process.env.MEMORY_BENCH_KINDS ?? "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
-const kinds: MemoryStrategyKind[] = requested.length ? (requested as MemoryStrategyKind[]) : KNOWN_KINDS;
+const kinds: MemoryStrategyKind[] = requested.length ? (requested as MemoryStrategyKind[]) : DEFAULT_KINDS;
 for (const k of kinds) {
   if (!KNOWN_KINDS.includes(k)) {
     console.error(`unknown strategy kind '${k}' (known: ${KNOWN_KINDS.join(", ")})`);
@@ -37,11 +42,25 @@ for (const k of kinds) {
   }
 }
 
+const onlyConversations = new Set(
+  (process.env.MEMORY_BENCH_CONVERSATIONS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
+);
 const fixtureDir = new URL("../test/memory-bench/conversations/", import.meta.url).pathname;
 const conversations = readdirSync(fixtureDir)
   .filter((f) => f.endsWith(".json"))
   .sort()
-  .map((f) => parseBenchConversation(JSON.parse(readFileSync(join(fixtureDir, f), "utf8")), f));
+  .map((f) => parseBenchConversation(JSON.parse(readFileSync(join(fixtureDir, f), "utf8")), f))
+  .filter((c) => onlyConversations.size === 0 || onlyConversations.has(c.id));
+if (!conversations.length) {
+  console.error(`no conversations matched MEMORY_BENCH_CONVERSATIONS='${process.env.MEMORY_BENCH_CONVERSATIONS}'`);
+  process.exit(1);
+}
+console.log(
+  `${kinds.length} strategies x ${conversations.length} conversations = ${kinds.length * conversations.length} replays`,
+);
 
 const harness = createPiHarness({ ...piHarnessConfigOptions(loadConfig()), tempDirPrefix: "membench" });
 if (!harness.models.oneShot) {
