@@ -116,9 +116,34 @@ judge as upstream's three — `staleness` first, `signalToNoise` and
 `inferenceVsObservation` as guards. **The number is published whichever way it
 comes out.**
 
-**Falsified by:** no reduction in `staleness` against the flat-file baseline.
-That is the claim four levels exist to make; without it the upstream flat file
-wins and this pillar is dropped.
+**Falsified by — rewritten 2026-08-05, because the original condition cannot fire.**
+It read: _no reduction in `staleness` against the flat-file baseline_. That is
+unfalsifiable on this harness. The flat-file baseline **already scores `staleness`
+10.0 out of 10** on all six conversations **[ran]**, so no strategy can reduce
+anything and every arm ties at the ceiling. A condition that cannot fail is not a
+falsification condition, and shipping M4 against it would have produced a tie
+readable as a success.
+
+The replacement has two parts, and the first is a gate rather than a claim:
+
+1. **Headroom, before the levels are built.** Extend
+   `test/memory-bench/conversations/` until the flat-file baseline scores **at most 7
+   on `staleness`** — conversations where a fact is superseded several times, or
+   across a horizon long enough that a 300-bullet FIFO starts dropping things. If the
+   baseline cannot be pushed off the ceiling, the axis has no room on this instrument
+   and **M4 does not proceed on it**. Publish the fixtures either way; they are useful
+   to upstream regardless of what we conclude.
+2. **Then the claim, unchanged in substance.** Level-ordered recall lowers `staleness`
+   against the flat file without losing `signalToNoise` or
+   `inferenceVsObservation`. Without that, the flat file wins and this pillar is
+   dropped.
+
+Two known instrument defects to fix while doing (1), both disclosed in
+[05](05-ai-storage.md#two-disclosures-about-the-arms): the judge penalises every arm
+that writes `- (YYYY-MM-DD)` bullets for "inferring" the date, which is upstream's own
+grammar being scored as speculation; and on this configuration the judge is
+deepseek grading deepseek's own summariser, which is the weakest form of the evidence
+and should be stated wherever the number is quoted.
 
 **One experiment runs ahead of this milestone**, because it needs M4's instrument
 and none of M4's design: `MEMORY_STRATEGY=dream` distils the notebook from the raw
