@@ -5,7 +5,7 @@
 <sub>Dos lifts que parecen resultados. La distancia entre sus cimas es el único número que decide — y cambia de signo.</sub>
 
 > **Estado: estimadores implementados y testeados. No se corrió ninguna comparación
-> de modelos.** `ai-flows/src/stats.ts` y `conformance.ts` — 34 tests **[ran]**;
+> de modelos.** `stats.ts`, `conformance.ts` y `tasks/physics.ts` — 97 tests **[ran]** en
 > 73 en todo `ai-flows`. Todavía no hay suite de tareas ni un segundo modelo, y
 > este documento tiene cuidado de decir qué está citado y qué está medido.
 
@@ -137,6 +137,86 @@ degrada el trabajo secuencial, la complementariedad favorece al frontier en tare
 difíciles, y el error por paso compone. Cuatro resultados independientes, una
 misma dirección.
 
+## La suite de tareas: menos equivocado, medido **[ran]**
+
+Los estimadores necesitaban de qué estimar, y el workload tenía un requisito duro
+— un oráculo exacto, para que un desacuerdo sea del modelo y no del corrector.
+`ai-flows/src/tasks/physics.ts` arma uno con sistemas físicos donde una primera
+aproximación está equivocada, un modelo más completo está *menos* equivocado, y
+los dos se computan con precisión de máquina.
+
+La forma es la de *La relatividad del error* de Asimov: la Tierra plana está
+equivocada, la esfera está equivocada, el esferoide achatado está equivocado, y el
+error se achica. La energía cinética newtoniana no es falsa — es el término
+principal de la relativista. Un péndulo no es un oscilador armónico, pero a cinco
+grados no se nota.
+
+Cuatro sistemas, cada uno con su límite lineal: período del péndulo (ángulo chico
+→ elíptica exacta), energía cinética (Newton → relatividad), población
+(exponencial → logística), caída (vacío → arrastre lineal).
+
+**La dificultad deja de ser una etiqueta y pasa a ser aritmética.** Una tarea pide
+una respuesta dentro de una tolerancia relativa τ, y si la primera aproximación
+supera τ se *calcula*:
+
+| | |
+|---|---|
+| **L1** | el modelo lineal ya cumple τ |
+| **L2** | no cumple, pero por menos de 10× τ |
+| **L3** | falla por más de 10× τ — solo sirve el modelo completo |
+
+Eso importa más de lo que parece. La estratificación que decide dónde cambia de
+signo el término de interacción ahora se apoya en un cálculo y no en la opinión de
+alguien sobre qué es difícil. Y **barrer τ sube la misma pregunta física por la
+escalera sin cambiar de tema** — mismo sistema, mismos parámetros, misma redacción,
+solo se mueve la precisión pedida — lo que descarta el confundidor que la mayoría
+de las estratificaciones por dificultad no puede descartar.
+
+Con 128 tareas los niveles quedan cerca de L1 65 / L2 21 / L3 42, estable entre
+semillas, y con todos los sistemas presentes en todos los niveles.
+
+**Las tools pasan a ser determinantes**, que es la otra razón por la que esta suite
+funciona: una integral elíptica a seis cifras no es algo que un modelo haga en
+prosa. Una condición pelada genuinamente no puede lo que puede una con sandbox, así
+que el lift de harness que se mide es real y no simulado.
+
+**Y la tasa de error no detectado se vuelve medible.** Todo prompt permite responder
+`UNSURE`. Un número equivocado dicho con confianza es un error *no detectado*; la
+misma equivocación señalada es *detectado*. Esa distinción normalmente es difícil de
+instrumentar y acá es una rama del corrector. `errorReduction` reporta cuánto menos
+equivocada está una respuesta que el modelo lineal — 1 si es exacta, 0 si apenas
+reproduce la aproximación, **negativa si hace algo peor que no modelar la no
+linealidad.**
+
+### Dos bugs del oráculo que cacharon los tests
+
+Los dos en el mismo lugar, y los dos habrían corrompido justamente las tareas L1.
+
+La forma relativista de manual `(1/√(1−β²) − 1)·c²` resta de 1 un número apenas
+mayor que 1 a baja velocidad, destruyendo unos once dígitos significativos antes de
+multiplicar los restos por `c²`. La forma de arrastre de manual diferencia dos
+valores cerca de 3×10⁹ para recuperar una caída de 44 m, y devolvía 42.05. A los dos
+los cacharon tests que afirman que la aproximación es el límite correcto — no una
+inspección.
+
+Reescritas sin la cancelación (`β²/(s(1+s))`, y el corchete de arrastre por serie
+debajo del cruce), la corrección relativista ahora sigue su predicción analítica ¾β²
+a lo largo de siete órdenes de magnitud.
+
+**En ambos casos el régimen de falla era el límite donde el modelo simple es casi
+correcto** — así que una suite construida para medir cuánto menos equivocado está el
+modelo difícil habría estado corrigiendo contra ruido exactamente donde la respuesta
+fácil era correcta.
+
+### Qué no es esta suite
+
+Sistemas de manual, y un modelo puede haber memorizado el método. Los parámetros se
+sortean para que la *respuesta* haya que computarla y no recordarla, pero el enfoque
+no le es novedoso a nadie. **Es una suite de calibración del instrumento y una
+primera lectura de dónde cae el punto de cruce. No es un workload legal ni
+literario**, y un resultado acá se transfiere a esos como hipótesis, no como
+evidencia.
+
 ## Cómo se falsifica
 
 **Los estimadores** se falsifican con su propia calibración: tienen que recuperar
@@ -161,10 +241,10 @@ disponible acá.
 
 Dicho en presente, por la regla de casa 3.
 
-- **No hay suite de tareas.** Los estimadores todavía no tienen de qué estimar. El
-  paso siguiente es etiquetar un workload real por tiempo humano, secuencial
-  contra descomponible, y verificabilidad — tres etiquetas, sin modelos, y entre
-  ellas predicen la mayor parte de la respuesta.
+- **No se corrió contra ningún modelo.** La suite existe y corrige bien; nada fue
+  puntuado con ella. El paso siguiente es un workload real etiquetado por tiempo
+  humano, secuencial contra descomponible, y verificabilidad — tres etiquetas, sin
+  modelos, y entre ellas predicen la mayor parte de la respuesta.
 - **No hay segundo modelo.** `deepseek/deepseek-v4-flash` corre en `pi` y su δ está
   medido ([10](10-observability.md)). Nada más está cableado, y **ningún modelo
   local pasó conformidad, porque no hay ninguno corriendo.**
