@@ -18,7 +18,7 @@ const MAX_STRATEGIES = 40;
 const STATE_RE = /^<!-- turns-since-dream: (\d+) -->$/m;
 
 export const STRATEGIES_FILE = "memory/STRATEGIES.md";
-export const STRATEGIES_HEADER = "# Strategies";
+const STRATEGIES_HEADER = "# Strategies";
 export const DEFAULT_DREAM_AFTER = 10;
 
 export const DREAM_EPISODE_ADDENDUM = [

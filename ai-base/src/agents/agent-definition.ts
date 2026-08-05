@@ -3,7 +3,7 @@ import { isSafeSkillName } from "../skills/skill-name.ts";
 
 export const AGENTS_DIR = "agents";
 
-export const CHILD_TOOL_NAMES: ReadonlySet<string> = new Set([
+const CHILD_TOOL_NAMES: ReadonlySet<string> = new Set([
   "execute",
   "read",
   "write",
@@ -24,7 +24,7 @@ export interface AgentDefinition {
   instructions: string;
 }
 
-export function assertSafeAgentName(name: string): string {
+function assertSafeAgentName(name: string): string {
   if (!isSafeSkillName(name)) {
     throw new Error(
       "agent name must be 1-128 ASCII letters, digits, dots, underscores, or hyphens; it must start with a letter or digit and cannot end with a dot",
