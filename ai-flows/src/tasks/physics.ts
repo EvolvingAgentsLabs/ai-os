@@ -167,17 +167,46 @@ function levelOf(approximationError: number, tolerance: number): Level {
 const round = (x: number, sig: number) => Number(x.toPrecision(sig));
 
 /**
- * The instruction every task carries.
+ * How many significant figures a task must be answered to.
+ *
+ * Derived from the task's own tolerance, which is the fix for a defect the first real
+ * run exposed. The protocol used to demand a flat six figures while `tolerance` ranged
+ * over 1e-1 … 1e-5, so a task needing two figures to pass still asked for six — and a
+ * model that reasons "I cannot give six figures, therefore UNSURE" declined tasks it
+ * could have passed. **[ran]** 24 of 24 L2 tasks came back `detected` under the flat
+ * protocol, at every tolerance including the loosest. That measured obedience to an
+ * impossible instruction, not capability.
+ *
+ * To decide |x − a|/|a| ≤ τ the reported value needs relative precision better than τ,
+ * and d significant figures give about 10^(1−d). So d > 1 − log10(τ), plus two figures
+ * of margin so a rounded answer cannot straddle the boundary: 3 figures at τ=1e-1,
+ * 7 at τ=1e-5. The old flat six was simultaneously too many for a loose task and, at
+ * τ=1e-5, only barely enough.
+ */
+export function significantFiguresFor(tolerance: number): number {
+  return Math.ceil(-Math.log10(tolerance)) + 2;
+}
+
+/**
+ * The instruction each task carries, at its own precision.
  *
  * `UNSURE` is not politeness. A wrong answer given confidently is an *undetected*
  * error, and a wrong answer flagged `UNSURE` is a detected one — which is the
  * difference between a liability and a nuisance. Offering the escape hatch is
  * what makes the undetected-error rate measurable at all in a domain where
  * everything else is exactly gradable.
+ *
+ * It is already appended to `PhysicsTask.prompt`; a caller sending a task should send
+ * `task.prompt` as it stands. Appending this a second time doubles the precision
+ * demand and biases the run toward `UNSURE` — which is how the run above was taken.
  */
-export const ANSWER_PROTOCOL =
-  "Reply with the numeric value only, in the stated units, to at least 6 significant figures. " +
-  "No words, no units, no formatting. If you cannot compute it to that precision, reply with exactly: UNSURE";
+export function answerProtocolFor(tolerance: number): string {
+  return (
+    `Reply with the numeric value only, in the stated units, to at least ${significantFiguresFor(tolerance)} ` +
+    "significant figures. No words, no units, no formatting. If you cannot compute it to that precision, " +
+    "reply with exactly: UNSURE"
+  );
+}
 
 export interface GenOpts {
   seed?: number;
@@ -313,7 +342,7 @@ function task(spec: Omit<PhysicsTask, "id" | "approximationError" | "level">): P
     id: "",
     approximationError,
     level: levelOf(approximationError, spec.tolerance),
-    prompt: `${spec.prompt}\n\n${ANSWER_PROTOCOL}`,
+    prompt: `${spec.prompt}\n\n${answerProtocolFor(spec.tolerance)}`,
   };
 }
 

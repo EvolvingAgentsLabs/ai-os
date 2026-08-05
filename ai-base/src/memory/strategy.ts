@@ -10,6 +10,7 @@ import {
   DEFAULT_CONSOLIDATE_AFTER,
 } from "./strategies/consolidation.ts";
 import { createAgentOnlyStrategy } from "./strategies/agent-only.ts";
+import { createDreamStrategy, DEFAULT_DREAM_AFTER } from "./strategies/dream.ts";
 
 export interface MemoryStrategy {
   onTurnEnd?(ctx: {
@@ -25,12 +26,12 @@ export interface MemoryStrategy {
   promptLines?(): string[];
 }
 
-export type MemoryStrategyKind = "per-turn" | "scratch-promote" | "agent-only";
+export type MemoryStrategyKind = "per-turn" | "scratch-promote" | "agent-only" | "dream";
 
 export const DEFAULT_MEMORY_STRATEGY: MemoryStrategyKind = "per-turn";
 
 export function parseMemoryStrategyKind(value: string | undefined): MemoryStrategyKind {
-  return value === "agent-only" || value === "scratch-promote" ? value : DEFAULT_MEMORY_STRATEGY;
+  return value === "agent-only" || value === "scratch-promote" || value === "dream" ? value : DEFAULT_MEMORY_STRATEGY;
 }
 
 export interface MemoryStrategyDeps {
@@ -53,6 +54,17 @@ export function createMemoryStrategy(
       memory: deps.memory,
       workspace: deps.workspace,
       consolidateAfter: deps.consolidateAfter ?? DEFAULT_CONSOLIDATE_AFTER,
+      ...(deps.captureQuietMs !== undefined ? { captureQuietMs: deps.captureQuietMs } : {}),
+      ...(deps.captureMaxTurns !== undefined ? { captureMaxTurns: deps.captureMaxTurns } : {}),
+      ...(deps.onCaptureError ? { onCaptureError: deps.onCaptureError } : {}),
+    });
+  }
+  if (kind === "dream") {
+    return createDreamStrategy({
+      harness: deps.harness,
+      memory: deps.memory,
+      workspace: deps.workspace,
+      dreamAfter: deps.consolidateAfter ?? DEFAULT_DREAM_AFTER,
       ...(deps.captureQuietMs !== undefined ? { captureQuietMs: deps.captureQuietMs } : {}),
       ...(deps.captureMaxTurns !== undefined ? { captureMaxTurns: deps.captureMaxTurns } : {}),
       ...(deps.onCaptureError ? { onCaptureError: deps.onCaptureError } : {}),

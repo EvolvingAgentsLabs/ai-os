@@ -7,6 +7,7 @@ import {
   ModelRuntime,
   SessionManager,
   type AgentSession,
+  type ToolDefinition,
 } from "@earendil-works/pi-coding-agent";
 import { InMemoryCredentialStore, type Api, type Model } from "@earendil-works/pi-ai";
 import { CONFIG_DEFAULTS, type Config } from "../config.ts";
@@ -36,7 +37,7 @@ import type {
 import { NonRetryableTurnError } from "../core/turn-error.ts";
 import { MAX_LLM_REQUEST_BYTES } from "../core/attachments.ts";
 import { sleep } from "../util/async.ts";
-import { swallow, swallowAs } from "../util/errors.ts";
+import { errMessage, swallow, swallowAs } from "../util/errors.ts";
 import {
   DEFAULT_AGENT_MODEL_ID,
   auxiliaryModelFor,
@@ -58,7 +59,13 @@ import {
   type HarnessTurnResult,
   type GapWork,
 } from "./harness.ts";
-import { coreToolOptions, createPiTools, pauseStampAfterToolCall, type ToolContextRef } from "./pi-tools.ts";
+import {
+  coreToolOptions,
+  createPiTools,
+  pauseStampAfterToolCall,
+  type RunChild,
+  type ToolContextRef,
+} from "./pi-tools.ts";
 import { startSignalPoll, type RunSignalStore } from "../runs/run-signal-store.ts";
 import {
   planColdStartSeed,
@@ -997,6 +1004,25 @@ export async function oneShot(
   prompt: string,
   opts?: { signal?: AbortSignal },
 ): Promise<string | undefined> {
+  return runIsolatedSession(prefix, model, keys, systemPrompt, prompt, [], opts);
+}
+
+/**
+ * One prompt against a throwaway session with its own prompt and tool set.
+ *
+ * `oneShot` is this with no tools; a delegated agent is this with the subset its
+ * definition declares. Both need the same isolation, the same abort plumbing and the
+ * same temp-dir cleanup, so they share one body rather than two that drift.
+ */
+async function runIsolatedSession(
+  prefix: string,
+  model: Model<Api>,
+  keys: ProviderKeys | string,
+  systemPrompt: string,
+  prompt: string,
+  customTools: ToolDefinition[],
+  opts?: { signal?: AbortSignal },
+): Promise<string | undefined> {
   const modelRuntime = await buildModelRuntime(keys);
   const { resourceLoader, cwd, agentDir } = await createIsolatedResources(prefix, systemPrompt);
   try {
@@ -1004,7 +1030,7 @@ export async function oneShot(
       model,
       modelRuntime,
       resourceLoader,
-      customTools: [],
+      customTools,
       noTools: "builtin",
       sessionManager: SessionManager.inMemory(),
       cwd,
@@ -1271,8 +1297,40 @@ export function createPiHarness(opts?: PiHarnessOptions): Harness {
     const composedPrompt = systemPrompt + (seedPlan === "preamble" ? replayPreamble(history) : "");
 
     const model = getRequiredModel(resolveModelId(turnScope));
-    const modelRuntime = await buildModelRuntime(await resolveProviderKeys());
+    const turnProviderKeys = await resolveProviderKeys();
+    const modelRuntime = await buildModelRuntime(turnProviderKeys);
     const ref: ToolContextRef = { current: null };
+    const coreOpts = {
+      scratchExec,
+      ownerAuthExec,
+      reachExec,
+      controlTools,
+      ...(opts?.execTimeoutMs !== undefined ? { execTimeoutMs: opts.execTimeoutMs } : {}),
+      ...(opts?.execTimeoutCeilingMs !== undefined ? { execTimeoutCeilingMs: opts.execTimeoutCeilingMs } : {}),
+      ...(opts?.backgroundJobTtlMs !== undefined ? { backgroundJobTtlMs: opts.backgroundJobTtlMs } : {}),
+      ...(opts?.backgroundJobTtlMaxMs !== undefined ? { backgroundJobTtlMaxMs: opts.backgroundJobTtlMaxMs } : {}),
+    };
+    /**
+     * A delegated agent runs as its own isolated session against the parent's tool
+     * context, so it shares the workspace and the memory scope but starts with an
+     * empty conversation. It is built without `runChild`, which is what denies it
+     * `delegate` and bounds the tree at one level.
+     */
+    const runChild: RunChild = async ({ systemPrompt: childPrompt, task, tools: childTools }) => {
+      try {
+        const out = await runIsolatedSession(
+          `${tempDirPrefix}-child`,
+          model,
+          turnProviderKeys,
+          childPrompt,
+          task,
+          createPiTools(ref, { ...coreOpts, childTools }),
+        );
+        return { text: out ?? "" };
+      } catch (e) {
+        return { text: "", error: errMessage(e) };
+      }
+    };
     const { resourceLoader, cwd, agentDir } = await createIsolatedResources(tempDirPrefix, composedPrompt);
     const compileMs = Date.now() - compileStart;
 
@@ -1283,17 +1341,11 @@ export function createPiHarness(opts?: PiHarnessOptions): Harness {
         modelRuntime,
         resourceLoader,
         customTools: createPiTools(ref, {
-          scratchExec,
-          ownerAuthExec,
-          reachExec,
-          controlTools,
+          ...coreOpts,
+          runChild,
           ...(surfaceTools ? { surfaceTools: true } : {}),
           ...(surfaceName ? { surfaceName } : {}),
           ...(readOnly ? { readOnly: true } : {}),
-          ...(opts?.execTimeoutMs !== undefined ? { execTimeoutMs: opts.execTimeoutMs } : {}),
-          ...(opts?.execTimeoutCeilingMs !== undefined ? { execTimeoutCeilingMs: opts.execTimeoutCeilingMs } : {}),
-          ...(opts?.backgroundJobTtlMs !== undefined ? { backgroundJobTtlMs: opts.backgroundJobTtlMs } : {}),
-          ...(opts?.backgroundJobTtlMaxMs !== undefined ? { backgroundJobTtlMaxMs: opts.backgroundJobTtlMaxMs } : {}),
         }),
         noTools: "builtin",
         sessionManager: SessionManager.inMemory(undefined, { id: sessionId }),

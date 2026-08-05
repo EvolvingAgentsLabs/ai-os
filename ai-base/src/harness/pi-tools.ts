@@ -8,6 +8,12 @@ import { NeedsApproval, CommandDenied } from "../tools/primitives.ts";
 import { classifyScopeLabel } from "../classify/scope-classifier.ts";
 import { splitToScope } from "../api/artifact-share.ts";
 import { errMessage } from "../util/errors.ts";
+import {
+  agentDefinitionPath,
+  childSystemPrompt,
+  parseAgentDefinition,
+  AGENTS_DIR,
+} from "../agents/agent-definition.ts";
 import { BOT_MODES } from "../surface-cache/channel-policy-store.ts";
 import { headSlice, tailSlice } from "../util/text.ts";
 import { unscreenedNotice, UNSCREENED_PREFIX, type SecurityScreenVerdict } from "../security/security-posture.ts";
@@ -241,9 +247,21 @@ export interface PiToolsOptions {
   readOnly?: boolean;
   surfaceTools?: boolean;
   surfaceName?: string;
+  runChild?: RunChild;
+  childTools?: readonly string[];
 }
 
-export type CoreToolOptions = Omit<PiToolsOptions, "readOnly" | "surfaceTools" | "surfaceName">;
+export type RunChild = (input: {
+  agent: string;
+  systemPrompt: string;
+  task: string;
+  tools: readonly string[];
+}) => Promise<{ text: string; error?: string }>;
+
+export type CoreToolOptions = Omit<
+  PiToolsOptions,
+  "readOnly" | "surfaceTools" | "surfaceName" | "runChild" | "childTools"
+>;
 
 export function coreToolOptions(config: Config): CoreToolOptions {
   return {
@@ -2394,6 +2412,65 @@ export function createPiTools(ref: ToolContextRef, opts?: PiToolsOptions): ToolD
     },
   });
 
+  const runChild = opts?.runChild;
+  const delegate = defineTool({
+    name: "delegate",
+    label: "delegate",
+    description:
+      `Hand a bounded piece of work to one of the agents defined under \`${AGENTS_DIR}/\` and get its report back. ` +
+      `Each agent is a markdown file (\`${AGENTS_DIR}/<name>.md\`) whose frontmatter declares its description and ` +
+      "the tools it may use, and whose body is its instructions — so read one before delegating if you are unsure " +
+      "what it does, and write or edit one when a kind of work recurs. The child starts with an empty context: it " +
+      "sees only the task you write here, not this conversation, so state everything it needs. It cannot delegate " +
+      "further, cannot contact people, and cannot change standing configuration. Prefer it when work is separable " +
+      "and you want it done without spending this context on the details.",
+    parameters: Type.Object({
+      agent: Type.String({ description: `Name of the agent, matching \`${AGENTS_DIR}/<name>.md\`.` }),
+      task: Type.String({
+        description: "The complete, self-contained instruction for the child. It sees nothing else.",
+      }),
+    }),
+    async execute(callId, params) {
+      const tc = ref.current;
+      if (!tc) return text("[error] no active tool context");
+      if (!runChild) return text("[error] this harness cannot run delegated agents");
+      await recordCall(callId, { tool: "delegate", agent: params.agent, task: headSlice(params.task, 400) });
+
+      const fail = (message: string) =>
+        recordResult(callId, { tool: "delegate", agent: params.agent, ok: false }, text(`[error] ${message}`));
+
+      let definition;
+      try {
+        const path = agentDefinitionPath(params.agent);
+        const { content } = await tc.read(path);
+        if (content === null) {
+          return fail(
+            `no agent '${params.agent}': nothing at ${path}. List ${AGENTS_DIR}/ to see which agents exist, ` +
+              "or write the file to define one.",
+          );
+        }
+        definition = parseAgentDefinition(params.agent, content);
+      } catch (e) {
+        return fail(errMessage(e));
+      }
+
+      const result = await runChild({
+        agent: definition.name,
+        systemPrompt: childSystemPrompt(definition),
+        task: params.task,
+        tools: definition.tools,
+      });
+      if (result.error) return fail(`agent '${definition.name}' did not finish: ${result.error}`);
+
+      const report = result.text.trim();
+      return recordResult(
+        callId,
+        { tool: "delegate", agent: definition.name, ok: true, chars: report.length },
+        text(report || `[agent '${definition.name}' finished without reporting anything]`),
+      );
+    },
+  });
+
   const tools = [
     execute,
     read,
@@ -2402,11 +2479,15 @@ export function createPiTools(ref: ToolContextRef, opts?: PiToolsOptions): ToolD
     memory,
     history,
     background,
+    ...(runChild ? [delegate] : []),
     ...(controlTools ? [cron, share] : []),
     ...(controlTools || surfaceTools ? [guidance] : []),
     ...(surfaceTools ? [surface, staySilent] : [finishSilently]),
   ];
-  const active = opts?.readOnly ? tools.filter((t) => READ_ONLY_TOOL_NAMES.has(t.name)) : tools;
+  const childNames = opts?.childTools;
+  const allowed = childNames ? new Set(childNames) : undefined;
+  const scoped = allowed ? tools.filter((t) => allowed.has(t.name)) : tools;
+  const active = opts?.readOnly ? scoped.filter((t) => READ_ONLY_TOOL_NAMES.has(t.name)) : scoped;
   return active.map((t) => withToolBodyTiming(withToolApprovalGate(t, ref, { recordCall, recordResult }), ref));
 }
 
