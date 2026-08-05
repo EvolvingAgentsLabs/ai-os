@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  ANSWER_PROTOCOL,
+  answerProtocolFor,
+  significantFiguresFor,
   ellipticK,
   errorReduction,
   exponentialGrowth,
@@ -116,8 +117,26 @@ describe("difficulty is derived, not asserted", () => {
     assert.notEqual(a[0]!.answer, b[0]!.answer);
   });
 
-  it("carries the answer protocol on every prompt", () => {
-    assert.ok(suite.every((t) => t.prompt.includes(ANSWER_PROTOCOL)));
+  it("carries a precision demand derived from its own tolerance, not a flat one", () => {
+    assert.ok(suite.every((t) => t.prompt.includes(answerProtocolFor(t.tolerance))));
+    assert.equal(significantFiguresFor(1e-1), 3);
+    assert.equal(significantFiguresFor(1e-2), 4);
+    assert.equal(significantFiguresFor(1e-3), 5);
+    assert.equal(significantFiguresFor(1e-5), 7);
+    const loose = suite.find((t) => t.tolerance === 1e-1)!;
+    const tight = suite.find((t) => t.tolerance === 1e-5)!;
+    assert.match(loose.prompt, /at least 3 significant figures/);
+    assert.match(tight.prompt, /at least 7 significant figures/);
+  });
+
+  it("demands enough precision to decide its own tolerance", () => {
+    for (const t of suite) {
+      const figures = significantFiguresFor(t.tolerance);
+      assert.ok(
+        Math.pow(10, 1 - figures) < t.tolerance,
+        `${t.id}: ${figures} figures give 10^${1 - figures} precision, too coarse for tolerance ${t.tolerance}`,
+      );
+    }
   });
 });
 
