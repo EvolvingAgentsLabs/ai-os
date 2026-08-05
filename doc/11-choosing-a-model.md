@@ -6,7 +6,7 @@
 
 
 > **Status: estimators implemented and tested. No model comparison has been run.**
-> `ai-flows/src/stats.ts` and `conformance.ts` — 34 tests **[ran]**; 73 across
+> `stats.ts`, `conformance.ts` and `tasks/physics.ts` — 97 tests **[ran]** across
 > `ai-flows`. There is no task suite and no second model yet, and this document
 > is careful to say which claims are cited and which are measured.
 
@@ -134,6 +134,83 @@ concentrates in reasoning, long-context retrieval and agentic capability
 degrades sequential work, complementarity favours the frontier on hard tasks, and
 per-step error compounds. Four independent results, one direction.
 
+## The task suite: less wrong, measured **[ran]**
+
+The estimators needed something to estimate from, and the workload had to satisfy
+one hard requirement — an oracle that is exact, so a disagreement is the model's
+and not the grader's. `ai-flows/src/tasks/physics.ts` builds one from physical
+systems where a first approximation is wrong, a fuller model is *less* wrong, and
+both are computable to machine precision.
+
+The shape is Asimov's *The Relativity of Wrong*: a flat earth is wrong, a sphere
+is wrong, an oblate spheroid is wrong, and the wrongness shrinks. Newtonian
+kinetic energy is not false — it is the leading term of the relativistic one. A
+pendulum is not a harmonic oscillator, but at five degrees you cannot tell.
+
+Four systems, each with its linear limit: pendulum period (small-angle → exact
+elliptic), kinetic energy (Newton → relativity), population (exponential →
+logistic), falling body (vacuum → linear drag).
+
+**Difficulty stops being a label and becomes arithmetic.** A task asks for an
+answer within a relative tolerance τ, and whether the first approximation clears
+τ is *computed*:
+
+| | |
+|---|---|
+| **L1** | the linear model already clears τ |
+| **L2** | it misses, but within 10× τ |
+| **L3** | it misses by more than 10× τ — only the full model will do |
+
+That matters more than it sounds. The stratification that decides where the
+interaction term flips sign now rests on a calculation instead of on someone's
+opinion of what is hard. And **sweeping τ walks one physical question up the
+ladder without changing the subject** — same system, same parameters, same
+phrasing, only the required precision moves — which rules out the confound most
+difficulty stratifications cannot.
+
+At 128 tasks the levels come out near L1 65 / L2 21 / L3 42, stable across seeds,
+with every system present at every level.
+
+**The tools become load-bearing**, which is the other reason this suite works: an
+elliptic integral to six figures is not something a model does in prose. A bare
+condition genuinely cannot do what a sandboxed one can, so the harness lift being
+measured is real rather than simulated.
+
+**And the undetected-error rate becomes measurable.** Every prompt permits the
+answer `UNSURE`. A wrong number stated confidently is an *undetected* error; the
+same wrongness flagged is a *detected* one. That distinction is normally hard to
+instrument and here it is one branch in the grader. `errorReduction` reports how
+much less wrong an answer is than the linear model — 1 for exact, 0 for merely
+reproducing the approximation, **negative for doing worse than not modelling the
+nonlinearity at all.**
+
+### Two oracle bugs the tests caught
+
+Both in the same place, and both would have corrupted exactly the L1 tasks.
+
+The textbook relativistic form `(1/√(1−β²) − 1)·c²` subtracts a number just above
+1 from 1 at low speed, destroying about eleven significant digits before
+multiplying the wreckage by `c²`. The textbook drag form differences two values
+near 3×10⁹ to recover a 44 m fall, and returned 42.05. Both were caught by tests
+asserting the approximation is the correct limit — not by inspection.
+
+Rewritten without the cancellation (`β²/(s(1+s))`, and the drag bracket by series
+below the crossover), the relativistic correction now tracks its analytic
+prediction ¾β² across seven orders of magnitude.
+
+**The failure regime in both cases was the limit where the simple model is nearly
+right** — so a suite built to measure how much less wrong the harder model is
+would have been graded against noise precisely where the easy answer was correct.
+
+### What this suite is not
+
+Textbook systems, and a model may have memorised the method. Parameters are
+randomised so the *answer* must be computed rather than recalled, but the
+approach certainly is not novel to anyone. **This is a calibration suite for the
+instrument and a first read on where the crossing point sits. It is not a legal
+or literary workload**, and a result here transfers to those as a hypothesis, not
+as evidence.
+
 ## How this gets falsified
 
 **The estimators** are falsified by their own calibration: they must recover a
@@ -157,10 +234,10 @@ available here.
 
 Stated in the present tense, per house rule 3.
 
-- **No task suite.** The estimators have nothing to estimate from yet. The next
-  step is labelling a real workload by human-time length, sequential-versus-
-  decomposable, and verifiability — three labels, no models, and between them
-  they predict most of the answer.
+- **No run against a model.** The suite exists and grades correctly; nothing has
+  been scored with it. The next step is a real workload labelled by human-time
+  length, sequential-versus-decomposable, and verifiability — three labels, no
+  models, and between them they predict most of the answer.
 - **No second model.** `deepseek/deepseek-v4-flash` runs on `pi` and its δ is
   measured ([10](10-observability.md)). Nothing else is wired, and **no local
   model has passed conformance, because none is running.**
