@@ -17,6 +17,7 @@ Read in order the first time:
 | 08 | [Roadmap](08-roadmap.md) | Milestones, in dependency order, with the honest blockers |
 | 09 | [Scales](09-scales.md) | Individual, collective, project, system — one axis for flows and memory, and it is `scopeId` |
 | 10 | [Observability](10-observability.md) | Can a flow's progress be read at all? Drift versus unreadable, and the noise floor that separates them |
+| 11 | [Choosing a model](11-choosing-a-model.md) | Small model plus harness against frontier plus harness — the interaction term, and where its sign flips |
 
 ## Decisions
 

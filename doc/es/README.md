@@ -20,6 +20,7 @@ Leer en orden la primera vez:
 | 08 | [Roadmap](08-roadmap.md) | Milestones, en orden de dependencia, con los bloqueos dichos con honestidad |
 | 09 | [Escalas](09-scales.md) | Individual, colectivo, proyecto, sistema — un solo eje para flows y memoria, y es el `scopeId` |
 | 10 | [Observabilidad](10-observability.md) | ¿Se puede leer el progreso de un flow? Deriva contra ilegible, y el piso de ruido que las separa |
+| 11 | [Elegir un modelo](11-choosing-a-model.md) | Modelo chico + harness contra frontier + harness — el término de interacción, y dónde cambia de signo |
 
 ## Decisiones
 
