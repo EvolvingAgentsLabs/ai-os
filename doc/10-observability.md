@@ -5,9 +5,59 @@
 <sub>A repeat standing out from noise. Until the noise wins.</sub>
 
 
-> **Status: the module is implemented and tested. The number it depends on has
-> not been measured.** `ai-flows/src/observability.ts` — 20 tests, all passing
-> **[ran]**; 36 across `ai-flows`.
+> **Status: implemented, tested, and δ measured once.** `ai-flows/src/observability.ts`
+> — 23 tests **[ran]**; 39 across `ai-flows`. The measurement is below and it
+> changed the code.
+
+## What was measured **[ran]**
+
+2026-08-04, on the target harness rather than a proxy: `HARNESS=pi`,
+`deepseek/deepseek-v4-flash` via OpenRouter, in-process through `app.turn`.
+**22 turns, all `ok`** — three tasks standing in for three kinds of flow step: a
+planning step (which files must change), an eval step (a one-word verdict), and a
+tool step (a command run in the sandbox). Each repeated from an identical starting
+state on a fresh thread. Scripts: `ai-base/scripts/delta-probe.ts` and
+`ai-flows/scripts/delta-report.ts`, the latter importing the same functions this
+document describes.
+
+| Fingerprint taken over | δ pooled | C(δ) | (1−δ)³ |
+|---|---|---|---|
+| raw reply text | **21.1%** | 0.604 | 49.1% |
+| normalized text | **0%** | 1.000 | 100% |
+| extracted payload | **0%** | 1.000 | 100% |
+
+**Every divergence was presentation.** The worst group was the planning step, raw
+δ = 53.6% — and the entire difference was that the model wrote ``​`src/types.ts`​``
+five times and `src/types.ts` three times. Backticks. Under normalization the
+groups collapse to one value each: `src/types.ts` 8/8, `YES` 8/8, `a-b-c` 6/6.
+
+**Zero observed is not zero.** With 8+8+6 samples the 95% upper bound on δ is
+**14.6%**, so detection at *w* = 3 is at worst **62.3%** — comfortably above the 5%
+floor at which the instrument stops seeing stuck flows. The module survives its
+first falsification test, and it survives it at the pessimistic end of the interval
+rather than only at the point estimate.
+
+### What it changed
+
+`digestOf` now normalizes before hashing. It did not before, and shipping it that
+way would have carried 21% noise into every comparison for no gain — the raw bytes
+were measuring prose style, not work. The backtick case is now a regression test
+with the measured data in the comment.
+
+### What this does not establish
+
+Stated because the result is clean enough to be over-read.
+
+1. **The tasks were terse by instruction** — "file paths only", "exactly one
+   word". A discursive `Open` step has far more room to vary, and δ over one of
+   those is unmeasured. This number is honest for *structured* observations, which
+   is what `Observation.digest` should be taken over anyway, and optimistic for
+   anything else.
+2. **The eval task had an unambiguous answer**, and all 8 turns found it. A
+   borderline verdict is where an eval fingerprint would actually be tested.
+3. **δ is harness-dependent by definition.** This is one model on one harness. A
+   different model, or `claude`/`codex`, needs its own number, which is why the
+   probe is a committed script rather than a paragraph.
 
 ## The question this asks that the others do not
 

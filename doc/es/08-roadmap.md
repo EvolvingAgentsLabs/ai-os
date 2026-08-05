@@ -83,12 +83,14 @@ El `ai-flows` más chico y honesto: **una forma (`Open`), persistida, reanudable
    comparación de §Cómo se falsifica es una anécdota, y la telemetría de upstream
    se borra una hora después del intento que la produjo
 
-**Y un número que M2 debe antes de poder interpretar su propio resultado:** δ, la
-tasa a la que trabajo idéntico produce estado distinto. Toda afirmación del tipo
-"el flow conservó su trabajo y la sesión lo perdió" es una afirmación de que dos
-estados difieren, y esa afirmación vale lo que vale el instrumento que la hace
-([10](10-observability.md)). Medir δ es una tarde, y puede invalidar temprano toda
-la maquinaria de deriva — que es el mejor resultado posible para una tarde.
+**Un número que M2 debía, ya pagado.** δ — la tasa a la que trabajo idéntico
+produce estado distinto — es **0% sobre texto normalizado y 21.1% sobre el crudo**,
+medido en `pi` / `deepseek-v4-flash` a lo largo de 22 turnos **[ran]**
+([10 § Qué se midió](10-observability.md)). Toda afirmación del tipo "el flow
+conservó su trabajo y la sesión lo perdió" es una afirmación de que dos estados
+difieren, y vale lo que vale el instrumento que la hace. La tarde que costó no
+invalidó la maquinaria de deriva — la corrigió: `digestOf` ahora normaliza, porque
+los bytes crudos cargaban 21% de ruido a cambio de nada.
 
 Fuera de M2: formas más allá de `Open`, merge, canvas, memoria nueva.
 

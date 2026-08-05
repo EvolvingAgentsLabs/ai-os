@@ -75,12 +75,14 @@ The smallest honest `ai-flows`: **one shape (`Open`), persisted, resumable.**
    the comparison in §How this gets falsified is an anecdote, and upstream's
    telemetry is deleted an hour after the attempt that produced it
 
-**And one number M2 owes before it can interpret its own result:** δ, the rate at
-which identical work produces different state. Every "the flow kept its work and
+**One number M2 owed, now paid.** δ — the rate at which identical work produces
+different state — is **0% over normalized text and 21.1% over raw**, measured on
+`pi` / `deepseek-v4-flash` across 22 turns **[ran]**
+([10 § What was measured](10-observability.md)). Every "the flow kept its work and
 the session lost it" claim is a claim that two states differ, and that claim is
-only as good as the instrument making it ([10](10-observability.md)). Measuring
-δ is an afternoon, and it can invalidate the drift machinery early — which is the
-best possible outcome for an afternoon.
+only as good as the instrument making it. The afternoon it cost did not invalidate
+the drift machinery — it corrected it: `digestOf` normalizes now, because raw bytes
+were carrying 21% noise for no gain.
 
 Not in M2: shapes beyond `Open`, merge, canvas, new memory.
 
