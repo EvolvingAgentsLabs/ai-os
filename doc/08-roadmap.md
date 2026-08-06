@@ -280,6 +280,32 @@ The replacement has two parts, and the first is a gate rather than a claim:
    `inferenceVsObservation`. Without that, the flat file wins and this pillar is
    dropped.
 
+**First data point on the gate — 2026-08-06 [ran].** A fixture written for the
+purpose, `supersession-storm`: one fact (the production database) superseded
+**six times** across 13 turns, every revision separated by unrelated detail, with
+a final turn asking for the current state. The flat-file baseline scored:
+
+| strategy | signal/noise | **staleness** | infer-vs-obs |
+|---|---:|---:|---:|
+| `per-turn` | 10.0 | **10.0** | 10.0 |
+
+The judge's own words: *"without retaining stale intermediate values"*. **The
+ceiling did not move.**
+
+One attempt is one attempt, and the rule about counting redesigns applies to
+whoever writes the second: this is a data point, not the verdict. Two things it
+does not establish, both worth stating before anyone quotes it:
+
+- It tested **supersession density**, not the **eviction horizon**. The gate also
+  named "a horizon long enough that a 300-bullet FIFO starts dropping things", and
+  13 turns is nowhere near 300 bullets. That half is unrun.
+- The judge is deepseek grading deepseek's own summariser, which is the weakest
+  form of this evidence and is the second disclosure below.
+
+If a horizon fixture also comes back at the ceiling, the gate has been given its
+fair chance and **M4 does not proceed on this instrument** — which is the decision
+already written, executed rather than revisited.
+
 Two known instrument defects to fix while doing (1), both disclosed in
 [05](05-ai-storage.md#two-disclosures-about-the-arms): the judge penalises every arm
 that writes `- (YYYY-MM-DD)` bullets for "inferring" the date, which is upstream's own
