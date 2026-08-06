@@ -26,6 +26,12 @@ Running took under an hour. No Postgres (in-memory stores), no build step, and
 the suite was already green: **3,712 tests, 3,580 pass, 0 fail**, plus a clean
 `tsc --noEmit`.
 
+> **"No Postgres" was a fact about M1, not a standing property.** It is carried
+> here because it is what happened, but it stops being true at M2 — see
+> [Phase 0](#phase-0--durable-by-default--new-and-it-is-not-optional). In-memory
+> stores are per-process, so a second process cannot see the first one's state and
+> nothing survives a restart, which is most of what M2 promises.
+
 Real turns completed against `deepseek/deepseek-v4-flash` through OpenRouter on
 `HARNESS=pi` — a smoke reply, a memory write observed on disk, and a tool call
 that failed honestly because the sandbox image was not built.
@@ -66,6 +72,127 @@ test functions.
 Silicon every tool call is emulated — ~47 s cold, ~25 s warm, against ~4 s for a
 turn without tools. M2's iteration loop is therefore minutes per cycle. Either
 budget for that or build an arm64 image first; do not discover it mid-milestone.
+
+## The path to a version worth iterating on — **added 2026-08-06**
+
+The milestones below are in dependency order but they are not a plan, because
+they do not say which of them are *blocked* and by what. Five things are missing
+from a running system: the flow engine, the canvas, scoped memory, depth-2
+delegation, and agent principals. **They are not five comparable work items**, and
+treating them as a list to burn down is the mistake this section exists to
+prevent.
+
+Sorted by what is actually in the way:
+
+| Missing | Status | What is in the way |
+|---|---|---|
+| Durable stores | **prerequisite, undeclared until now** | nothing — it is configuration |
+| Flow engine (M2) | **unblocked** | the signed HTTP client, which nobody has written |
+| The canvas (M5) | **blocked on M2** | there is no flow state to render |
+| Scoped memory (M4) | **gated** | a headroom test that has not been run |
+| Depth-2 delegation | **deferred** | [ADR-0008](adr/0008-conformation-is-projected.md) — its condition has not fired |
+| Agent principals | **deferred** | ADR-0008 — its condition has not fired |
+
+Only the first two are work. The third follows from the second. The last three
+are decisions already made, and reopening them is a separate argument from
+scheduling them.
+
+### What "a version worth iterating on" has to mean
+
+Not feature-completeness. The smallest system whose *loop closes*: **work that
+survives interruption, and a way to see it.** An agent OS that cannot be left and
+returned to is a chat app, and one whose state cannot be seen cannot be steered.
+That is Phase 0 plus Phase 1 plus Phase 2 below. Everything after is improvement
+to a thing that must first exist.
+
+### Phase 0 · Durable by default — **new, and it is not optional**
+
+M1 recorded "Postgres optional (in-memory stores work)". That was true of M1 and
+is false of everything after it, and running the system on 2026-08-06 is what
+showed it **[ran]**:
+
+- A project created in the web UI was **invisible to the conformation projector**
+  running as a second process against the same `dataDir`. With `store=memory` the
+  `ProjectStore` lives inside the core's process; another process sees workspace
+  files and none of the state ([manual § Part 4](manual.md#part-4--what-the-holes-told-us-running-it-live)).
+- `SessionStore.distinctScopes()` returned 0 for the same reason, so the scope
+  list had to be recovered by decoding directory names.
+- A flow that resumes on Wednesday cannot resume out of a process that exited on
+  Monday. **M2's own definition of done is unreachable on in-memory stores.**
+
+So: `DATABASE_URL` set, `npm run test:pg` green, and the in-memory stores demoted
+to what they are — a unit-test fixture. Small, and it is the floor everything else
+stands on.
+
+### Phase 1 · The flow engine (M2)
+
+Unchanged in substance from M2 below. Two things the milestone does not say, and
+both are the actual first tasks:
+
+1. **The signed HTTP client does not exist.** [ADR-0006](adr/0006-ai-flows-lives-outside-core.md)
+   decided `ai-flows` advances a step by calling the signed API rather than
+   importing core — HMAC-SHA256 over `v0:{unix}:{METHOD}\n{path}\n{body}`, five
+   minute replay window. That client is first-party ai-os code and **nobody has
+   written it**. It is perhaps a day, it is on the critical path, and every later
+   phase runs through it.
+2. **The first slice is one flow, one step, `Open`.** Create a flow, advance it by
+   `POST /v1/turns?async=1`, poll `GET /v1/runs/:id` to terminal, record the
+   attempt and its observation. Anything beyond that — shapes, fork, diff — is M3
+   and M6 and does not belong in the slice that proves the seam.
+
+**Falsified by:** the step cannot be made to execute through the public API and
+needs core modification after all. That kills ADR-0006, not the flow, and it is
+better to find out in the first slice than in the seventh deliverable.
+
+### Phase 2 · Seeing it — and the cheap version comes first
+
+M5 is a canvas: Lit, `dockview-core`, spatial layout, a fifth plugin. That is a
+quarter of infrastructure to answer a question that can be answered in an
+afternoon, and this workspace has a standing rule against paying the second price
+before the first.
+
+**Build the read-only view first.** The conformation projector already emits a
+document with scopes, agents, rosters, the communication graph and its holes. Add
+flow state to it and render it — one page, no layout persistence, no drag, no
+generated components. Then run **M5's own falsification, unchanged**: the
+stopwatch test, a three-day-old flow, canvas against transcript.
+
+If the flat read-only view already lets a person pick a flow up after three days,
+**the canvas is not the next thing to build** and M5 should be reargued rather
+than scheduled. If it does not, the stopwatch says exactly what was missing, and
+that is a better specification for a canvas than [04](04-ai-ui.md) is.
+
+### Phase 3 · The three that are gated, and their gates
+
+**Scoped memory (M4).** The gate is already written and is a *precondition, not a
+milestone*: extend the bench fixtures until the flat-file baseline drops to at most
+7 on `staleness`. It scores **10.0/10 today**, so no levelled strategy can improve
+on it and every arm ties at the ceiling. **Run the gate before building anything.**
+If the baseline cannot be pushed off the ceiling, M4 does not proceed on this
+instrument — that is the decision, already made, and it is cheap to execute.
+
+**Depth-2 delegation.** ADR-0008 defers it until *a real piece of work exists in
+which an orchestrator's child must itself delegate, and which cannot be served by
+the parent delegating twice.* No such work has appeared. The cheap way to find out
+is not to build it: **instrument for it.** When a delegated child returns, record
+whether its task contained separable sub-work. If that never fires across real
+use, the one-level cap costs nothing and lifting it — `runChild` into the child's
+tool set, with unbounded consequence, inside a weekly-pulled fork — buys nothing.
+
+**Agent principals.** ADR-0008's condition is an agent that must appear in a
+roster, hold memory no human owns, or be denied something by ACL. All three are
+**projector output**, so this is decided by running the projector on real use
+rather than by argument. Note the cost if it does fire: a third `PrincipalType` in
+`types.ts`, at the centre of a hand-merged dependency. That is the most expensive
+line in this plan and it should be bought last and on evidence.
+
+### What this plan deliberately does not contain
+
+Beyond [§ Deliberately not planned](#deliberately-not-planned): **no attempt to do
+Phases 1 and 2 in parallel.** The view renders flow state; building it against a
+flow engine that does not exist yet means designing for imagined state, and the
+one thing this repository has repeatedly proven is that imagined state is where
+the instrument starts flattering its author.
 
 ## M2 · The first flow — **not started, and the one that justifies the repository**
 
