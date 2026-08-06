@@ -4,9 +4,7 @@
   "provider": "openrouter",
   "harness": "pi",
   "seed": 1,
-  "levels": [
-    "L2"
-  ],
+  "levels": ["L2"],
   "headroomFloor": 0.1,
   "undetectedRate": 0,
   "overall": {

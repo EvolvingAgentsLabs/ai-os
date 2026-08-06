@@ -37,6 +37,7 @@ import {
   HANDOFF_FILE,
   handoffLossRate,
   handoffSuite,
+  noteOmissionRate,
   type HandoffGrade,
   type HandoffTask,
 } from "../src/tasks/handoff.ts";
@@ -131,12 +132,17 @@ const rows: Row[] = [];
 for (const task of tasks) {
   const started = Date.now();
   const explorer = await turn(explorerInstruction(task), `${task.id}-explorer-${started}`);
-  const finisher = await turn(finisherInstruction(task), `${task.id}-finisher-${started}`);
+  /**
+   * The note is read BEFORE the finisher runs. Completeness is a property of what the
+   * explorer left behind, so reading it afterwards would risk grading a file the
+   * finisher had touched, and the order is cheaper than trusting that it did not.
+   */
   const note = await turn(
     `Print the exact contents of \`${HANDOFF_FILE}\`, verbatim and nothing else.`,
     `${task.id}-inspect-${started}`,
   );
-  const grade = gradeHandoff(task, explorer.reply, finisher.reply);
+  const finisher = await turn(finisherInstruction(task), `${task.id}-finisher-${started}`);
+  const grade = gradeHandoff(task, note.reply, finisher.reply);
   const unreadable = looksUnreadable(finisher.reply);
   rows.push({
     id: task.id,
@@ -151,19 +157,24 @@ for (const task of tasks) {
     ms: Date.now() - started,
   });
   console.log(
-    `${task.id.padEnd(26)} explorer=${grade.explorer.padEnd(11)} finisher=${grade.finisher.padEnd(11)} ` +
-      `${grade.handoffLoss ? "LOSS" : "    "}${unreadable ? " UNREADABLE" : ""} ${((Date.now() - started) / 1000).toFixed(0)}s`,
+    `${task.id.padEnd(26)} note=${grade.present.length}/${task.required.length} ` +
+      `finisher=${grade.finisher.padEnd(11)} ` +
+      `${grade.noteOmission ? `OMITTED ${grade.missing.join(",")}` : grade.handoffLoss ? "MISREAD" : ""}` +
+      `${unreadable ? " UNREADABLE" : ""} ${((Date.now() - started) / 1000).toFixed(0)}s`,
   );
 }
 
 const grades = rows.map((r) => r.grade);
-const reached = grades.filter((g) => g.explorer === "pass").length;
-const lost = grades.filter((g) => g.handoffLoss).length;
+const complete = grades.filter((g) => g.noteComplete).length;
+const omitted = grades.filter((g) => g.noteOmission).length;
+const misread = grades.filter((g) => g.handoffLoss).length;
 const unreadable = rows.filter((r) => r.unreadable).length;
+const omissionRate = noteOmissionRate(grades);
 const rate = handoffLossRate(grades);
 
-console.log(`\nn=${rows.length}  reached the handoff=${reached}  lost there=${lost}  unreadable=${unreadable}`);
-console.log(`handoff loss rate: ${(rate * 100).toFixed(1)}% of the chains that arrived intact`);
+console.log(`\nn=${rows.length}  complete notes=${complete}  omitted something=${omitted}  misread=${misread}`);
+console.log(`note omission rate (recording failure): ${(omissionRate * 100).toFixed(1)}% of all attempts`);
+console.log(`handoff loss rate (reading failure):    ${(rate * 100).toFixed(1)}% of complete notes`);
 
 const HEADROOM_FLOOR = 0.2;
 if (unreadable > 0 && unreadable === rows.length) {
@@ -171,24 +182,25 @@ if (unreadable > 0 && unreadable === rows.length) {
     "\nVOID — every finisher reported the file missing. The two conversations are not sharing a " +
       "workspace scope, so nothing here is a handoff measurement. Fix that before reading any rate above.",
   );
-} else if (reached === 0) {
-  console.log(
-    "\nVOID — no explorer produced a usable intermediate, so no chain reached the handoff. " +
-      "The explorer half is too hard; loosen it before measuring the handoff.",
-  );
 } else {
+  /**
+   * Headroom is omission OR misreading: both are failures a recorded procedure could
+   * repair, and gating on one alone would cancel over a model that fails the other
+   * way. The same correction the physics probe needed after its first data point.
+   */
+  const headroom = Math.max(omissionRate, rate);
   console.log(
-    rate >= HEADROOM_FLOOR
-      ? `\nHEADROOM: yes — ${lost}/${reached} intact chains lost the handoff. There is a trap to learn. ` +
-          "Build the treatment arm: same tasks, same order, one scope, strategies on."
-      : `\nHEADROOM: no — only ${lost}/${reached} intact chains lost the handoff, below the ${HEADROOM_FLOOR * 100}% ` +
-          "floor. The explorer is already recording what a successor needs, so there is nothing for a strategy " +
-          "to supply. Redesign the split before building the treatment arm.",
+    headroom >= HEADROOM_FLOOR
+      ? `\nHEADROOM: yes — ${omitted} notes omitted something and ${misread} complete notes were misread. ` +
+          "There is a trap to learn. Build the treatment arm: same tasks, same order, one scope, strategies on."
+      : `\nHEADROOM: no — ${omitted} omissions and ${misread} misreads, both below the ${HEADROOM_FLOOR * 100}% ` +
+          "floor. This model already records what a successor needs. Do NOT redesign the split a third time to " +
+          "chase a number: report that this failure mode is not present at this scale.",
   );
 }
 
 console.log("\n--- what the explorer actually left behind ---");
-for (const r of rows.slice(0, 3)) console.log(`\n[${r.id}] ${r.grade.handoffLoss ? "LOST" : "ok"}\n${r.note}`);
+for (const r of rows.slice(0, 4)) console.log(`\n[${r.id}] missing=[${r.grade.missing.join(",")}]\n${r.note}`);
 
 if (OUT) {
   writeFileSync(
@@ -202,8 +214,10 @@ if (OUT) {
         harness: "pi",
         seed: SEED,
         headroomFloor: HEADROOM_FLOOR,
-        reached,
-        lost,
+        complete,
+        omitted,
+        misread,
+        noteOmissionRate: omissionRate,
         unreadable,
         handoffLossRate: rate,
         rows,

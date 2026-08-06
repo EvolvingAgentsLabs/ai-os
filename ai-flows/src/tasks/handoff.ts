@@ -59,9 +59,16 @@ export interface HandoffTask {
    * period into a number, producing NaN. Prose is for the model; this is for code.
    */
   params: Readonly<Record<string, number>>;
-  /** Oracle for the intermediate the explorer must produce. */
-  intermediate: number;
-  intermediateUnits: string;
+  /**
+   * Every quantity the finisher needs, with its oracle value.
+   *
+   * The explorer computes all of them — none can be recovered from the finisher's own
+   * prompt, which carries no task numbers at all. So a note that omits one leaves the
+   * finisher genuinely unable to proceed, and THAT omission is what this family
+   * measures. The earlier design gave the finisher the parameters as well, which made
+   * the note optional and drove the loss rate to zero by construction **[ran]**.
+   */
+  required: ReadonlyArray<{ name: string; value: number }>;
   /** Oracle for the final answer the finisher must produce. */
   answer: number;
   units: string;
@@ -70,13 +77,24 @@ export interface HandoffTask {
 }
 
 export interface HandoffGrade {
-  explorer: Outcome;
+  /** Which required quantities the note actually carries, within tolerance. */
+  present: string[];
+  missing: string[];
+  /** The note carries everything the finisher needs. */
+  noteComplete: boolean;
   finisher: Outcome;
-  explorerRelativeError: number | null;
   finisherRelativeError: number | null;
   /**
-   * The explorer was right and the finisher was not. The chain reached the handoff
-   * intact and lost there, which is the only outcome this family is measuring.
+   * The recording failure, and the one this family exists for: the explorer computed
+   * what it was asked and the note still does not carry everything its successor
+   * needs. Measured on the note itself rather than inferred from the finisher, because
+   * a finisher can fail for its own reasons and a note can be incomplete while a lucky
+   * finisher still lands the answer.
+   */
+  noteOmission: boolean;
+  /**
+   * The reading failure: the note had everything and the finisher failed anyway —
+   * ambiguous labels, two numbers it could not tell apart, or a misread.
    */
   handoffLoss: boolean;
 }
@@ -107,15 +125,32 @@ function gradeOne(
  * usable handoff as a broken chain, and then every `handoffLoss` figure would be
  * measuring the explorer's rounding instead of the handoff.
  */
-export function gradeHandoff(task: HandoffTask, explorerReply: string, finisherReply: string): HandoffGrade {
-  const explorer = gradeOne(explorerReply, task.intermediate, task.tolerance / 10);
+export function noteCarries(note: string, value: number, tolerance: number): boolean {
+  const numbers = note.match(/-?\d[\d,]*\.?\d*(?:[eE][-+]?\d+)?/g) ?? [];
+  for (const raw of numbers) {
+    const parsed = Number(raw.replace(/,/g, ""));
+    if (!Number.isFinite(parsed) || parsed === 0) continue;
+    if (Math.abs(parsed - value) / Math.abs(value) <= tolerance) return true;
+  }
+  return false;
+}
+
+export function gradeHandoff(task: HandoffTask, note: string, finisherReply: string): HandoffGrade {
+  const present: string[] = [];
+  const missing: string[] = [];
+  for (const q of task.required) {
+    (noteCarries(note, q.value, task.tolerance / 10) ? present : missing).push(q.name);
+  }
+  const noteComplete = missing.length === 0;
   const finisher = gradeOne(finisherReply, task.answer, task.tolerance);
   return {
-    explorer: explorer.outcome,
+    present,
+    missing,
+    noteComplete,
     finisher: finisher.outcome,
-    explorerRelativeError: explorer.relativeError,
     finisherRelativeError: finisher.relativeError,
-    handoffLoss: explorer.outcome === "pass" && finisher.outcome !== "pass",
+    noteOmission: !noteComplete,
+    handoffLoss: noteComplete && finisher.outcome !== "pass",
   };
 }
 
@@ -141,7 +176,8 @@ export function explorerInstruction(task: HandoffTask): string {
 export function finisherInstruction(task: HandoffTask): string {
   const figures = significantFiguresFor(task.tolerance);
   return (
-    `Read \`${HANDOFF_FILE}\`. A previous agent left its work there. ${task.finisherPrompt}\n\n` +
+    `Read \`${HANDOFF_FILE}\`. A previous agent left its work there, and it is your only source: ` +
+    `you have no other values for this problem. ${task.finisherPrompt}\n\n` +
     `Compute it with the execute tool. Reply with the numeric value only, in ${task.units}, to at least ` +
     `${figures} significant figures. No words, no units, no formatting. If the note does not give you ` +
     "what you need, reply with exactly: UNSURE"
@@ -205,14 +241,15 @@ export function handoffSuite(opts: HandoffGenOpts = {}): HandoffTask[] {
         {
           system: "pendulum-handoff",
           explorerPrompt:
-            `A simple pendulum swings with angular amplitude ${degrees}°. Compute the complete ` +
-            `elliptic integral of the first kind K(m), where m = sin²(amplitude/2).`,
-          finisherPrompt:
-            "Give the pendulum's exact period, which is 4·√(L/g)·K(m) with g = " +
-            `${G} m/s². The pendulum's length is ${lengthM} m.`,
+            `A simple pendulum of length ${lengthM} m swings with angular amplitude ${degrees}°, with ` +
+            `g = ${G} m/s². Compute two quantities: P = √(L/g), and K(m), the complete elliptic ` +
+            "integral of the first kind with m = sin²(amplitude/2).",
+          finisherPrompt: "Give the pendulum's exact period in seconds, which is 4·P·K(m).",
           params: { lengthM, g: G },
-          intermediate: k,
-          intermediateUnits: "dimensionless",
+          required: [
+            { name: "P", value: Math.sqrt(lengthM / G) },
+            { name: "K(m)", value: k },
+          ],
           answer: exact,
           units: "s",
           tolerance,
@@ -234,14 +271,16 @@ export function handoffSuite(opts: HandoffGenOpts = {}): HandoffTask[] {
         {
           system: "relativistic-handoff",
           explorerPrompt:
-            `A particle moves at ${fraction} times the speed of light. Compute the Lorentz factor's ` +
-            "reciprocal, s = √(1 − β²), where β is its speed as a fraction of c.",
+            `A particle moves at β = ${fraction} times the speed of light, c = ${C} m/s. Compute two ` +
+            "quantities: β², and s = √(1 − β²).",
           finisherPrompt:
             "Give the particle's relativistic kinetic energy per unit mass in J/kg, which is " +
-            `(β²/(s·(1+s)))·c² with c = ${C} m/s. Its speed is ${fraction} times c.`,
+            "(β²/(s·(1+s)))·c², with c = 299792458 m/s.",
           params: { beta: fraction, c: C },
-          intermediate: s,
-          intermediateUnits: "dimensionless",
+          required: [
+            { name: "β²", value: beta2 },
+            { name: "s", value: s },
+          ],
           answer: exact,
           units: "J/kg",
           tolerance,
@@ -263,13 +302,17 @@ export function handoffSuite(opts: HandoffGenOpts = {}): HandoffTask[] {
       push(
         {
           system: "logistic-handoff",
-          explorerPrompt: `Compute e^(−r·t) for a growth rate r = ${rate} per unit time and t = ${t} time units.`,
-          finisherPrompt:
-            "Give the logistic population at that time, which is K/(1 + ((K−N₀)/N₀)·e^(−r·t)), for an " +
-            `initial population N₀ = ${n0} and carrying capacity K = ${kCap}.`,
+          explorerPrompt:
+            `A population grows logistically from N₀ = ${n0} with rate r = ${rate} per unit time and ` +
+            `carrying capacity K = ${kCap}. Compute three quantities: K, A = (K−N₀)/N₀, and ` +
+            `B = e^(−r·t) at t = ${t} time units.`,
+          finisherPrompt: "Give the population at that time, which is K/(1 + A·B).",
           params: { n0, kCap },
-          intermediate: decay,
-          intermediateUnits: "dimensionless",
+          required: [
+            { name: "K", value: kCap },
+            { name: "A", value: (kCap - n0) / n0 },
+            { name: "B", value: decay },
+          ],
           answer: exact,
           units: "individuals",
           tolerance,
@@ -291,14 +334,14 @@ export function handoffSuite(opts: HandoffGenOpts = {}): HandoffTask[] {
         {
           system: "drag-fall-handoff",
           explorerPrompt:
-            `A body falls for ${t} s with terminal velocity ${vT} m/s and g = ${G} m/s². ` +
-            "Compute the dimensionless quantity x − 1 + e^(−x), where x = g·t/vT.",
-          finisherPrompt:
-            "Give the distance the body has fallen in metres, which is (vT²/g) times that quantity, " +
-            `for terminal velocity ${vT} m/s and g = ${G} m/s².`,
+            `A body falls for ${t} s with terminal velocity vT = ${vT} m/s and g = ${G} m/s². Compute ` +
+            "two quantities: C = vT²/g, and D = x − 1 + e^(−x) where x = g·t/vT.",
+          finisherPrompt: "Give the distance the body has fallen in metres, which is C·D.",
           params: { vT, g: G },
-          intermediate: bracket,
-          intermediateUnits: "dimensionless",
+          required: [
+            { name: "C", value: (vT * vT) / G },
+            { name: "D", value: bracket },
+          ],
           answer: exact,
           units: "m",
           tolerance,
@@ -311,8 +354,15 @@ export function handoffSuite(opts: HandoffGenOpts = {}): HandoffTask[] {
   return tasks.map((t, i) => ({ ...t, id: `${t.system}-${i}` }));
 }
 
+/** The recording failure rate: notes that omitted something their successor needed. */
+export function noteOmissionRate(grades: readonly HandoffGrade[]): number {
+  if (!grades.length) return 0;
+  return grades.filter((g) => g.noteOmission).length / grades.length;
+}
+
+/** The reading failure rate, over the notes that were complete enough to read. */
 export function handoffLossRate(grades: readonly HandoffGrade[]): number {
-  const reached = grades.filter((g) => g.explorer === "pass");
-  if (!reached.length) return 0;
-  return reached.filter((g) => g.handoffLoss).length / reached.length;
+  const complete = grades.filter((g) => g.noteComplete);
+  if (!complete.length) return 0;
+  return complete.filter((g) => g.handoffLoss).length / complete.length;
 }

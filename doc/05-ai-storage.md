@@ -365,3 +365,106 @@ result just walked into, made cheap to detect.
 **The code stays.** 240 lines behind `MEMORY_STRATEGY=dream`, default unchanged, and
 it is the only implementation of distillation-at-rest in the tree. It is now an
 untested mechanism rather than a promised one, which is the correct state for it.
+
+## Experiment 2 — the handoff, and a failure mode this model does not have **[ran]**
+
+The premise, stated by the person who first built agents as markdown files: _a first
+version of an agent is not optimal, and its initial fitness to be part of a
+multi-agent system is not either._ If that holds, the place to find it is a handoff —
+one agent finishing a step another continues — and the failure is **informational**
+rather than computational, so no amount of arithmetic ability removes it. That is why
+this experiment exists and why Experiment 1's atomic tasks could not have found it:
+with a sandbox, the arithmetic is simply not hard
+([11 § Scored, at last](11-choosing-a-model.md#scored-at-last-the-harness-lift-at-l2-is-total-ran)).
+
+`ai-flows/src/tasks/handoff.ts` populates `structure: "sequential"`, which was a
+declared type with zero instances. One physical question is split in two: an explorer
+computes named quantities and writes a note; a finisher, in a different conversation
+sharing the same workspace, must finish from that note alone.
+
+### The first design was void, and the second is the result
+
+**Run 1, 2026-08-05 — void.** Six handoffs, zero losses, every finisher passing —
+_including three whose own explorer had computed the wrong intermediate._ They passed
+because the finisher's prompt carried the task parameters, so it could recompute from
+scratch and ignore the note entirely. **The handoff was decorative, and a channel
+nobody needs cannot lose anything.** The loss rate was zero by construction. Report
+kept: [`handoff-probe-2026-08-05-control.json`](../ai-flows/measurements/handoff-probe-2026-08-05-control.json).
+
+Two fixes, and the second matters more than the first. The finisher now holds **no
+task number at all** — only a symbolic formula (`T = 4·P·K(m)`, `N = K/(1 + A·B)`) —
+with a test that fails if a parameter ever leaks back into its prompt, because the
+leak was invisible while nothing watched for it. And completeness is now read **off
+the note** rather than inferred from whether the finisher failed. That distinction is
+the whole measurement: a finisher can pass by luck over an incomplete note, which is
+exactly what happened to a note that was the bare string `0.04528057257316896` and got
+counted as a success.
+
+**Run 2, 2026-08-06 — no headroom, and the honest end of this line.**
+
+|                                                       |           |
+| ----------------------------------------------------- | --------: |
+| handoffs                                              |         6 |
+| notes carrying everything the successor needed        | **6 / 6** |
+| notes omitting something (recording failure)          |     **0** |
+| complete notes the finisher misread (reading failure) |     **0** |
+| finishers landing inside tolerance                    |     6 / 6 |
+
+Report and log:
+[`handoff-probe-2026-08-06-control-v2.json`](../ai-flows/measurements/handoff-probe-2026-08-06-control-v2.json).
+The notes say why better than the counts do. Asked only for two quantities and told
+nothing about what to include, one explorer wrote:
+
+```
+# Pendulum computation — handoff
+## Parameters
+- L = 1.717 m
+- g = 9.80665 m/s²
+- Angular amplitude = 5.04°
+## Results
+| P = √(L/g) | 0.41843192250151073 |
+| m = sin²(amplitude/2) | 0.001933195428413767 |
+| K(m) (complete elliptic integral of the first kind) | 1.5715563175063318 |
+| P × K(m) | 0.657589331253569 |
+```
+
+It recorded the parameters it was given, both requested quantities _with their
+symbolic definitions_, an intermediate nobody asked for, and the product its successor
+was about to need. Another closed with _"Both values computed with full double
+precision."_ This is not a first version that needs teaching.
+
+**So: the failure mode is not present in `deepseek-v4-flash` at this scale**, and the
+gate written before the run says what to do about it — do not redesign a third time to
+chase a number. Three designs already, each one moving the instrument closer to the
+hypothesis; a fourth would be looking for the result rather than measuring it.
+
+**What bounds the claim**, because it is narrow: n = 6; the tasks name the quantities
+they want, and being asked for named things makes recording them natural, where an open
+handoff (_"work out what is going on and pass it on"_) would not; and one note with one
+purpose is the easiest possible artifact. Real recording failure most likely lives in
+long, messy chains with many artifacts and no obvious answer to _what matters here_.
+None of that is measured, and none of it is claimed.
+
+## What the four instruments say together
+
+Read separately, today produced four failures to measure evolution. Read together they
+are one finding:
+
+| instrument                         | result                                 |
+| ---------------------------------- | -------------------------------------- |
+| `bench:memory`, flat-file baseline | `staleness` 10.0 / 10 — saturated      |
+| physics L2, bare `oneShot`         | 0 / 24 pass                            |
+| physics L2, harness with sandbox   | **12 / 12 pass** — headroom 0%         |
+| handoff, leak closed               | **6 / 6 notes complete** — headroom 0% |
+
+**At this scale the harness lift is everything and the learnable residue is nothing.**
+Rows two and three are the cleanest statement of it: 0% to 100% on identical tasks,
+one variable. And that is not a surprise this repository should be defensive about — it
+is [11](11-choosing-a-model.md)'s own argument arriving from a different direction. The
+lift is enormous **and** it is not the number that decides anything.
+
+What follows for `ai-storage` and for the dream pass is the same sentence: **there is
+no measured case for either yet**, and the next honest attempt is not another
+arithmetic suite. It is a domain where the shared artifact is prose or code, where
+_what to record_ has no obvious answer, and where the successor cannot check for itself
+whether what it received was enough.
