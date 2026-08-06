@@ -16,10 +16,14 @@ está congelado — ver [`doc/es/07-freeze-policy.md`](doc/es/07-freeze-policy.m
 **[English](README.md)** · El inglés es la versión canónica de todos los
 documentos; ver [Idiomas](#idiomas).
 
-> **Estado: diseño.** `ai-base/` es una copia vendorizada de QM y corre.
-> `ai-flows/`, `ai-ui/` y `ai-storage/` están especificados en `doc/` y **no
-> están implementados**. Nada en este README describe software que exista, salvo
-> que lo diga explícitamente.
+> **Estado: diseño, con dos piezas medidas.** `ai-base/` es una copia vendorizada
+> de QM y corre. `ai-flows/` está especificado en `doc/` y mayormente sin
+> construir — lo que existe y corre es su flow store, su instrumento de
+> observabilidad ([10](doc/es/10-observability.md)) y su proyector de conformación
+> ([12](doc/es/12-conformation.md)), 137 tests. El *motor* de flows — un paso
+> ejecutando como run — no está construido. `ai-ui/` y `ai-storage/` están
+> especificados y **no implementados** en absoluto. Nada en este README describe
+> software que exista, salvo que lo diga explícitamente.
 
 ## El problema: la IA sigue siendo de un solo jugador
 

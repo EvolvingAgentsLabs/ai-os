@@ -18,6 +18,7 @@ Read in order the first time:
 | 09 | [Scales](09-scales.md) | Individual, collective, project, system — one axis for flows and memory, and it is `scopeId` |
 | 10 | [Observability](10-observability.md) | Can a flow's progress be read at all? Drift versus unreadable, and the noise floor that separates them |
 | 11 | [Choosing a model](11-choosing-a-model.md) | Small model plus harness against frontier plus harness — the interaction term, and where its sign flips |
+| 12 | [Conformation](12-conformation.md) | Projects, agents and folders: what the layered workspace already is, why membership never lives in it, and who can see the shape of the system at all |
 
 ## Decisions
 
@@ -33,6 +34,16 @@ when the decision is made, never edited afterwards — superseded instead.
 | [0005](adr/0005-scale-is-scope.md) | The scale of work is its scope; a project is upstream's group, not `team` | Accepted |
 | [0006](adr/0006-ai-flows-lives-outside-core.md) | `ai-flows` is built against the signed HTTP seam, not inside core | Accepted |
 | [0007](adr/0007-observation-captured-not-derived.md) | An attempt's observation is captured when it closes, never derived later | Accepted |
+| [0008](adr/0008-conformation-is-projected.md) | The system's conformation is projected from existing stores; folders never hold membership | Accepted |
+
+## Drafts for upstream
+
+[`upstream/`](upstream/) holds proposals aimed at `yc-software/qm`, kept here
+until they are sent. Their `CONTRIBUTING.md` asks for **human-written, informal**
+text and says in as many words: *"Please do not have AI artificially expand what
+you'd like to do into a formal proposal."* So a file in this folder is a
+checklist of evidence and asks, to be rewritten in the sender's own voice — never
+pasted. See [attribution-draft](upstream/attribution-draft.md).
 
 ## House rules for these documents
 

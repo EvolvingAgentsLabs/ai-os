@@ -21,6 +21,7 @@ Leer en orden la primera vez:
 | 09 | [Escalas](09-scales.md) | Individual, colectivo, proyecto, sistema — un solo eje para flows y memoria, y es el `scopeId` |
 | 10 | [Observabilidad](10-observability.md) | ¿Se puede leer el progreso de un flow? Deriva contra ilegible, y el piso de ruido que las separa |
 | 11 | [Elegir un modelo](11-choosing-a-model.md) | Modelo chico + harness contra frontier + harness — el término de interacción, y dónde cambia de signo |
+| 12 | [Conformación](12-conformation.md) | Proyectos, agentes y carpetas: qué es ya el workspace por capas, por qué la membresía nunca vive ahí, y quién puede ver la forma del sistema |
 
 ## Decisiones
 
@@ -36,6 +37,7 @@ escrito cuando se toma, **nunca editado después** — se reemplaza (*superseded
 | [0005](adr/0005-scale-is-scope.md) | La escala del trabajo es su scope; un proyecto es el grupo de upstream, no `team` | Aceptada |
 | [0006](adr/0006-ai-flows-lives-outside-core.md) | `ai-flows` se construye contra el seam HTTP firmado, no adentro del core | Aceptada |
 | [0007](adr/0007-observation-captured-not-derived.md) | La observación de un intento se captura al cerrarlo, nunca se deriva después | Aceptada |
+| [0008](adr/0008-conformation-is-projected.md) | La conformación del sistema se proyecta desde stores existentes; las carpetas nunca contienen membresía | Aceptada |
 
 ## Reglas de la casa para estos documentos
 
