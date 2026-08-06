@@ -216,9 +216,16 @@ through a new MCP tool — there is no general code-execution escape hatch beyon
 The constraint that matters most, and the one this document previously missed
 entirely. See the matrix in
 [01-architecture](01-architecture.md#the-harness-capability-matrix): subagent
-tracking exists only on `claude` / `codex` / `opencode`; OpenRouter models work
-only on `pi` / `mock`. **The sets are disjoint.** Cheap-model and multi-agent are
-mutually exclusive today. **[ran]**
+*tracking* (`tasks` rows) exists only on `claude` / `codex` / `opencode`;
+OpenRouter models work only on `pi` / `mock`. **[read]**
+
+**Corrected 2026-08-06.** This paragraph used to end *"the sets are disjoint —
+cheap-model and multi-agent are mutually exclusive today"*, marked **[ran]**.
+Delegation and `tasks` are two capabilities, not one, and the sentence conflated
+them. `pi` delegates today and keeps OpenRouter; what it does not do is record.
+The **[ran]** mark was earned by an observation of `tasks` rows, then spent on a
+claim about multi-agent — which is how a correctly-measured fact becomes a wrong
+conclusion.
 
 ### A memory benchmark already exists
 

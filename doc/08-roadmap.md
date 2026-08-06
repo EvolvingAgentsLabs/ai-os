@@ -38,6 +38,18 @@ and corrected — two of them had already hardened into
 so cheap-model and multi-agent cannot be had together. No amount of reading
 surfaced that; configuring it did.
 
+**That finding expired on 2026-08-06** — upstream gave `pi` delegation through
+workspace-defined markdown agents while it kept OpenRouter, and the disjointness
+is gone (corrected matrix in
+[01-architecture](01-architecture.md#the-harness-capability-matrix)). Worth
+leaving here rather than deleting, because it sharpens the M1 lesson instead of
+softening it: a **[ran]** claim about a weekly-pulled dependency is a measurement
+with a shelf life, and this one was cited in four documents by the time it went
+stale. The rule that follows is in
+[12-conformation](12-conformation.md#what-this-cost-to-find): a claim about
+upstream capability names the file and line that would have to change for it to
+stop being true.
+
 **The standing rule that comes out of M1:** claims in `doc/` are marked **[read]**
 or **[ran]**. Reading is how the previous flagship reached 18,680 lines with three
 test functions.
@@ -66,8 +78,11 @@ The smallest honest `ai-flows`: **one shape (`Open`), persisted, resumable.**
 4. `forkedFrom { flowId, atStep }` recorded from the first commit — the gap in
    upstream sessions is not reproduced here
 5. API routes for create / advance / inspect
-6. **Completes on `pi`, with no subagents and no task rows**
-   ([ADR-0004](adr/0004-flows-and-the-subagent-record.md))
+6. **Completes with no subagents and no task rows**
+   ([ADR-0004](adr/0004-flows-and-the-subagent-record.md)) — the harness that
+   enforces this is now `mock`, not `pi`; `pi` gained delegation on 2026-08-06.
+   The deliverable is unchanged: a flow that needs children to finish is a flow
+   that does not finish everywhere
 7. **An observation per attempt, captured when it closes**
    ([ADR-0007](adr/0007-observation-captured-not-derived.md)) — not an addition
    to M2 but the instrument M2's own falsification already requires. Without it

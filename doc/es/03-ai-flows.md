@@ -277,23 +277,37 @@ Un flow **compone** las primitivas de upstream; no las reemplaza.
 
 ## La restricción de portabilidad
 
-Verificada corriéndolo, y acota el diseño más que ninguna otra cosa acá: **la
-delegación en subagentes y los modelos de OpenRouter viven en conjuntos disjuntos
-de harness** (matriz en
-[01-architecture](01-architecture.md#la-matriz-de-capacidades-por-harness)). `pi`
-tiene modelos baratos y ningún subagente; `claude`/`codex`/`opencode` tienen
-subagentes y nada de OpenRouter.
+**Revisado el 2026-08-06.** Esta sección abría con: *"la delegación en subagentes
+y los modelos de OpenRouter viven en conjuntos disjuntos de harness — `pi` tiene
+modelos baratos y ningún subagente"*. Esa premisa está muerta. Hoy `pi` delega,
+mediante agentes markdown definidos en el workspace, y conserva OpenRouter (matriz
+corregida en
+[01-architecture](01-architecture.md#la-matriz-de-capacidades-por-harness)). Las
+tres reglas de diseño de abajo sobreviven a la corrección, pero sólo una conserva
+su razón original.
 
-Tres consecuencias, y son reglas de diseño más que observaciones:
+1. **Un flow debe completar en un harness sin subagentes.** Sin cambios, y ahora
+   quien la hace morder es `mock`, no `pi`. El fan-out es una optimización que un
+   paso *puede* usar, nunca un requisito. Un flow que no hace nada donde la
+   delegación está ausente es un flow roto.
+2. **Las formas `Fan-out` y `Deliberation` no pueden asumir subagentes.** Sin
+   cambios. Ambas pueden resolverse con pasos secuenciales; el paralelismo es el
+   camino rápido, no el único.
+3. **El eval tiene que correr en ambos.** Sin cambios en su fuerza, con un cambio
+   en qué significa "ambos". La disyunción que lo hacía un trade-off de costo ya no
+   está; lo que sigue siendo disjunto es **dónde se define el agente** — un archivo
+   en el workspace del scope en `pi`, una definición hardcodeada o propiedad de la
+   CLI en todos los demás. Un eval afinado en uno generaliza al otro sólo por
+   suerte.
 
-1. **Un flow debe completar en un harness sin subagentes.** El fan-out es una
-   optimización que un paso *puede* usar donde exista, nunca un requisito. Un flow
-   que en `pi` no hace nada es un flow roto.
-2. **Las formas `Fan-out` y `Deliberation` no pueden asumir subagentes.** Ambas
-   pueden resolverse con pasos secuenciales en un solo harness; el paralelismo por
-   subagentes es el camino rápido, no el único.
-3. **El eval tiene que correr en ambos.** Si no, el diseño se afina al harness que
-   haya quedado configurado esa semana.
+La consecuencia genuinamente nueva, y la que esta sección antes no podía tener:
+**la delegación en el harness por defecto no deja registro durable.** `pi` no
+escribe filas en `tasks`, así que un paso que hace fan-out devuelve los reportes de
+sus hijos y nada más. ADR-0004 decía que un flow lee el registro de subagentes y
+nunca lo posee; en `pi` no hay registro que leer. Un flow que quiera saber qué
+hicieron sus hijos tiene que capturarlo en la observación del intento
+([ADR-0007](adr/0007-observation-captured-not-derived.md)), que es el mecanismo que
+ya existe exactamente por esta razón.
 
 Es además el argumento más fuerte hasta ahora a favor del seam `Harness`: apenas
 un flow mete la mano más allá, hacia la maquinaria de subagentes de un harness

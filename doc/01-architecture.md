@@ -153,27 +153,51 @@ document got both wrong and one of them shaped an ADR:
 This is the constraint that shapes `ai-flows` most, and it is invisible until you
 run the thing. Capabilities are **not uniform across harnesses**:
 
-| Harness | Subagents + `tasks` | OpenRouter models |
-|---|:--:|:--:|
-| `pi` (default) | **no** | **yes** |
-| `mock` | no | yes |
-| `claude` | yes | no |
-| `codex` | yes | no |
-| `opencode` | yes | no |
+| Harness | Delegation | Agents defined by | `tasks` rows | OpenRouter models |
+|---|:--:|---|:--:|:--:|
+| `pi` (default) | **yes** | **the workspace** (`agents/*.md`) | no | **yes** |
+| `mock` | no | — | no | yes |
+| `claude` | yes | the harness (3 fixed) | yes | no |
+| `codex` | yes | the CLI | yes | no |
+| `opencode` | yes | the CLI | yes | no |
 
-Left column: references to `TaskStore` per harness — `pi` and `mock` have zero;
-the three CLI-backed harnesses have four each. Right column:
-`selectableCatalogForHarness` admits `provider === "openrouter"` only for `pi`
-and `mock`.
+Delegation column: `pi-tools.ts:2415` defines a `delegate` tool, admitted to the
+tool list only when the harness supplies `runChild`, which `pi-harness.ts:1345`
+does. `tasks` column: references to `TaskStore` per harness — `pi` and `mock`
+have zero; `claude` and `codex` have three each, `opencode` two. Right column:
+`selectableCatalogForHarness` (`model/model-catalog.ts:109`) admits
+`provider === "openrouter"` only for `pi` and `mock`. **[read]**
 
-**The two columns never overlap.** A cheap or non-Anthropic model and subagent
-fan-out cannot be had at the same time in the base as it stands. Any flow design
-that assumes both is designing for a configuration that does not exist.
+**Corrected 2026-08-06.** This table previously read "Subagents + `tasks`" as one
+column and concluded *"the two columns never overlap — a cheap or non-Anthropic
+model and subagent fan-out cannot be had at the same time."* That conclusion is
+no longer true, and it was load-bearing for
+[03-ai-flows § portability](03-ai-flows.md#the-portability-constraint) and for
+[08-roadmap](08-roadmap.md). The upstream commit that broke it is named
+`Agents as markdown, and subagents on the harness that reaches cheap models`.
+Conflating delegation with `tasks` is what let one column go stale unnoticed;
+they are now separate columns because they are separate capabilities.
 
-Where the CLI-backed harnesses do delegate, `claude-harness.ts:341` defines three
-child agents — `research`, `code`, `consult` — each under a policy that forbids
-contacting people, scheduling work or changing standing configuration, with a
-tool set narrowed to `execute, read, write, publish, memory, history, background`.
+What survives of the old claim: **`pi` delegates but records nothing.** It writes
+no `tasks` rows, so on the default harness a subagent's execution leaves no
+durable trace — only the child's returned report, folded into the parent's turn.
+ADR-0004's enforcement still holds for the opposite reason than intended: the
+flow suite runs on `mock`, which has neither delegation nor `tasks`.
+
+**The column that matters most for anything above the turn is the third.** On
+`pi`, an agent is a markdown file in the scope's own workspace —
+`agents/<name>.md`, frontmatter declaring `description` and `tools`, body as
+instructions, parsed by `parseAgentDefinition` (`agents/agent-definition.ts`).
+`pi-tools.ts` is the **only** caller of that parser in the tree **[read]**: on
+`claude` the three child agents are hardcoded at `claude-harness.ts:341`
+(`research`, `code`, `consult`), and `codex` / `opencode` delegate inside their
+own CLI. So a workspace that defines its own agents as files is a `pi` fact, not
+a base fact — see [12-conformation](12-conformation.md#the-inert-folder).
+
+Every harness that delegates bounds the tree at one level. On `pi` the mechanism
+is explicit and is one line: the child's tool set is built without `runChild`,
+"which is what denies it `delegate`" (`pi-harness.ts:1313-1318`), and
+`CHILD_POLICY` states it in prose — *"You cannot delegate further."*
 
 ## The lineage gap, and why it belongs to ai-os
 

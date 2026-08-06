@@ -44,6 +44,18 @@ delegación en subagentes y los modelos de OpenRouter viven en conjuntos disjunt
 de harness**, así que modelo barato y multi-agente no se pueden tener juntos.
 Ninguna cantidad de lectura sacó eso a la luz; configurarlo sí.
 
+**Ese hallazgo venció el 2026-08-06** — upstream le dio a `pi` delegación mediante
+agentes markdown definidos en el workspace mientras conservaba OpenRouter, y la
+disyunción desapareció (matriz corregida en
+[01-architecture](01-architecture.md#la-matriz-de-capacidades-por-harness)). Vale
+dejarlo acá en vez de borrarlo, porque afila la lección de M1 en lugar de
+suavizarla: una afirmación **[ran]** sobre una dependencia que se trae cada semana
+es una medición con fecha de vencimiento, y ésta ya estaba citada en cuatro
+documentos cuando se pudrió. La regla que sale de ahí está en
+[12-conformation](12-conformation.md#lo-que-costó-encontrarlo): una afirmación
+sobre una capacidad de upstream nombra el archivo y la línea que tendrían que
+cambiar para que deje de ser cierta.
+
 **La regla permanente que sale de M1:** las afirmaciones en `doc/` se marcan
 **[read]** o **[ran]**. Leer es cómo el flagship anterior llegó a 18.680 líneas
 con tres funciones de test.
@@ -75,8 +87,11 @@ El `ai-flows` más chico y honesto: **una forma (`Open`), persistida, reanudable
 4. `forkedFrom { flowId, atStep }` registrado desde el primer commit — el hueco de
    las sesiones de upstream no se reproduce acá
 5. Rutas de API para crear / avanzar / inspeccionar
-6. **Completa en `pi`, sin subagentes y sin filas de tasks**
-   ([ADR-0004](adr/0004-flows-and-the-subagent-record.md))
+6. **Completa sin subagentes y sin filas de tasks**
+   ([ADR-0004](adr/0004-flows-and-the-subagent-record.md)) — el harness que hace
+   cumplir esto ahora es `mock`, no `pi`; `pi` ganó delegación el 2026-08-06. El
+   entregable no cambia: un flow que necesita hijos para terminar es un flow que no
+   termina en todos lados
 7. **Una observación por intento, capturada al cerrarlo**
    ([ADR-0007](adr/0007-observation-captured-not-derived.md)) — no un agregado a
    M2 sino el instrumento que la propia falsación de M2 ya exige. Sin él la
