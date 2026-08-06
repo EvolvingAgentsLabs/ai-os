@@ -36,6 +36,12 @@ when the decision is made, never edited afterwards — superseded instead.
 | [0007](adr/0007-observation-captured-not-derived.md) | An attempt's observation is captured when it closes, never derived later | Accepted |
 | [0008](adr/0008-conformation-is-projected.md) | The system's conformation is projected from existing stores; folders never hold membership | Accepted |
 
+## Running it
+
+[**Running ai-os**](manual.md) — a manual for what actually starts, with
+screenshots taken from a live instance, and an explicit list of what does not
+exist. Spanish: [Correr ai-os](es/manual.md).
+
 ## Drafts for upstream
 
 [`upstream/`](upstream/) holds proposals aimed at `yc-software/qm`, kept here

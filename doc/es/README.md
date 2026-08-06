@@ -23,6 +23,11 @@ Leer en orden la primera vez:
 | 11 | [Elegir un modelo](11-choosing-a-model.md) | Modelo chico + harness contra frontier + harness — el término de interacción, y dónde cambia de signo |
 | 12 | [Conformación](12-conformation.md) | Proyectos, agentes y carpetas: qué es ya el workspace por capas, por qué la membresía nunca vive ahí, y quién puede ver la forma del sistema |
 
+## Correrlo
+
+[**Correr ai-os**](manual.md) — un manual de lo que arranca de verdad, con
+capturas de una instancia viva y una lista explícita de lo que no existe.
+
 ## Decisiones
 
 Las decisiones de arquitectura viven en [`adr/`](adr/). Un archivo por decisión,
