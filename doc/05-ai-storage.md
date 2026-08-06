@@ -468,3 +468,88 @@ no measured case for either yet**, and the next honest attempt is not another
 arithmetic suite. It is a domain where the shared artifact is prose or code, where
 _what to record_ has no obvious answer, and where the successor cannot check for itself
 whether what it received was enough.
+
+## Experiment 3 — feedback, and why the first four instruments could not have worked
+
+**Planned, not run.** Written before building it, per the rule this document opens with.
+
+### The diagnosis the four null results add up to
+
+Every instrument above shares one property, and it was invisible until all four
+returned the same answer: **the correct behaviour was derivable from information the
+task already contained.** Physics with a sandbox — the model computes it and checks
+itself. The handoff — the finisher could recompute, and the explorer recorded what it
+had used. The memory notebook — judged by the same model that wrote it.
+
+Where the answer is derivable, a learned strategy adds nothing, because the model
+simply derives it. So four instruments were built in which **learning was structurally
+unnecessary**, and their agreement is not evidence about learning at all. It is
+evidence that closed-form tasks cannot test it.
+
+Learning pays only where the correct behaviour is **not** derivable — where it depends
+on something outside the model:
+
+- what _this_ organisation does, which is arbitrary by nature
+- what actually happened last time in production
+- what a human corrected
+- what broke downstream, invisibly, hours later
+
+**Feedback is the mechanism that introduces non-derivable information**, and
+non-derivable information is the only thing a memory pass can carry that the model
+could not have recomputed. That is why this experiment is not an enhancement of the
+previous three; it is the first one whose premise is sound.
+
+It also removes the problem that killed all four: if the needed fact is genuinely
+absent at the first attempt, **failure is guaranteed and headroom is 100% by
+construction**. It no longer has to be hunted.
+
+And it corrects a suggestion made in closing the handoff result — that the residue
+might live in a _smaller_ model. Probably wrong. A smaller model fails more often at
+_deriving_, and a derivation failure is not repaired by a remembered rule either. The
+residue lives in what cannot be derived, not lower down.
+
+### Four sources, in cost order, and only the first runs tomorrow
+
+1. **A synthetic corrector holding a hidden rule.** Deterministic, no human, exact
+   oracle. The rule is one the agent cannot infer from the task — a unit convention, a
+   required sanity check, an ordering constraint that only this organisation imposes.
+   The agent attempts, the corrector says it is wrong and states the rule in general
+   terms, the pass at rest distils it, and a **different instance** requiring the same
+   rule is scored later. This is the version that fits in a day.
+   **The arbitrariness is the point, not a weakness** — arbitrary is precisely what
+   cannot be derived, and organisational convention is arbitrary in exactly this way.
+2. **An expert AI agent as corrector.** Real critique, cheap, and it scales. One
+   caution that decides whether it measures anything: whatever the stronger model
+   knows, the weaker one may also be able to derive — and then this collapses back into
+   the four null results above. Use the expert to produce the _critique_, and keep the
+   _rule_ non-derivable.
+3. **Real-world feedback.** Production traces, actual downstream failures. Highest
+   value and slowest, and it needs the system in real use. `Attempt.observation`
+   ([ADR-0007](adr/0007-observation-captured-not-derived.md)) is already the hook, which
+   is the one piece of luck here.
+4. **Human expert feedback.** Highest signal per item, lowest throughput, and the
+   ground truth the other three approximate. Worth spending on the cases where 1–3
+   disagree.
+
+### The way this experiment cheats, named before it can
+
+Feedback introduces a leak of its own, and it is the same shape as the one that voided
+handoff run 1.
+
+**If the corrector's message contains the answer, nothing is learned — a hint is
+copied.** So: the corrector states the rule, never the value; and the score is taken on
+a _different instance_ where the same rule applies, never on a retry of the corrected
+one. A retry measures short-term instruction-following, which is not the claim.
+
+Two more, worth writing down while the answer is unknown:
+
+- **The rule must be checkable without the corrector.** Otherwise the evaluation
+  depends on the same component under test.
+- **A control arm with feedback but no persistence.** Corrected every time, remembering
+  nothing. If that arm matches the treatment, the gain was the correction and not the
+  memory — which is the most likely way this comes back looking like a success when it
+  is not.
+
+**Falsified by:** no gap between the treatment arm and the feedback-without-persistence
+control, on held-out instances of the same rule. That is the whole claim of
+distillation-at-rest, and unlike Experiment 1's condition, this one can fire.
