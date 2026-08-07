@@ -104,6 +104,8 @@ export function createEngine(deps: EngineDeps) {
     return deps.store.finishAttempt({
       attemptId: attempt.id,
       state: failed ? "failed" : "done",
+      // The async path never knew this at open; the run carries it once terminal.
+      ...(run.result?.sessionId ? { sessionId: run.result.sessionId } : {}),
       ...(failed ? { error: text || `run ended ${run.status}` } : { result: text }),
       observation: { digest: digest(text), value: null, source: "run.reply", at: now() },
     });

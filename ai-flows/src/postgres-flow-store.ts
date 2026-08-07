@@ -248,7 +248,8 @@ export function createPostgresFlowStore(
              obs_digest=COALESCE($5, obs_digest),
              obs_value=COALESCE($6, obs_value),
              obs_source=COALESCE($7, obs_source),
-             obs_at=COALESCE($8, obs_at)
+             obs_at=COALESCE($8, obs_at),
+             session_id=COALESCE(session_id, $9)
            WHERE id=$1 AND state='running' RETURNING *`,
           [
             input.attemptId,
@@ -259,6 +260,7 @@ export function createPostgresFlowStore(
             obs?.value ?? null,
             obs?.source ?? null,
             obs ? (obs.at ?? at) : null,
+            input.sessionId ?? null,
           ],
         );
         const attempt = rows[0] as Row | undefined;
