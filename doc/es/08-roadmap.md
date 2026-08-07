@@ -174,31 +174,57 @@ después de tres días, **el canvas no es lo próximo a construir** y M5 hay que
 reargumentarlo en vez de agendarlo. Si no alcanza, el cronómetro dice exactamente
 qué faltaba, y eso es mejor especificación para un canvas que [04](04-ai-ui.md).
 
-### Fase 3 · Las tres con compuerta, y sus compuertas
+### Fase 3 · Las tres compuertas — **las tres corridas, 2026-08-06/07**
 
-**Memoria por scope (M4).** La compuerta ya está escrita y es una *precondición, no
-un milestone*: extender los fixtures del bench hasta que el baseline de archivo
-plano baje a lo sumo a 7 en `staleness`. Hoy saca **10,0/10**, así que ninguna
-estrategia por niveles puede mejorarlo y todos los brazos empatan en el techo.
-**Correr la compuerta antes de construir nada.** Si el baseline no se puede bajar
-del techo, M4 no procede en este instrumento — esa es la decisión, ya tomada, y es
-barata de ejecutar.
+La fase nunca fue "construir estas tres". Era **correr sus compuertas**, para que
+las decisiones se tomaran sobre evidencia. Las tres ya se corrieron y ninguna
+produjo código. Dos produjeron decisiones y una produjo un callejón sin salida.
 
-**Delegación de profundidad 2.** ADR-0008 la difiere hasta que *exista un trabajo
-real en el que el hijo de un orquestador deba a su vez delegar, y que no pueda
-resolverse con el padre delegando dos veces.* No apareció ninguno. La forma barata
-de averiguarlo no es construirla: **instrumentarla.** Cuando un hijo delegado
-vuelve, registrar si su tarea contenía sub-trabajo separable. Si eso nunca se
-dispara en uso real, el tope de un nivel no cuesta nada y levantarlo — `runChild`
-al conjunto de tools del hijo, con consecuencia no acotada, dentro de un fork que
-se trae cada semana — no compra nada.
+**Memoria por scope (M4) — la compuerta se abrió.** Extender el bench hasta que el
+baseline de archivo plano baje a lo sumo a 7 en `staleness`, o M4 no procede. Sacó
+**10,0** en una fixture que revisa un hecho seis veces en trece turnos, y **3,0** en
+una que revisa una política una vez a lo largo de cuarenta y tres — la densidad no
+rompe el archivo plano, el horizonte sí. La condición se cumple con margen, **M4
+procede**, y el número a batir es 3,0. El detalle y los dos reparos están en
+[§ M4](#m4--ai-storage-v1--not-started). Construir M4 es un milestone, no esta fase.
 
-**Agentes-principal.** La condición de ADR-0008 es un agente que deba aparecer en un
-roster, tener memoria que ningún humano posee, o ser denegado por ACL. Las tres son
-**salida del proyector**, así que esto lo decide correr el proyector sobre uso real
-y no un argumento. Ojo con el costo si se dispara: un tercer `PrincipalType` en
-`types.ts`, en el centro de una dependencia que se mergea a mano. Es la línea más
-cara de este plan y hay que comprarla última y con evidencia.
+**Delegación de profundidad 2 — el instrumento del plan no se puede construir.**
+Esta fase decía que lo barato no era construir profundidad 2 sino *instrumentarla*:
+registrar si la tarea de un hijo delegado contenía sub-trabajo separable, y si eso
+nunca se dispara, el tope no cuesta nada. **Ese instrumento no es construible sobre
+esta base [ran]:** `pi` no escribe filas en `tasks`, y los entries de sesión sólo
+llevan `user` / `system` / `thinking` / `assistant` — no hay registro de tool calls
+en ninguna parte, así que una delegación no deja rastro alguno. Nada puede observar
+qué se le pidió a un hijo.
+
+Así que el ítem no está pendiente: es **inejecutable como fue escrito**. La
+profundidad 2 sigue diferida bajo
+[ADR-0008](adr/0008-conformation-is-projected.md), y reabrirla ahora exige otra
+señal (un harness respaldado por CLI sí escribe filas `tasks`) o un cambio upstream.
+Registrarlo en vez de dejar el ítem abierto es el punto: un paso de plan que no se
+puede ejecutar debe decirlo, no quedar sin tildar dando a entender que nadie llegó.
+
+**Agentes-principal — la condición no se disparó, y sí se disparó algo más barato.**
+Correr un flow compuesto en un scope de proyecto fue rechazado: *"you're not a
+member of that context"*. Eso se registró primero como la condición de ADR-0008
+disparándose — *un agente que deba aparecer en un roster* — y **esa lectura estaba
+mal**.
+
+Lo rechazado fue una cuenta de servicio. El arreglo que sugiere una cuenta de
+servicio, meterla en el roster, no es lo que la situación pide: alguien creó ese
+flow, esa persona ya está en el roster, y es a quien la auditoría debería nombrar.
+Al sistema no le faltaba una identidad de agente. **Le faltaba la procedencia que ya
+tenía y tiró** — `Flow` registra `scopeId` y nada sobre para quién es.
+
+[ADR-0009](adr/0009-a-flow-records-who-it-acts-for.md) decide lo barato y correcto:
+un flow registra el principal para el que actúa, un paso corre como ese principal,
+`FLOWS_ACTOR` se elimina, y **no se agrega ningún `PrincipalType` nuevo**. También
+afila la condición de ADR-0008 para que no se pueda malinterpretar dos veces igual
+— un agente-principal necesita un derecho *que ningún solicitante humano tenga*, y
+una cuenta de servicio rechazada no es eso.
+
+**Decidido, todavía no construido.** El cambio de schema y las dos rutas no están
+implementados.
 
 ### Lo que este plan deliberadamente no contiene
 

@@ -89,9 +89,9 @@ Sorted by what is actually in the way:
 | Durable stores | **prerequisite, undeclared until now** | nothing — it is configuration |
 | Flow engine (M2) | **unblocked** | the signed HTTP client, which nobody has written |
 | The canvas (M5) | **blocked on M2** | there is no flow state to render |
-| Scoped memory (M4) | **gate passed 2026-08-06** | nothing — the baseline scored 3.0 on a long-horizon fixture, so the axis has room |
-| Depth-2 delegation | **deferred** | [ADR-0008](adr/0008-conformation-is-projected.md) — its condition has not fired |
-| Agent principals | **deferred** | ADR-0008 — its condition has not fired |
+| Scoped memory (M4) | **gate passed 2026-08-06** | nothing — baseline 3.0 on a long-horizon fixture, so the axis has room. Building it is a milestone |
+| Depth-2 delegation | **deferred, and un-instrumentable** | delegation leaves no trace on `pi` — no `tasks` rows, no tool-call entries — so the planned instrument cannot be built |
+| Agent principals | **deferred, condition sharpened** | the 2026-08-07 refusal was a service account, not an agent needing rights — [ADR-0009](adr/0009-a-flow-records-who-it-acts-for.md) |
 
 Only the first two are work. The third follows from the second. The last three
 are decisions already made, and reopening them is a separate argument from
@@ -104,8 +104,10 @@ scheduling them.
 > Phase 2 built and **not falsified**: the page renders, the stopwatch test needs
 > a person and three days. Phase 3: the M4 gate has one half run and one half
 > pending; depth-2 instrumentation is unbuilt; agent principals correctly
-> untouched. **Updated later the same day: the M4 gate's second half opened it —
-> see [M4](#m4--ai-storage-v1--not-started).**
+> untouched. **Updated 2026-08-07: all three of Phase 3's gates have now been run
+> — M4's opened, depth-2's instrument turned out to be un-constructible, and the
+> agent-principal signal was misread and is corrected in
+> [ADR-0009](adr/0009-a-flow-records-who-it-acts-for.md).**
 
 ### What "a version worth iterating on" has to mean
 
@@ -172,29 +174,57 @@ If the flat read-only view already lets a person pick a flow up after three days
 than scheduled. If it does not, the stopwatch says exactly what was missing, and
 that is a better specification for a canvas than [04](04-ai-ui.md) is.
 
-### Phase 3 · The three that are gated, and their gates
+### Phase 3 · The three gates — **all three run, 2026-08-06/07**
 
-**Scoped memory (M4).** The gate is already written and is a *precondition, not a
-milestone*: extend the bench fixtures until the flat-file baseline drops to at most
-7 on `staleness`. It scores **10.0/10 today**, so no levelled strategy can improve
-on it and every arm ties at the ceiling. **Run the gate before building anything.**
-If the baseline cannot be pushed off the ceiling, M4 does not proceed on this
-instrument — that is the decision, already made, and it is cheap to execute.
+The phase was never "build these three". It was **run their gates**, so the
+decisions would be made on evidence. All three gates have now been run, and none
+of them produced code. Two produced decisions and one produced a dead end.
 
-**Depth-2 delegation.** ADR-0008 defers it until *a real piece of work exists in
-which an orchestrator's child must itself delegate, and which cannot be served by
-the parent delegating twice.* No such work has appeared. The cheap way to find out
-is not to build it: **instrument for it.** When a delegated child returns, record
-whether its task contained separable sub-work. If that never fires across real
-use, the one-level cap costs nothing and lifting it — `runChild` into the child's
-tool set, with unbounded consequence, inside a weekly-pulled fork — buys nothing.
+**Scoped memory (M4) — the gate opened.** Extend the bench until the flat-file
+baseline drops to at most 7 on `staleness`, or M4 does not proceed. It scored
+**10.0** on a fixture revising one fact six times in thirteen turns, and **3.0**
+on one revising a policy once across forty-three — density does not break the flat
+file, horizon does. The condition is met with room to spare, **M4 proceeds**, and
+the number it has to beat is 3.0. Details and the two caveats are in
+[§ M4](#m4--ai-storage-v1--not-started). Building M4 is a milestone, not this
+phase.
 
-**Agent principals.** ADR-0008's condition is an agent that must appear in a
-roster, hold memory no human owns, or be denied something by ACL. All three are
-**projector output**, so this is decided by running the projector on real use
-rather than by argument. Note the cost if it does fire: a third `PrincipalType` in
-`types.ts`, at the centre of a hand-merged dependency. That is the most expensive
-line in this plan and it should be bought last and on evidence.
+**Depth-2 delegation — the plan's instrument cannot be built.** This phase said
+the cheap move was not to build depth-2 but to *instrument for it*: record whether
+a delegated child's task contained separable sub-work, and if that never fires,
+the cap costs nothing. **That instrument is not constructible on this base
+[ran]:** `pi` writes no `tasks` rows, and session entries carry only
+`user` / `system` / `thinking` / `assistant` — there is no tool-call record
+anywhere, so a delegation leaves no trace at all. Nothing can observe what a child
+was asked to do.
+
+So the item is not pending; it is **inexecutable as written**. Depth-2 stays
+deferred under [ADR-0008](adr/0008-conformation-is-projected.md), and reopening it
+now requires either a different signal (a CLI-backed harness does write `tasks`
+rows) or an upstream change. Recording this rather than leaving the item open is
+the point: a plan step that cannot be performed should say so, not sit unticked
+implying somebody just has not got to it.
+
+**Agent principals — the condition did not fire, and something cheaper did.**
+Running a composed flow in a project scope was refused: *"you're not a member of
+that context"*. That was first recorded as ADR-0008's condition firing — *an agent
+that must appear in a roster* — and **that reading was wrong**.
+
+What was refused was a service account. The fix a service account suggests, put it
+on the roster, is not what the situation calls for: somebody created that flow,
+that person is already on the roster, and they are who the audit log should name.
+The system did not lack an agent identity. **It lacked provenance it already had
+and threw away** — `Flow` records `scopeId` and nothing about who it is for.
+
+[ADR-0009](adr/0009-a-flow-records-who-it-acts-for.md) decides the cheap correct
+thing: a flow records the principal it acts for, a step runs as that principal,
+`FLOWS_ACTOR` is deleted, and **no new `PrincipalType` is added**. It also
+sharpens ADR-0008's condition so it cannot be misread the same way twice — an
+agent principal needs a right *no human requester has*, and a refused service
+account is not that.
+
+**Decided, not yet built.** The schema change and the two routes are not
+implemented.
 
 ### What this plan deliberately does not contain
 

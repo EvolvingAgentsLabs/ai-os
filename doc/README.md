@@ -35,6 +35,7 @@ when the decision is made, never edited afterwards — superseded instead.
 | [0006](adr/0006-ai-flows-lives-outside-core.md) | `ai-flows` is built against the signed HTTP seam, not inside core | Accepted |
 | [0007](adr/0007-observation-captured-not-derived.md) | An attempt's observation is captured when it closes, never derived later | Accepted |
 | [0008](adr/0008-conformation-is-projected.md) | The system's conformation is projected from existing stores; folders never hold membership | Accepted |
+| [0009](adr/0009-a-flow-records-who-it-acts-for.md) | A flow records the principal it acts for; no new `PrincipalType` | Accepted |
 
 ## Running it
 
