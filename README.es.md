@@ -16,14 +16,18 @@ está congelado — ver [`doc/es/07-freeze-policy.md`](doc/es/07-freeze-policy.m
 **[English](README.md)** · El inglés es la versión canónica de todos los
 documentos; ver [Idiomas](#idiomas).
 
-> **Estado: diseño, con dos piezas medidas.** `ai-base/` es una copia vendorizada
-> de QM y corre. `ai-flows/` está especificado en `doc/` y mayormente sin
-> construir — lo que existe y corre es su flow store, su instrumento de
-> observabilidad ([10](doc/es/10-observability.md)) y su proyector de conformación
-> ([12](doc/es/12-conformation.md)), 137 tests. El *motor* de flows — un paso
-> ejecutando como run — no está construido. `ai-ui/` y `ai-storage/` están
-> especificados y **no implementados** en absoluto. Nada en este README describe
-> software que exista, salvo que lo diga explícitamente.
+> **Estado: dos pilares corren, dos son diseño.** `ai-base/` es una copia
+> vendorizada de QM y corre. **`ai-flows/` corre**: el motor de flows
+> ([M2](doc/es/08-roadmap.md), un flow arrancado por un proceso y terminado por
+> otro, probado en `pi` y en `mock`), una API HTTP firmada, composición multiagente
+> desde árboles declarados en markdown, el instrumento de observabilidad
+> ([10](doc/es/10-observability.md)) y el proyector de conformación
+> ([12](doc/es/12-conformation.md)) — 189 tests. Lo que `ai-flows` **no** tiene es
+> ninguna forma más allá de `Open`: sin `Sequence`, `Loop`, `Fan-out`,
+> `Deliberation`, `Watch`, y sin merge. `ai-ui/` y `ai-storage/` están
+> especificados y **no implementados** en absoluto — la página del
+> [manual](doc/es/manual.md) la sirve `ai-flows`, no `ai-ui`. Nada en este README
+> describe software que exista, salvo que lo diga explícitamente.
 
 ## El problema: la IA sigue siendo de un solo jugador
 

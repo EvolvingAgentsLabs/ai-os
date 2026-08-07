@@ -12,7 +12,7 @@ Leer en orden la primera vez:
 | 00 | [Visión](00-vision.md) | Qué es un sistema operativo de agentes, y qué lo distingue de una app de chat con plugins |
 | 01 | [Arquitectura](01-architecture.md) | Cómo encajan los cuatro pilares y dónde se engancha cada uno a la base |
 | 02 | [ai-base](02-ai-base.md) | Qué da QM realmente — verificado contra el código, no contra el README — y los seams sobre los que construimos |
-| 03 | [ai-flows](03-ai-flows.md) | El modelo de flow: unidades de trabajo declarativas, reanudables e inspeccionables por encima del turno |
+| 03 | [ai-flows](03-ai-flows.md) | El modelo de flow: unidades de trabajo declarativas, reanudables e inspeccionables por encima del turno. **`Open` corre; las otras cinco formas no** |
 | 04 | [ai-ui](04-ai-ui.md) | El canvas inteligente: una interfaz espacial y viva a nivel de SO |
 | 05 | [ai-storage](05-ai-storage.md) | Memoria en cuatro niveles — sistema, usuario, proyecto, flow |
 | 06 | [Licenciamiento](06-licensing.md) | Apache 2.0 sobre MIT: qué se permite, qué se exige, qué se prohíbe |

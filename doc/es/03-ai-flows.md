@@ -7,7 +7,18 @@
 
 > **El inglés es canónico.** Traducción de [`doc/03-ai-flows.md`](../03-ai-flows.md).
 >
-> **Estado: especificado, no implementado.**
+> **Estado: la forma `Open` corre; toda otra forma sigue siendo especificación.**
+>
+> Construido y probado en vivo el 2026-08-06/07 **[ran]**: el flow store, el motor
+> (un flow arrancado por un proceso y terminado por otro — 6/6 en `pi` y en
+> `mock`), el cliente y la API HTTP firmados, fork con linaje, una observación por
+> intento, y composición multiagente desde un árbol `subagents:` declarado en
+> markdown. Ver [08-roadmap § M2](08-roadmap.md) para el estado entregable por
+> entregable y [el manual](manual.md) para cómo correrlo.
+>
+> **Sin construir:** `Sequence`, `Loop`, `Fan-out`, `Deliberation`, `Watch` — las
+> cinco formas de abajo siguen siendo especificación, y el merge también. La
+> promoción de `Open` a una forma estructurada tampoco existe.
 
 ## El problema
 
