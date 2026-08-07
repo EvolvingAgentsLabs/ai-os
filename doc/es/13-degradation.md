@@ -6,9 +6,10 @@
 
 > **El inglés es canónico.** Traducción de [`doc/13-degradation.md`](../13-degradation.md).
 >
-> **Estado: un modo de falla documentado y una medición propia. Nada de esto está
-> construido.** Este documento existe para nombrar algo que ai-os hoy no puede
-> notar, y para decir qué haría falta para notarlo — no para afirmar que lo hace.
+> **Estado: un modo de falla documentado, una medición propia, y una señal
+> candidata construida y falsificada.** ai-os sigue sin poder notar un paso que no
+> contribuyó. Este documento nombra ese hueco y registra lo ya intentado — ver
+> § Se construyó, se corrió, y no funciona.
 
 Todo lo demás en `doc/` pregunta si un diseño vale la pena construirse. Este
 pregunta otra cosa: **una vez corriendo, ¿cómo se enteraría alguien de que dejó de
@@ -124,16 +125,68 @@ configuración; este documento es sobre la distancia entre eso y lo que pasa.
 
 Pero la afirmación tiene que ser falsificable o es un eslogan:
 
-> **Falsación.** Construir (1) — marcar un paso cuya observación no agrega nada
-> sobre la del anterior — y correrlo sobre flows reales. Si se dispara en corridas
-> que estaban genuinamente bien tan seguido como en las que no, es ruido y hay que
-> borrarlo en vez de afinarlo. Si nunca se dispara, el modo de falla de arriba fue
-> un caso aislado y este documento es una anécdota, no una entrada de diseño.
+> **Falsación, escrita antes de construirlo.** Construir (1) — marcar un paso cuya
+> observación no agrega nada sobre la del anterior — y correrlo sobre flows reales.
+> Si se dispara en corridas que estaban genuinamente bien tan seguido como en las
+> que no, es ruido y hay que borrarlo en vez de afinarlo. Si nunca se dispara, el
+> modo de falla de arriba fue un caso aislado y este documento es una anécdota.
 
-La expectativa honesta es que (1) va a ser ruidoso: un paso que legítimamente
-reformula su entrada se ve igual que uno que no agregó nada. Esa es exactamente la
-distinción para la que se construyó δ, y por eso esto reutiliza ese instrumento en
-vez de proponer uno nuevo.
+## Se construyó, se corrió, y no funciona — 2026-08-07 [ran]
+
+`ai-flows/src/contribution.ts`. La comparación de digests que este documento
+proponía originalmente se abandonó en una función: la falla real produjo texto
+*distinto* al de su predecesor, así que la igualdad de digests atrapa un paso que
+se repitió y no uno que ignoró su entrada. El reemplazo mide **cuánto del
+contenido distintivo del predecesor llevó el paso a su propia salida** — llevar
+cero significa que el paso no usó nada de lo que le dieron.
+
+Contra las dos corridas citadas arriba separa perfecto: la ignorada lleva
+**0,00**, la que se involucró **0,21**, compartiendo `currency` y `ledger`.
+
+Contra la base real no se dispara con nada. **18 flows, 9 comparaciones
+juzgables, 0 marcadas.** Incluidas — y éste es el resultado — las dos corridas
+para las que fue construido:
+
+| flow | carried | qué compartió | veredicto |
+|---|---:|---|---|
+| `a7bc98a3` paso 2 | 0,20 | migration, table, ledger, column, currency | `used-input`, y con justicia: ese paso sí comentó la propuesta después de decir que no había archivos |
+| `25cb60f5` paso 2 | **0,03** | **`review`** — una palabra incidental | `used-input` |
+
+El segundo es la falla. Una sola palabra compartida por casualidad libra una regla
+que sólo dispara en cero exacto, y la salida real nunca es cero exacto.
+
+**El umbral no se va a bajar hasta que atrape ese caso.** Mover un corte hasta que
+el ejemplo malo conocido caiga del lado correcto es ajustar el instrumento a la
+respuesta, y este repositorio ya registró lo que eso cuesta — *contar los
+rediseños: aceptable una vez, sospechoso dos, y a la tercera está buscando el
+resultado en vez de medirlo*. Un ejemplo etiquetado no es un set de calibración.
+
+### Qué dice de verdad el resultado negativo
+
+Dos cosas, y la segunda es más útil que lo que la señal hubiera dado.
+
+**Un solapamiento de contenido por pares es el instrumento equivocado.** No puede
+separar "usó su entrada" de "mencionó una palabra de su entrada", y la distancia
+entre 0,03 y 0,20 no es una distancia donde un umbral pueda vivir sin evidencia
+sobre dónde caen las corridas reales.
+
+**El paso ya lo había dicho.** La salida que falló empezaba con *"There are no
+files in the workspace to review."* El sistema no necesitaba inferir la
+no-contribución — estaba **dicha en lenguaje claro en el resultado**, y nada la
+leyó. Pero detectar eso significa afirmar que una frase aparece en la respuesta de
+un modelo, y este repositorio tiene una regla permanente contra exactamente eso:
+*un chequeo que puede fallar mientras la capacidad funciona está midiendo el
+fraseo.* Lo cual corta para los dos lados — un chequeo que pasa por el fraseo
+también está midiendo fraseo.
+
+Así que la posición honesta es que **ai-os sigue sin poder notar un paso que no
+contribuyó**, la señal candidata más barata se construyó y se falsificó, y la
+próxima idea no debería ser un cuarto umbral sobre la misma estadística.
+
+`contribution.ts` se conserva en vez de borrarse: reporta `carried` en cada
+comparación, así que los datos etiquetados que un umbral real necesitaría pueden
+acumularse del uso normal en vez de inventarse. Su veredicto conviene ignorarlo
+hasta entonces.
 
 ## La regla que deja
 

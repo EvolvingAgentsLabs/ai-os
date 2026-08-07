@@ -26,6 +26,7 @@
  * a coffee, days later, with no server running.
  */
 import type { AgentRecord, Conformation, ScopeNode, ScopeRole } from "./conformation.ts";
+import { contributionsOf } from "./contribution.ts";
 import { observabilityOf } from "./observability.ts";
 import type { FlowWithSteps, Step } from "./types.ts";
 
@@ -116,6 +117,14 @@ function stepRow(step: Step, isCurrent: boolean, now: number): string {
 
 function flowCard(flow: FlowWithSteps, now: number): string {
   const move = movement(flow);
+  /**
+   * Steps that ran and used nothing they were handed.
+   *
+   * Shown next to the state rather than buried, because the whole point is that
+   * every other signal on this card said the flow was fine
+   * (doc/13-degradation.md).
+   */
+  const ignored = contributionsOf(flow.steps).filter((c) => c.verdict === "ignored-input");
   // The step a person coming back needs to look at first: the one that is
   // running, else the first that has not settled.
   const current =
@@ -134,6 +143,13 @@ function flowCard(flow: FlowWithSteps, now: number): string {
       <span class="dim">${done}/${flow.steps.length} steps done</span>
       ${flow.forkedFrom ? `<span class="dim">forked from ${esc(flow.forkedFrom.flowId.slice(0, 8))} at step ${flow.forkedFrom.atStep}</span>` : ""}
     </div>
+    ${
+      ignored.length
+        ? `<div class="ignored"><strong>${ignored.length} step(s) used nothing they were given</strong>
+             — step${ignored.length > 1 ? "s" : ""} ${ignored.map((c) => c.stepIndex).join(", ")}.
+             <span class="dim">Each ran, settled and reported. None carried a single distinctive word out of its predecessor's output.</span></div>`
+        : ""
+    }
     ${current ? `<div class="next">Next: <strong>${esc(current.intent)}</strong></div>` : `<div class="next dim">Nothing left to do</div>`}
     <div class="steps">${flow.steps.map((s) => stepRow(s, s.id === current?.id, now)).join("")}</div>
   </article>`;
@@ -253,6 +269,7 @@ section{margin:28px 0}
 .scope{border-top:1px solid #1e2226;padding:9px 0}
 .scope ul{margin:5px 0 0 18px;padding:0;font-size:13px}
 .holes li{margin:6px 0}
+.ignored{margin:8px 0;padding:8px 10px;border-left:2px solid #e06c5a;background:#17110f;font-size:13px;color:#e0a89a}
 .level{margin:22px 0}
 .level-h{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#8b9095;font-weight:600;margin:0 0 8px;display:block}
 .level-h .dim{text-transform:none;letter-spacing:0;font-weight:400;font-size:12px;margin-left:8px}
