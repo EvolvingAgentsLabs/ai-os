@@ -31,7 +31,7 @@
  * held longer than the window is, and that is why `signedFetch` stamps at call
  * time rather than at construction.
  */
-import { createHmac } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const SIGNATURE_VERSION = "v0";
 
@@ -62,6 +62,40 @@ export function signedHeaders(
     "x-timestamp": String(nowSec),
     "x-signature": signRequest(secret, nowSec, canonicalPayload(method, pathWithQuery, body)),
   };
+}
+
+/** Upstream's replay window, restated: `SOURCE_AUTH_REPLAY_WINDOW_MS`. */
+export const REPLAY_WINDOW_MS = 5 * 60_000;
+
+export type VerifyResult = { ok: true } | { ok: false; reason: string };
+
+/**
+ * The other half of the seam: verifying a signature we did not make.
+ *
+ * `ai-flows` signs when it calls the core, and must *verify* when something
+ * calls it — the flow API is a write surface, and an unauthenticated write
+ * surface is worse than none. Same format in both directions, so a caller that
+ * can talk to the core can talk to us with the same code.
+ *
+ * Compared in constant time. A timing-variable compare on a MAC leaks the MAC
+ * one byte at a time, and `===` on two hex strings is exactly that.
+ */
+export function verifySignature(
+  secret: string,
+  req: { signature: string | undefined; timestamp: number; method: string; path: string; body: string },
+  nowMs: number = Date.now(),
+  windowMs: number = REPLAY_WINDOW_MS,
+): VerifyResult {
+  if (!req.signature) return { ok: false, reason: "missing signature (unsigned request)" };
+  if (!Number.isFinite(req.timestamp)) return { ok: false, reason: "invalid timestamp" };
+  if (Math.abs(nowMs - req.timestamp * 1000) > windowMs) {
+    return { ok: false, reason: "stale timestamp (replay protection)" };
+  }
+  const expected = signRequest(secret, req.timestamp, canonicalPayload(req.method, req.path, req.body));
+  const a = Buffer.from(expected);
+  const b = Buffer.from(req.signature);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return { ok: false, reason: "signature mismatch" };
+  return { ok: true };
 }
 
 export interface CoreClientOptions {
