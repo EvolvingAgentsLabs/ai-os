@@ -68,8 +68,7 @@ console.log(`core ${CORE} · db ${DB.replace(/:[^:@]*@/, ":***@")}`);
 
 // ---- Monday -----------------------------------------------------------------
 const monday = createPostgresFlowStore(DB);
-const flow = await monday.createFlow({
-  scopeId: "personal:U1",
+const flow = await monday.createFlow({ actorId: "U1", scopeId: "personal:U1",
   title: "flow smoke",
   goal: "two steps, one restart",
 });

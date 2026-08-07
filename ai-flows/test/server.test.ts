@@ -150,6 +150,7 @@ describe("the flow routes", () => {
     const { server } = serverOn();
     const r = await signed(server, "POST", "/flows", {
       scopeId: "personal:U1",
+      actorId: "U1",
       goal: "two things",
       steps: ["first", "second"],
     });
@@ -162,21 +163,22 @@ describe("the flow routes", () => {
     // Asking for `sequence` today is asking for M6. Defaulting would answer a
     // different question than the one the caller asked.
     const { server } = serverOn();
-    const r = await signed(server, "POST", "/flows", { scopeId: "personal:U1", goal: "g", shape: "sequence" });
+    const r = await signed(server, "POST", "/flows", { scopeId: "personal:U1", actorId: "U1", goal: "g", shape: "sequence" });
     assert.equal(r.status, 400);
     assert.match(r.body.error, /unknown shape/);
   });
 
   it("requires a scope and a goal", async () => {
     const { server } = serverOn();
-    assert.equal((await signed(server, "POST", "/flows", { goal: "g" })).status, 400);
-    assert.equal((await signed(server, "POST", "/flows", { scopeId: "personal:U1" })).status, 400);
+    assert.equal((await signed(server, "POST", "/flows", { goal: "g", actorId: "U1" })).status, 400);
+    assert.equal((await signed(server, "POST", "/flows", { scopeId: "personal:U1", actorId: "U1" })).status, 400);
   });
 
   it("advances a step and answers with the outcome and the flow", async () => {
     const { server } = serverOn();
     const created = await signed(server, "POST", "/flows", {
       scopeId: "personal:U1",
+      actorId: "U1",
       goal: "g",
       steps: ["do it"],
     });
@@ -191,7 +193,7 @@ describe("the flow routes", () => {
   it("answers 202 while a run is still executing, not 200", async () => {
     // 200 would tell the caller the step finished when the core is still on it.
     const { server } = serverOn("pending");
-    const created = await signed(server, "POST", "/flows", { scopeId: "personal:U1", goal: "g", steps: ["slow"] });
+    const created = await signed(server, "POST", "/flows", { scopeId: "personal:U1", actorId: "U1", goal: "g", steps: ["slow"] });
     const r = await signed(server, "POST", `/flows/${created.body.id}/advance`, {});
     assert.equal(r.status, 202);
     assert.equal(r.body.outcome.kind, "in_flight");
@@ -199,7 +201,7 @@ describe("the flow routes", () => {
 
   it("resumes an in-flight flow through the API", async () => {
     const { server } = serverOn("pending");
-    const created = await signed(server, "POST", "/flows", { scopeId: "personal:U1", goal: "g", steps: ["slow"] });
+    const created = await signed(server, "POST", "/flows", { scopeId: "personal:U1", actorId: "U1", goal: "g", steps: ["slow"] });
     await signed(server, "POST", `/flows/${created.body.id}/advance`, {});
     const r = await signed(server, "POST", `/flows/${created.body.id}/resume`, {});
     assert.equal(r.status, 200);
@@ -210,6 +212,7 @@ describe("the flow routes", () => {
     const { server } = serverOn();
     const created = await signed(server, "POST", "/flows", {
       scopeId: "personal:U1",
+      actorId: "U1",
       goal: "g",
       steps: ["a", "b"],
     });
@@ -217,6 +220,29 @@ describe("the flow routes", () => {
     assert.equal(r.status, 201);
     assert.deepEqual(r.body.forkedFrom, { flowId: created.body.id, atStep: 0 });
     assert.notEqual(r.body.id, created.body.id);
+  });
+
+  it("refuses a flow with no actor rather than attributing it to a service account", async () => {
+    // ADR-0009: an optional field with a fallback behind it is the same
+    // shared-account attribution with an extra step.
+    const { server } = serverOn();
+    const r = await signed(server, "POST", "/flows", { scopeId: "personal:U1", goal: "g" });
+    assert.equal(r.status, 400);
+    assert.match(r.body.error, /actorId is required/);
+  });
+
+  it("records the actor on the flow, and a fork inherits it", async () => {
+    const { server } = serverOn();
+    const created = await signed(server, "POST", "/flows", {
+      scopeId: "personal:U1",
+      actorId: "ada",
+      goal: "g",
+      steps: ["a"],
+    });
+    assert.equal(created.body.actorId, "ada");
+    const forked = await signed(server, "POST", `/flows/${created.body.id}/fork`, { atStep: 0 });
+    // The same person continuing the same work down a different branch.
+    assert.equal(forked.body.actorId, "ada");
   });
 
   it("404s an unknown flow instead of inventing one", async () => {
@@ -227,7 +253,7 @@ describe("the flow routes", () => {
 
   it("409s an advance on a blocked flow", async () => {
     const { server } = serverOn();
-    const created = await signed(server, "POST", "/flows", { scopeId: "personal:U1", goal: "g", steps: [] });
+    const created = await signed(server, "POST", "/flows", { scopeId: "personal:U1", actorId: "U1", goal: "g", steps: [] });
     await signed(server, "POST", `/flows/${created.body.id}/advance`, {}); // no steps -> complete/done
     const again = await signed(server, "POST", `/flows/${created.body.id}/advance`, {});
     assert.equal(again.body.outcome.kind, "complete");

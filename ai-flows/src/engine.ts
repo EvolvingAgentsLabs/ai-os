@@ -143,6 +143,21 @@ export function createEngine(deps: EngineDeps) {
       // one made `runToCompletion` answer "halted" for a flow that had finished.
       if (flow.state === "done") return { kind: "complete", flow };
       if (flow.state === "abandoned") return { kind: "halted", reason: "flow is abandoned" };
+      /**
+       * A flow with no actor cannot advance, and is not given one.
+       *
+       * These are flows created before `actorId` existed. Running them as some
+       * configured principal is precisely the shared-account attribution
+       * [ADR-0009](../../doc/adr/0009-a-flow-records-who-it-acts-for.md) removes,
+       * and inferring one from the scope manufactures provenance. Stopping is the
+       * only answer that stays honest about what is not known.
+       */
+      if (!flow.actorId) {
+        return {
+          kind: "halted",
+          reason: "this flow records no actor, so there is nobody to run it as (ADR-0009)",
+        };
+      }
       if (flow.steps.some((s) => s.state === "failed")) {
         // `blocked` rather than `failed`: the flow did not choose to stop, it
         // could not proceed. doc/03 keeps those distinct so nobody has to guess

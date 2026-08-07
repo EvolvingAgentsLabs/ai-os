@@ -41,8 +41,6 @@ const DB = config.databaseUrl;
 if (!DB) throw new Error("DATABASE_URL is required — flows are not durable without it");
 
 const PORT = Number(process.env.FLOWS_PORT ?? 8097);
-/** Must be a member of every shared scope this server advances flows in. */
-const FLOWS_ACTOR = process.env.FLOWS_ACTOR ?? "flows";
 const store = createPostgresFlowStore(DB);
 const core = createCoreClient({
   baseUrl: process.env.CORE_API_URL ?? "http://localhost:8080",
@@ -83,28 +81,18 @@ const engine = createEngine({
       // For a personal flow the actor IS the scope's owner, or the turn would
       // resolve to a different person's private scope.
       /**
-       * Who the step acts AS, and this turned out to be a real hole rather than a
-       * configuration detail.
+       * The step runs as the person the flow was created for.
        *
-       * A shared scope refuses a turn from a non-member — `"you're not a member of
-       * that context"`, upstream's roster guard doing exactly its job. So a flow
-       * in a project must run as somebody on that project's roster. But **a flow
-       * records no actor**: it has a `scopeId` and nothing about who it acts for,
-       * so there is nobody to be.
+       * This replaced `FLOWS_ACTOR`, a single configured principal every flow ran
+       * as. That worked and made the audit trail useless: every flow in every
+       * project attributed to the same person regardless of who asked. Upstream's
+       * roster guard now decides whether this flow may proceed by exactly the rule
+       * it applies to that person's own turns
+       * ([ADR-0009](../../doc/adr/0009-a-flow-records-who-it-acts-for.md)).
        *
-       * `FLOWS_ACTOR` is the stopgap — one configured principal who must be a
-       * member of every scope this server runs flows in. It is wrong in the way
-       * shared service accounts are always wrong: every flow in the audit log is
-       * attributed to the same person regardless of who asked for it.
-       *
-       * This is [ADR-0008](../../doc/adr/0008-conformation-is-projected.md)'s
-       * condition for agent principals firing: *an agent that must appear in a
-       * roster*. See doc/08-roadmap § Phase 3.
+       * `advance` refuses a flow with no actor, so this is never a fallback.
        */
-      actor:
-        kind === "personal"
-          ? { externalId: ref, displayName: ref }
-          : { externalId: FLOWS_ACTOR, displayName: FLOWS_ACTOR },
+      actor: { externalId: flow.actorId ?? "", displayName: flow.actorId ?? "" },
       conversation,
       text: step.intent,
     };

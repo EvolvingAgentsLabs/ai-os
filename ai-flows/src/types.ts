@@ -78,6 +78,19 @@ export interface Step {
 export interface Flow {
   id: string;
   scopeId: string;
+  /**
+   * The principal this flow acts for — recorded at creation, never inferred.
+   *
+   * A step runs as this person, so upstream's roster guard decides whether the
+   * flow may proceed by the same rule it applies to that person's own turns
+   * ([ADR-0009](../../doc/adr/0009-a-flow-records-who-it-acts-for.md)).
+   *
+   * `null` only on flows created before the field existed. They cannot be
+   * advanced, and are **not** backfilled: a guessed actor is manufactured
+   * provenance, and an audit trail naming a plausible person is worse than one
+   * that says it does not know.
+   */
+  actorId: string | null;
   title: string;
   goal: string;
   shape: FlowShape;
@@ -93,6 +106,8 @@ export interface FlowWithSteps extends Flow {
 
 export interface CreateFlowInput {
   scopeId: string;
+  /** Required. A flow with no actor is not created — see `Flow.actorId`. */
+  actorId: string;
   title: string;
   goal: string;
   shape?: FlowShape;

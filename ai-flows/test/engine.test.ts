@@ -55,7 +55,7 @@ function fakeCore(mode: "pending" | "ok" | "fail" = "ok") {
 }
 
 async function seed(store: FlowStore, intents: string[]) {
-  const flow = await store.createFlow({ scopeId: "personal:U1", title: "t", goal: "g" });
+  const flow = await store.createFlow({ actorId: "U1", scopeId: "personal:U1", title: "t", goal: "g" });
   for (const intent of intents) await store.appendStep({ flowId: flow.id, intent });
   return flow;
 }
@@ -139,6 +139,29 @@ describe("advancing a step", () => {
     await engine.advance(flow.id);
     await engine.advance(flow.id);
     assert.equal(f.queued.length, 1);
+  });
+});
+
+describe("a flow with no actor", () => {
+  it("halts rather than running as somebody it picked", async () => {
+    // Flows created before actorId existed. Running them as a configured
+    // principal is the shared-account attribution ADR-0009 removes; inferring one
+    // from the scope manufactures provenance. Stopping is the honest answer.
+    const store = createMemoryFlowStore();
+    const f = fakeCore();
+    // Written the way the row exists on disk for a pre-ADR-0009 flow: the type
+    // forbids it, the migrated column allows it, and the engine must cope.
+    const flow = await store.createFlow({
+      actorId: null as unknown as string,
+      scopeId: "personal:U1",
+      title: "legacy",
+      goal: "created before the field existed",
+    });
+    await store.appendStep({ flowId: flow.id, intent: "a" });
+    const out = await engineOn(store, f.core).advance(flow.id);
+    assert.equal(out.kind, "halted");
+    assert.match((out as { reason: string }).reason, /records no actor/);
+    assert.equal(f.queued.length, 0, "nothing may be launched for a flow with nobody to be");
   });
 });
 
