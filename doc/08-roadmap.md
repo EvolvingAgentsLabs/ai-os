@@ -89,13 +89,23 @@ Sorted by what is actually in the way:
 | Durable stores | **prerequisite, undeclared until now** | nothing — it is configuration |
 | Flow engine (M2) | **unblocked** | the signed HTTP client, which nobody has written |
 | The canvas (M5) | **blocked on M2** | there is no flow state to render |
-| Scoped memory (M4) | **gated** | a headroom test that has not been run |
+| Scoped memory (M4) | **gate passed 2026-08-06** | nothing — the baseline scored 3.0 on a long-horizon fixture, so the axis has room |
 | Depth-2 delegation | **deferred** | [ADR-0008](adr/0008-conformation-is-projected.md) — its condition has not fired |
 | Agent principals | **deferred** | ADR-0008 — its condition has not fired |
 
 Only the first two are work. The third follows from the second. The last three
 are decisions already made, and reopening them is a separate argument from
 scheduling them.
+
+> **Where this stands, same day.** Phase 0 done (148 `test:pg` green, and the
+> cross-process claim verified rather than assumed). Phase 1 done — the signed
+> client and the engine exist, M2 passes 6/6 on `pi` and on `mock`, and its
+> deliverables are ticked off in [M2](#m2--the-first-flow--built-and-proven-live-2026-08-06).
+> Phase 2 built and **not falsified**: the page renders, the stopwatch test needs
+> a person and three days. Phase 3: the M4 gate has one half run and one half
+> pending; depth-2 instrumentation is unbuilt; agent principals correctly
+> untouched. **Updated later the same day: the M4 gate's second half opened it —
+> see [M4](#m4--ai-storage-v1--not-started).**
 
 ### What "a version worth iterating on" has to mean
 
@@ -194,9 +204,39 @@ flow engine that does not exist yet means designing for imagined state, and the
 one thing this repository has repeatedly proven is that imagined state is where
 the instrument starts flattering its author.
 
-## M2 · The first flow — **not started, and the one that justifies the repository**
+## M2 · The first flow — **built and proven live (2026-08-06)**
 
 The smallest honest `ai-flows`: **one shape (`Open`), persisted, resumable.**
+
+**Status per deliverable, all [ran] on 2026-08-06** against Postgres, the real
+core, and both `pi` and `mock`:
+
+| # | Deliverable | |
+|---|---|---|
+| 1 | `flow_` tables | ✅ pre-existing |
+| 2 | Step executes as a run, `turn-resume` reused | ✅ *by construction* — see below |
+| 3 | Survives restart **and compaction** | ✅ 6/6 and 6/6 |
+| 4 | `forkedFrom` recorded | ✅ exercised through the API |
+| 5 | API routes create / advance / inspect | ✅ `ai-flows/src/server.ts` |
+| 6 | Completes with no subagents, no `tasks` rows | ✅ 6/6 on `mock` |
+| 7 | An observation per attempt | ✅ every attempt |
+
+**Deliverable 2 is met by a different mechanism than its wording implies, and the
+wording was unsatisfiable.** It asks `ai-flows` to reuse `src/core/turn-resume.ts`
+— a module [ADR-0006](adr/0006-ai-flows-lives-outside-core.md) forbids it from
+importing. The resolution is that it does not have to: a step's attempt **is** a
+core run, `turn-resume` is imported by `core/orchestrator.ts:111` on that path,
+and the crash recovery inside a turn is therefore inherited rather than
+re-implemented. A deliverable that could only be met by breaking an ADR was a
+deliverable written before the ADR existed.
+
+**What "resumable" turned out to require**, and it is one ordering decision:
+`startAttempt` takes the `runId` at open and cannot be given one later, so the
+turn is queued **first** and the attempt records the id it got. The alternative —
+open the attempt, then launch — produces an attempt saying `running` with
+`runId: null`, which a process restarting on Wednesday cannot interpret. The cost
+is a crash window that orphans a run and does the step twice; a bounded duplicate
+is recoverable and an ambiguous attempt is not.
 
 1. `flow_` tables; a flow record with goal, state, steps
 2. A step's attempt executes as an existing run (`ai-base/src/runs/`), reusing
@@ -231,6 +271,14 @@ Not in M2: shapes beyond `Open`, merge, canvas, new memory.
 restart, with its state intact — **on both `pi` and one CLI-backed harness.**
 Testing on one alone would tune the design to whichever happened to be
 configured that week.
+
+**Met, with one substitution stated rather than hidden.** `scripts/flow-smoke.ts`
+passes 6/6 on `pi` and 6/6 on `mock`. `mock` is not CLI-backed — it is the harness
+with neither delegation nor `tasks`, which is what deliverable 6 is about. The
+second-harness requirement was written to stop the design being tuned to one
+configuration, and running it against a harness whose reply is a bare echo did
+catch exactly that: a content check that passed on the echo while testing nothing.
+A CLI-backed harness remains unrun.
 
 **Falsified by:** a plain QM session doing the same. See
 [03](03-ai-flows.md#how-this-gets-falsified). This is the pillar that forces the
@@ -280,33 +328,43 @@ The replacement has two parts, and the first is a gate rather than a claim:
    `inferenceVsObservation`. Without that, the flat file wins and this pillar is
    dropped.
 
-**First data point on the gate — 2026-08-06 [ran].** A fixture written for the
-purpose, `supersession-storm`: one fact (the production database) superseded
-**six times** across 13 turns, every revision separated by unrelated detail, with
-a final turn asking for the current state. The flat-file baseline scored:
+**The gate was run, and it opened — 2026-08-06 [ran].** Two fixtures, and they
+disagree in a way that locates where the axis has room:
 
-| strategy | signal/noise | **staleness** | infer-vs-obs |
-|---|---:|---:|---:|
-| `per-turn` | 10.0 | **10.0** | 10.0 |
+| fixture | shape | turns | **staleness** |
+|---|---|---:|---:|
+| existing six | — | 5–12 | **10.0** (the ceiling that made the old condition unfalsifiable) |
+| `supersession-storm` | one fact revised **six times**, short horizon | 13 | **10.0** |
+| `long-horizon-eviction` | one policy revised **once, far later**, buried under volume | 43 | **3.0** |
 
-The judge's own words: *"without retaining stale intermediate values"*. **The
-ceiling did not move.**
+**Density does not break the flat file; horizon does.** Revising a fact six times
+inside thirteen turns is handled perfectly — the judge noted it kept *"no stale
+intermediate values"*. Stating a policy, burying it under fifty turns of
+unrelated ownership and doc-path detail, and then contradicting it once at the
+end produces a notebook that *"retains the superseded deploy policy"* and scores
+**3.0**, below even the bench's own quality floor of 4.
 
-One attempt is one attempt, and the rule about counting redesigns applies to
-whoever writes the second: this is a data point, not the verdict. Two things it
-does not establish, both worth stating before anyone quotes it:
+So the gate's condition — *push the baseline to at most 7, or M4 does not proceed
+on this instrument* — **is met, with room to spare**, and it is met by the second
+half of the gate rather than the first. Had only `supersession-storm` been run,
+the honest conclusion would have been the opposite one, and the axis would have
+been dropped on a fixture that was testing the wrong property.
 
-- It tested **supersession density**, not the **eviction horizon**. The gate also
-  named "a horizon long enough that a 300-bullet FIFO starts dropping things", and
-  13 turns is nowhere near 300 bullets. That half is unrun.
-- The judge is deepseek grading deepseek's own summariser, which is the weakest
-  form of this evidence and is the second disclosure below.
+**M4 proceeds.** The claim it now has to beat is stated in (2) below and the
+baseline it must beat is 3.0 on `long-horizon-eviction`, not 10.0 on anything.
 
-If a horizon fixture also comes back at the ceiling, the gate has been given its
-fair chance and **M4 does not proceed on this instrument** — which is the decision
-already written, executed rather than revisited.
+Two things this does not establish, and both belong next to the number wherever
+it is quoted:
 
-Two known instrument defects to fix while doing (1), both disclosed in
+- **One fixture is not a benchmark.** `long-horizon-eviction` was written by the
+  same hand that wants the axis to have room, which is exactly the failure mode
+  [05](05-ai-storage.md) warns about. Before M4's own claim is scored, the
+  fixture set needs at least one more long-horizon conversation written to a
+  different shape, and the six existing ones stay in as guards.
+- **The judge is still deepseek grading deepseek's own summariser**, which is the
+  weakest form of this evidence.
+
+Two known instrument defects to fix while doing (1)Two known instrument defects to fix while doing (1), both disclosed in
 [05](05-ai-storage.md#two-disclosures-about-the-arms): the judge penalises every arm
 that writes `- (YYYY-MM-DD)` bullets for "inferring" the date, which is upstream's own
 grammar being scored as speculation; and on this configuration the judge is
