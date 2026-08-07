@@ -3,3 +3,4 @@ node_modules/
 *.log
 .env
 ai-flows/*.html
+ai-base/data-*/

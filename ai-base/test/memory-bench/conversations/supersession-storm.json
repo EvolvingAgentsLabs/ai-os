@@ -2,18 +2,51 @@
   "id": "supersession-storm",
   "description": "One fact superseded six times across a long horizon, each revision separated by unrelated detail. Written to test whether the flat file can be pushed off its staleness ceiling: the notebook must carry only the sixth value, and the five intervening ones are the trap. See doc/08-roadmap.md Phase 3.",
   "turns": [
-    { "input": "context for the quarter: our production database is Postgres 14, hosted on RDS in us-east-1.", "reply": "Noted — Postgres 14 on RDS, us-east-1." },
-    { "input": "unrelated: the design review deck should use the teal palette, not the orange one.", "reply": "Teal palette for the deck." },
-    { "input": "correction on the database: we finished the upgrade, it's Postgres 15 now.", "reply": "Updated — Postgres 15." },
-    { "input": "the oncall rotation moved to Thursdays. Also Priya is covering next week.", "reply": "Thursdays, Priya next week." },
-    { "input": "we migrated regions over the weekend — the database is in us-west-2 now, still Postgres 15.", "reply": "us-west-2, Postgres 15." },
-    { "input": "for the API docs, we're standardising on cursor pagination rather than offset.", "reply": "Cursor pagination." },
-    { "input": "database again: we moved off RDS entirely, it's Aurora Postgres 15 now, same region.", "reply": "Aurora Postgres 15, us-west-2." },
-    { "input": "the billing service retry budget is three attempts with jitter, not five.", "reply": "Three attempts with jitter." },
-    { "input": "one more database change — we're on Aurora Postgres 16 as of this morning.", "reply": "Aurora Postgres 16." },
+    {
+      "input": "context for the quarter: our production database is Postgres 14, hosted on RDS in us-east-1.",
+      "reply": "Noted — Postgres 14 on RDS, us-east-1."
+    },
+    {
+      "input": "unrelated: the design review deck should use the teal palette, not the orange one.",
+      "reply": "Teal palette for the deck."
+    },
+    {
+      "input": "correction on the database: we finished the upgrade, it's Postgres 15 now.",
+      "reply": "Updated — Postgres 15."
+    },
+    {
+      "input": "the oncall rotation moved to Thursdays. Also Priya is covering next week.",
+      "reply": "Thursdays, Priya next week."
+    },
+    {
+      "input": "we migrated regions over the weekend — the database is in us-west-2 now, still Postgres 15.",
+      "reply": "us-west-2, Postgres 15."
+    },
+    {
+      "input": "for the API docs, we're standardising on cursor pagination rather than offset.",
+      "reply": "Cursor pagination."
+    },
+    {
+      "input": "database again: we moved off RDS entirely, it's Aurora Postgres 15 now, same region.",
+      "reply": "Aurora Postgres 15, us-west-2."
+    },
+    {
+      "input": "the billing service retry budget is three attempts with jitter, not five.",
+      "reply": "Three attempts with jitter."
+    },
+    {
+      "input": "one more database change — we're on Aurora Postgres 16 as of this morning.",
+      "reply": "Aurora Postgres 16."
+    },
     { "input": "the frontend team picked Vite over Webpack for the new app.", "reply": "Vite it is." },
-    { "input": "final word on the database this quarter: Aurora Postgres 16, us-west-2, and we enabled the read replica in us-east-1 for analytics only.", "reply": "Aurora Postgres 16 in us-west-2, analytics read replica in us-east-1." },
+    {
+      "input": "final word on the database this quarter: Aurora Postgres 16, us-west-2, and we enabled the read replica in us-east-1 for analytics only.",
+      "reply": "Aurora Postgres 16 in us-west-2, analytics read replica in us-east-1."
+    },
     { "input": "and the sync moved again, it's Wednesdays now, not Thursdays.", "reply": "Wednesdays." },
-    { "input": "what's our current database setup?", "reply": "Aurora Postgres 16 in us-west-2, with an analytics-only read replica in us-east-1." }
+    {
+      "input": "what's our current database setup?",
+      "reply": "Aurora Postgres 16 in us-west-2, with an analytics-only read replica in us-east-1."
+    }
   ]
 }
