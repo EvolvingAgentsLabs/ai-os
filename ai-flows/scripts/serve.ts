@@ -20,6 +20,7 @@ import { loadConfig } from "../../ai-base/src/config.ts";
 import { buildApp } from "../../ai-base/src/wiring.ts";
 import { scopeStorageKey } from "../../ai-base/src/util/scope-storage-key.ts";
 import { parseAgentDefinition } from "../../ai-base/src/agents/agent-definition.ts";
+import { parseFrontmatter } from "../../ai-base/src/skills/frontmatter.ts";
 import { isProjectGroupRef } from "../../ai-base/src/projects/project-store.ts";
 import { createCoreClient } from "../src/core-client.ts";
 import { createEngine } from "../src/engine.ts";
@@ -106,7 +107,13 @@ async function conformation() {
     readFile: (scopeId, path) => workspace.read(scopeId, path),
     parseAgent(name, raw) {
       const d = parseAgentDefinition(name, raw);
-      return { description: d.description, tools: d.tools };
+      // `subagents:` is ours; upstream validates name/description/tools and
+      // ignores every other key, so the file stays delegatable and carries the tree.
+      const { attrs } = parseFrontmatter(raw);
+      const declared = Array.isArray(attrs.subagents)
+        ? attrs.subagents.filter((x): x is string => typeof x === "string").map((x) => x.trim()).filter(Boolean)
+        : [];
+      return { description: d.description, tools: d.tools, subagents: declared };
     },
     async messages(scopeId): Promise<TapeMessage[]> {
       const acc: TapeMessage[] = [];

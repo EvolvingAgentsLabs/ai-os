@@ -25,7 +25,7 @@
  * Self-contained HTML with no external requests: it has to open from a file over
  * a coffee, days later, with no server running.
  */
-import type { Conformation, ScopeNode } from "./conformation.ts";
+import type { AgentRecord, Conformation, ScopeNode, ScopeRole } from "./conformation.ts";
 import { observabilityOf } from "./observability.ts";
 import type { FlowWithSteps, Step } from "./types.ts";
 
@@ -139,19 +139,81 @@ function flowCard(flow: FlowWithSteps, now: number): string {
   </article>`;
 }
 
-function scopeRow(s: ScopeNode): string {
-  const agents = s.agents
-    .map((a) => `<li><code>${esc(a.name)}</code> <span class="dim">[${esc(a.tools.join(" "))}]</span> ${esc(a.description)}${a.inert ? ` <span class="warn">inert on this harness</span>` : ""}${a.ok ? "" : ` <span class="err">${esc(a.error)}</span>`}</li>`)
-    .join("");
-  return `<div class="scope">
-    <div><span class="pill role">${esc(s.role)}</span> <code>${esc(s.scopeId)}</code>
-      ${s.roster ? `<span class="dim">roster ${s.roster.members.length} @ v${esc(s.roster.version)}</span>` : ""}
-      ${s.hasMemory ? `<span class="dim">memory</span>` : ""}
-      ${s.skills.length ? `<span class="dim">skills: ${esc(s.skills.join(", "))}</span>` : ""}
-    </div>
-    ${agents ? `<ul>${agents}</ul>` : ""}
-    ${s.membershipInFolders.length ? `<div class="err">membership-shaped path: ${esc(s.membershipInFolders.join(", "))}</div>` : ""}
-  </div>`;
+/**
+ * The order the levels are shown in, and it is the OS's own layering rather than
+ * an alphabetical accident: the system scope is mounted read-only into every
+ * other one, so it is drawn first and everything below inherits from it.
+ */
+const LEVELS: Array<{ role: ScopeRole; label: string; note: string }> = [
+  { role: "system", label: "System", note: "the org scope — mounted read-only into every scope below as global/" },
+  { role: "project", label: "Projects", note: "group scopes with a reserved prefix, each with a roster" },
+  { role: "collective", label: "Groups & channels", note: "shared scopes without a roster of their own" },
+  { role: "team", label: "Teams", note: "from the identity provider, not from a project roster" },
+  { role: "individual", label: "Individuals", note: "one person's private scope" },
+  { role: "unknown", label: "Unrecognised", note: "the scope id did not parse — never assumed benign" },
+];
+
+function agentTree(a: AgentRecord, all: Map<string, AgentRecord>, depth = 0, seen = new Set<string>()): string {
+  const pad = depth * 18;
+  const flags = [
+    a.ok ? null : `<span class="err">BROKEN: ${esc(a.error)}</span>`,
+    a.inert ? `<span class="warn" title="workspace agents are read only by pi-tools.ts">inert on this harness</span>` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const rows = [
+    `<li style="margin-left:${pad}px"><code class="agent">${esc(a.name)}</code>` +
+      `<span class="dim tools">[${esc(a.tools.join(" "))}]</span> ${esc(a.description)} ${flags}</li>`,
+  ];
+  // Cycles are possible the moment composition is declared by hand, and an
+  // unguarded render of one is a hung page rather than an error message.
+  if (seen.has(a.name)) {
+    rows.push(`<li style="margin-left:${pad + 18}px" class="err">cycle — ${esc(a.name)} already appears above</li>`);
+    return rows.join("");
+  }
+  const next = new Set(seen).add(a.name);
+  for (const name of a.subagents) {
+    const child = all.get(name);
+    if (child) rows.push(agentTree(child, all, depth + 1, next));
+    else
+      rows.push(
+        `<li style="margin-left:${pad + 18}px"><code class="agent missing">${esc(name)}</code> <span class="err">declared, no file</span></li>`,
+      );
+  }
+  return rows.join("");
+}
+
+function scopeCard(s: ScopeNode, systemAgents: Map<string, AgentRecord>): string {
+  const all = new Map(systemAgents);
+  for (const a of s.agents) all.set(a.name, a);
+  // Only roots are drawn at the top level; an agent that is somebody's subagent
+  // appears under its parent instead of twice.
+  const childNames = new Set(s.agents.flatMap((a) => a.subagents));
+  const roots = s.agents.filter((a) => !childNames.has(a.name));
+
+  const people = s.roster
+    ? `<div class="people"><strong>${s.roster.members.length} member${s.roster.members.length === 1 ? "" : "s"}</strong>
+        <span class="dim">roster v${esc(s.roster.version)} — from ProjectStore, never from a folder</span>
+        <ul>${s.roster.members.map((m) => `<li><code>${esc(m)}</code></li>`).join("")}</ul></div>`
+    : s.role === "individual"
+      ? `<div class="people dim">One person: <code>${esc(s.ref)}</code></div>`
+      : `<div class="people dim">No roster — membership for this scope kind is not a list ai-os can read.</div>`;
+
+  return `<article class="scope-card">
+    <header><code class="scopeid">${esc(s.scopeId)}</code>
+      ${s.hasMemory ? `<span class="pill">memory</span>` : ""}
+      ${s.skills.length ? `<span class="pill">${s.skills.length} skill${s.skills.length === 1 ? "" : "s"}</span>` : ""}
+      <span class="pill">${s.agents.length} agent${s.agents.length === 1 ? "" : "s"}</span>
+    </header>
+    ${people}
+    ${
+      roots.length
+        ? `<div class="agents"><strong>Agents</strong> <span class="dim">markdown in <code>agents/</code></span>
+             <ul class="tree">${roots.map((a) => agentTree(a, all)).join("")}</ul></div>`
+        : `<div class="agents dim">No agents defined in this scope.</div>`
+    }
+    ${s.membershipInFolders.length ? `<div class="err">membership-shaped path found and NOT read as membership: ${esc(s.membershipInFolders.join(", "))}</div>` : ""}
+  </article>`;
 }
 
 const CSS = `
@@ -191,6 +253,20 @@ section{margin:28px 0}
 .scope{border-top:1px solid #1e2226;padding:9px 0}
 .scope ul{margin:5px 0 0 18px;padding:0;font-size:13px}
 .holes li{margin:6px 0}
+.level{margin:22px 0}
+.level-h{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#8b9095;font-weight:600;margin:0 0 8px;display:block}
+.level-h .dim{text-transform:none;letter-spacing:0;font-weight:400;font-size:12px;margin-left:8px}
+.scope-card{border:1px solid #1e2226;border-radius:10px;padding:14px 16px;margin:10px 0;background:#0e1114}
+.scope-card header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.scopeid{font-size:13px;color:#F2EFE9}
+.people{margin:8px 0;font-size:13px}
+.people ul{margin:4px 0 0 16px;padding:0}
+.agents{margin:10px 0 0}
+.tree{list-style:none;margin:6px 0 0;padding:0;font-size:13px}
+.tree li{padding:2px 0;border-left:1px solid #23282d;padding-left:10px}
+.agent{color:#E8A33D}
+.agent.missing{color:#e06c5a;text-decoration:line-through}
+.tools{margin:0 6px}
 .holes q{display:block;color:#8b9095;font-size:13px}
 `;
 
@@ -211,6 +287,26 @@ export function renderViewHtml(input: ViewInput): string {
     c ? ` · conformation digest <code>${esc(c.digest)}</code> · harness ${esc(c.harness)}` : ""
   }</div>
 
+${
+  c
+    ? `<section>
+  <h1>The system <span class="dim">(${c.scopes.length} scopes)</span></h1>
+  <p class="dim">Every level of the OS, the people in it, and the agents each scope defines. Membership comes from <code>ProjectStore</code> and the directory; it is never read from a folder.</p>
+  ${(() => {
+    const systemAgents = new Map(
+      (c.scopes.find((s) => s.role === "system")?.agents ?? []).map((a) => [a.name, a] as const),
+    );
+    return LEVELS.map((level) => {
+      const inLevel = c.scopes.filter((s) => s.role === level.role);
+      if (!inLevel.length) return "";
+      return `<div class="level"><h2 class="level-h">${esc(level.label)} <span class="dim">${esc(level.note)}</span></h2>
+        ${inLevel.map((s) => scopeCard(s, systemAgents)).join("")}</div>`;
+    }).join("");
+  })()}
+</section>`
+    : `<section><p class="dim">No conformation was projected for this render.</p></section>`
+}
+
 <section>
   <h1>Flows in progress <span class="dim">(${live.length})</span></h1>
   ${live.length ? live.map((f) => flowCard(f, now)).join("") : `<p class="dim">Nothing in progress.</p>`}
@@ -221,11 +317,6 @@ ${rest.length ? `<section><h1 class="dim">Settled <span class="dim">(${rest.leng
 ${
   c
     ? `<section>
-  <h1>Conformation <span class="dim">(${c.scopes.length} scopes)</span></h1>
-  ${c.scopes.map(scopeRow).join("")}
-</section>
-
-<section>
   <h1>Holes <span class="dim">(${c.holes.length})</span></h1>
   <p class="dim">Questions asked of this system that no store could answer. They are shown, not omitted: a view that renders cleanly because it did not ask is worse than no view.</p>
   <ul class="holes">${c.holes

@@ -95,6 +95,10 @@ export interface AgentRecord {
    * you are running is worse than no folder, so it is marked.
    */
   inert: boolean;
+  /** Declared in frontmatter. See `ParsedAgent.subagents` — declared, not executed. */
+  subagents: string[];
+  /** Of those, the ones that exist as files in a scope this reader can see. */
+  missingSubagents: string[];
 }
 
 export interface Roster {
@@ -260,6 +264,22 @@ export function attributeMessage(m: TapeMessage, windows: readonly Participation
 export interface ParsedAgent {
   description: string;
   tools: string[];
+  /**
+   * Names this agent declares it composes, from a `subagents:` frontmatter key.
+   *
+   * Upstream's `parseAgentDefinition` validates `name`, `description`, `tools`
+   * and the body, and **ignores every other frontmatter key** — so this field
+   * rides along in a file that stays a valid, delegatable agent. That is the
+   * whole reason the tree can be markdown rather than a sidecar registry.
+   *
+   * It is a **declaration of composition, not a runtime hierarchy.** A delegated
+   * child is built without `runChild` (`pi-harness.ts:1313-1318`), so an agent
+   * cannot delegate to its own subagent. What a declared tree buys is that the
+   * orchestrating session can read it and delegate to each named agent itself —
+   * the pattern llmunix's SystemAgent uses. Rendering it as though the parent
+   * ran its children would be the lie this comment exists to prevent.
+   */
+  subagents?: string[];
 }
 
 /**
@@ -420,17 +440,38 @@ async function projectScope(
         ok: false,
         error: "no reader or parser wired; the file exists but was not opened",
         inert,
+        subagents: [],
+        missingSubagents: [],
       });
       continue;
     }
     const raw = await sources.readFile(scopeId, path);
     if (raw === null) {
-      node.agents.push({ name, path, description: "", tools: [], ok: false, error: "unreadable", inert });
+      node.agents.push({
+        name,
+        path,
+        description: "",
+        tools: [],
+        ok: false,
+        error: "unreadable",
+        inert,
+        subagents: [],
+        missingSubagents: [],
+      });
       continue;
     }
     try {
       const parsed = sources.parseAgent(name, raw);
-      node.agents.push({ name, path, description: parsed.description, tools: parsed.tools, ok: true, inert });
+      node.agents.push({
+        name,
+        path,
+        description: parsed.description,
+        tools: parsed.tools,
+        ok: true,
+        inert,
+        subagents: parsed.subagents ?? [],
+        missingSubagents: [],
+      });
     } catch (e) {
       // A definition that does not parse is invisible to `delegate` at call time
       // and produces a runtime error rather than a startup one. Surfacing it here
@@ -443,6 +484,8 @@ async function projectScope(
         ok: false,
         error: e instanceof Error ? e.message : String(e),
         inert,
+        subagents: [],
+        missingSubagents: [],
       });
     }
   }
@@ -539,6 +582,34 @@ export async function projectConformation(
   const scopes: ScopeNode[] = [];
   for (const scopeId of scopeIds) {
     scopes.push(await projectScope(scopeId, sources, opts.harness, holes));
+  }
+
+  /**
+   * Resolve declared subagents against what actually exists.
+   *
+   * A declared name is a claim; a file is a fact. The two are kept apart because
+   * a tree that renders `research → deep-search` when `deep-search.md` was never
+   * written looks like a working composition and is a typo. Resolution searches
+   * the agent's own scope first, then the system scope — the same order the
+   * layered workspace mounts them.
+   */
+  const systemScope = scopes.find((s) => s.role === "system");
+  const systemAgents = new Set((systemScope?.agents ?? []).map((a) => a.name));
+  for (const scope of scopes) {
+    const local = new Set(scope.agents.map((a) => a.name));
+    for (const agent of scope.agents) {
+      agent.missingSubagents = agent.subagents.filter((n) => !local.has(n) && !systemAgents.has(n));
+    }
+    const dangling = scope.agents.filter((a) => a.missingSubagents.length > 0);
+    if (dangling.length) {
+      holes.push({
+        scopeId: scope.scopeId,
+        question: `Which agents are ${dangling.map((a) => a.name).join(", ")} composed of?`,
+        why: `declared subagents with no file in this scope or the system scope: ${[
+          ...new Set(dangling.flatMap((a) => a.missingSubagents)),
+        ].join(", ")}. A declared name is a claim; only a file is a fact`,
+      });
+    }
   }
 
   let edges: Edge[] = [];
