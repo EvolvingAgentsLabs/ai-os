@@ -9,7 +9,7 @@ Read in order the first time:
 | 00 | [Vision](00-vision.md) | What is an agent operating system, and what makes this one different from a chat app with plugins |
 | 01 | [Architecture](01-architecture.md) | How the four pillars fit together and where each one attaches to the base |
 | 02 | [ai-base](02-ai-base.md) | What QM actually gives us — verified against the source, not the README — and the seams we build on |
-| 03 | [ai-flows](03-ai-flows.md) | The flow model: declarative, resumable, inspectable units of work above the turn |
+| 03 | [ai-flows](03-ai-flows.md) | The flow model: declarative, resumable, inspectable units of work above the turn. **`Open` runs; the other five shapes do not** |
 | 04 | [ai-ui](04-ai-ui.md) | The intelligent canvas: a spatial, live interface at OS level |
 | 05 | [ai-storage](05-ai-storage.md) | Memory at four levels — system, user, project, flow |
 | 06 | [Licensing](06-licensing.md) | Apache 2.0 over MIT: what is permitted, what is required, what is forbidden |

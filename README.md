@@ -15,14 +15,17 @@ organisation is frozen — see [`doc/07-freeze-policy.md`](doc/07-freeze-policy.
 **[Español](README.es.md)** · English is the canonical version of every document
 here; see [Languages](#languages).
 
-> **Status: design, with two measured pieces.** `ai-base/` is a vendored copy of
-> QM and runs. `ai-flows/` is specified in `doc/` and mostly unbuilt — what exists
-> and runs is its flow store, its observability instrument
-> ([10](doc/10-observability.md)) and its conformation projector
-> ([12](doc/12-conformation.md)), 137 tests. The flow *engine* — a step executing
-> as a run — is not built. `ai-ui/` and `ai-storage/` are specified and not
-> implemented at all. Nothing in this README describes software that exists unless
-> it says so.
+> **Status: two pillars run, two are design.** `ai-base/` is a vendored copy of QM
+> and runs. **`ai-flows/` runs**: the flow engine ([M2](doc/08-roadmap.md), a flow
+> started by one process and finished by another, proven on `pi` and `mock`), a
+> signed HTTP API, multi-agent composition from markdown-declared trees, the
+> observability instrument ([10](doc/10-observability.md)) and the conformation
+> projector ([12](doc/12-conformation.md)) — 189 tests. What `ai-flows` does *not*
+> have is any shape beyond `Open`: no `Sequence`, `Loop`, `Fan-out`,
+> `Deliberation`, `Watch`, and no merge. `ai-ui/` and `ai-storage/` are specified
+> and **not implemented at all** — the page in [the manual](doc/manual.md) is
+> served by `ai-flows`, not by `ai-ui`. Nothing in this README describes software
+> that exists unless it says so.
 
 ## The problem: AI is still single-player
 

@@ -5,7 +5,18 @@
 <sub>Six shapes. The last one never finishes, on purpose.</sub>
 
 
-> **Status: specified, not implemented.**
+> **Status: the `Open` shape runs; every other shape is still specification.**
+>
+> Built and proven live on 2026-08-06/07 **[ran]**: the flow store, the engine
+> (a flow started by one process and finished by another — 6/6 on `pi` and on
+> `mock`), the signed HTTP client and API, fork with lineage, an observation per
+> attempt, and multi-agent composition from a markdown-declared `subagents:` tree.
+> See [08-roadmap § M2](08-roadmap.md) for the deliverable-by-deliverable state and
+> [the manual](manual.md) for how to run it.
+>
+> **Not built:** `Sequence`, `Loop`, `Fan-out`, `Deliberation`, `Watch` — the five
+> shapes below are still specification, and so is merge. Promotion from `Open` to
+> a structured shape is likewise unbuilt.
 
 ## The problem
 
