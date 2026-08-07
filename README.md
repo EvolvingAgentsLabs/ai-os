@@ -16,16 +16,65 @@ organisation is frozen — see [`doc/07-freeze-policy.md`](doc/07-freeze-policy.
 here; see [Languages](#languages).
 
 > **Status: two pillars run, two are design.** `ai-base/` is a vendored copy of QM
-> and runs. **`ai-flows/` runs**: the flow engine ([M2](doc/08-roadmap.md), a flow
-> started by one process and finished by another, proven on `pi` and `mock`), a
-> signed HTTP API, multi-agent composition from markdown-declared trees, the
-> observability instrument ([10](doc/10-observability.md)) and the conformation
-> projector ([12](doc/12-conformation.md)) — 189 tests. What `ai-flows` does *not*
-> have is any shape beyond `Open`: no `Sequence`, `Loop`, `Fan-out`,
-> `Deliberation`, `Watch`, and no merge. `ai-ui/` and `ai-storage/` are specified
-> and **not implemented at all** — the page in [the manual](doc/manual.md) is
-> served by `ai-flows`, not by `ai-ui`. Nothing in this README describes software
-> that exists unless it says so.
+> and runs. **`ai-flows/` runs** — 197 tests. `ai-ui/` and `ai-storage/` are
+> specified and **not implemented at all**; the page shown below is served by
+> `ai-flows`, not by `ai-ui`. Nothing in this README describes software that
+> exists unless it says so.
+
+## What you can actually do with it today
+
+Every item here has been run, and the manual shows it with screenshots from a live
+instance: **[Running ai-os](doc/manual.md)** · **[Correr ai-os](doc/es/manual.md)**.
+
+**Organise people and agents by scope.** Organisation, projects, groups, teams and
+individuals are not a taxonomy ai-os invented — a project *is* upstream's group
+scope with a reserved prefix, and its roster comes from `ProjectStore`. One page
+shows every level, who is in it, and what each one defines. Membership is never
+read from a folder, and a folder that looks like membership is reported as a
+finding ([ADR-0008](doc/adr/0008-conformation-is-projected.md)).
+
+**Write agents and sub-agents as markdown.** An agent is `agents/<name>.md` —
+frontmatter for its description and tools, body for its instructions. A
+`subagents:` key declares what it composes. The same file stays a valid,
+delegatable agent, because upstream's parser ignores keys it does not know, so
+there is no second registry to keep in sync.
+
+**Run a declared tree as real work.** `POST /flows/from-agent` turns
+`LedgerLead → SchemaAgent, MigrationAgent, ReviewAgent` into a flow and executes
+it, each step delegating to that agent's own file. `?dryRun=1` shows the plan
+first. Each step is handed what the steps before it produced.
+
+**Leave and come back.** A flow started by one process is finished by another,
+after a restart and after context compaction, without re-running work that was
+already in flight. That is the milestone the repository exists for
+([M2](doc/08-roadmap.md)).
+
+**See whether it is still moving.** Progress is judged against a *measured* noise
+floor rather than a guess — δ = 0% on normalized digests, 21.1% on raw
+([10](doc/10-observability.md)). A repeat is proof; a difference is a rumour.
+
+**Know who did what.** Every flow records the person it acts for and runs as them,
+so the roster guard applies to a flow exactly as it applies to that person
+([ADR-0009](doc/adr/0009-a-flow-records-who-it-acts-for.md)).
+
+### What it will tell you it cannot do
+
+The unusual part, and the reason to trust the list above. The system reports the
+questions it could not answer instead of rendering a clean page: which scopes it
+cannot enumerate, which declared sub-agent has no file, which agents are inert on
+the harness you are running, which messages it cannot attribute.
+
+The failure this guards against is documented with a case and with one of our own
+runs in **[13 · Degradation](doc/13-degradation.md)** — a review step that
+executed, reported cleanly, and added nothing, while every signal said the work had
+succeeded. *The configuration is a hypothesis; the execution is the evidence.*
+
+### What is not built
+
+No shape beyond `Open` — no `Sequence`, `Loop`, `Fan-out`, `Deliberation`,
+`Watch`, and no merge. No canvas. No scoped memory. An agent cannot delegate to its
+own sub-agent (that cap is upstream's, and deliberate). Full state, milestone by
+milestone: [08 · Roadmap](doc/08-roadmap.md).
 
 ## The problem: AI is still single-player
 

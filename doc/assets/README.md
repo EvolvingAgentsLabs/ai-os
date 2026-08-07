@@ -22,7 +22,7 @@ not decoration and it does not get to drift.
 
 | Files | Made by |
 |---|---|
-| `icon.png`, `hero.jpg`, `00-…` through `12-…jpg` | Gemini `gemini-3-pro-image`, from prompts in a shared visual grammar |
+| `icon.png`, `hero.jpg`, `00-…` through `13-…jpg` | Gemini `gemini-3-pro-image`, from prompts in a shared visual grammar |
 
 Identity and atmosphere only. **No generated image in this repository states a
 number, plots an axis, or labels a mechanism** — the prompts forbid text and
