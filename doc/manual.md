@@ -133,7 +133,133 @@ scope's workspace, and any agent that can write files can create one.
 
 ---
 
-## Part 3 · The conformation projector
+## Part 3 · The multi-agent system
+
+This is the part that changed most on 2026-08-07, and everything below was
+verified by running it **[ran]**.
+
+### Every level, its people, and its agents — one page
+
+`ai-flows` serves a page at `GET /` showing the whole system: the levels the OS
+actually has, who is in each, and the agents each scope defines.
+
+```bash
+cd ai-os/ai-flows
+FLOWS_SIGNING_SECRET=<secret> node --env-file=/path/to/core.env scripts/serve.ts
+# → http://localhost:8097
+```
+
+<img src="assets/manual/06-system-explorer.jpg" alt="" width="100%">
+
+<sub>System first, because <code>global/</code> is mounted read-only into every scope below it.</sub>
+
+Read it top to bottom:
+
+- **System** — `org:<your-org>`, whose `agents/` mount into every other scope as
+  `global/agents/`.
+- **Projects** — `group:web-project-<uuid>`, each with a **roster read from
+  `ProjectStore`**. Membership is never read from a folder; see
+  [ADR-0008](adr/0008-conformation-is-projected.md).
+- **Groups & channels**, **Teams**, **Individuals** — the remaining scope kinds.
+
+### Agents and sub-agents are markdown
+
+An agent is `agents/<name>.md`. Frontmatter declares what it is; the body is its
+system prompt:
+
+```markdown
+---
+description: Owns the ledger rewrite. Splits work and routes it to the specialists.
+tools: [read, write, execute]
+subagents: [SchemaAgent, MigrationAgent, ReviewAgent]
+---
+You lead the ledger rewrite. Split the goal, route each piece to the agent in
+your subagents list, and report what came back.
+```
+
+`description` and `tools` are upstream's. **`subagents:` is ours**, and it works
+because upstream's parser validates those three fields and ignores every other
+key — so the same file stays a valid, delegatable agent while carrying the tree.
+There is no sidecar registry and no schema to keep in sync.
+
+A declared name with no file renders struck through as **`declared, no file`**.
+That is deliberate: a declared name is a claim, a file is a fact, and a tree that
+renders a typo as a working composition is worse than no tree.
+
+### Running a tree
+
+`POST /flows/from-agent` turns the declared tree into a flow. Use `?dryRun=1`
+first — a hand-declared tree is exactly the thing to look at before it spends
+model calls.
+
+```jsonc
+POST /flows/from-agent?dryRun=1
+{ "scopeId": "group:web-project-…", "agent": "LedgerLead", "goal": "add a currency column" }
+
+// → step -> SchemaAgent     via:delegate depth:1
+//   step -> MigrationAgent  via:delegate depth:1
+//   step -> ReviewAgent     via:delegate depth:1
+```
+
+Drop `?dryRun=1` to create it, then `POST /flows/:id/advance` per step.
+
+<img src="assets/manual/07-composed-flow.jpg" alt="" width="100%">
+
+<sub>Each step is a real delegation to the agent's own markdown file.</sub>
+
+### What composition does not do, and why
+
+**Depth is flattened, not honoured.** A delegated child is built without
+`runChild` (`pi-harness.ts:1313-1318`), so **an agent cannot delegate to its own
+sub-agent**. What runs is the pattern llmunix's SystemAgent uses: the
+orchestrating session reads the tree and delegates to each named agent itself. A
+deeper tree contributes its descendants as further steps in the same flat
+sequence, and the plan says so rather than leaving you to notice.
+
+**A system agent cannot be delegated to from a project.** `delegate` resolves
+`agents/<name>.md` against the scope's own root; the system scope mounts at
+`global/` and agent names cannot contain `/`. The composer marks those steps
+`inline` — the instructions are pasted into the step instead. That is strictly
+worse (no isolated context, no tool narrowing) and it is labelled so nobody reads
+an inlined step as a delegated one.
+
+### Two write paths, and using the wrong one fails silently
+
+The single most useful thing in this manual, because getting it wrong produces a
+page that renders perfectly and a runtime that finds nothing:
+
+| Layer | Materialised from | Write agents with |
+|---|---|---|
+| `global/` — the org scope, read-only | the `WorkspaceStore`, **rebuilt every turn** | `workspace.write()`. It is also the **only** way: `scopeFor` returns `personal`, `group` or `channel` and never `org`, so no conversation can reach the system scope |
+| your own scope, read-write | the **persisted sandbox** | a **turn** — ask the agent to `write` the file |
+
+`ro-layers.ts` opens with `if (layer.mode === "rw") continue;`. Measured: after
+writing six agent files to the store for a project scope, `ls -1 agents/` inside
+that scope's sandbox returned **two**, and a seventh written and listed a minute
+later never appeared. Materialisation runs sandbox → store, not the reverse.
+
+`scripts/seed-demo.ts` builds the whole demonstration above — system agents,
+project, roster, trees — using the correct path for each layer.
+
+```bash
+node --env-file=/path/to/core.env scripts/seed-demo.ts
+```
+
+### One thing that is a stopgap, and is not pretending otherwise
+
+A shared scope refuses a turn from a non-member, and **a flow records no actor** —
+it has a `scopeId` and nothing about who it acts for. `FLOWS_ACTOR` names one
+principal who must be a member of every scope the server runs flows in. It is
+wrong the way shared service accounts are always wrong: every flow in the audit
+log is attributed to the same person regardless of who asked for it.
+
+This is [ADR-0008](adr/0008-conformation-is-projected.md)'s condition for agent
+principals firing — *an agent that must appear in a roster* — and it is recorded
+rather than papered over.
+
+---
+
+## Part 4 · The conformation projector
 
 The one thing in `ai-flows` you can point at a real system. It answers *what shape
 is this system in, and who has been talking to whom* — read-only, no writes, no
@@ -172,7 +298,7 @@ they are more informative than the tree.**
 
 ---
 
-## Part 4 · What the holes told us, running it live
+## Part 5 · What the holes told us, running it live
 
 Three findings from the exact run above, and they are the reason this manual is
 worth more than a feature list.
@@ -201,15 +327,18 @@ measured pair, with the principal id rather than the display name
 
 Stated plainly, because a manual that omits this is a brochure:
 
-- **There is no flow engine.** `ai-flows` has a flow store, an observability
-  instrument and this projector. A step that executes as a run — the whole of M2 —
-  is not built ([08-roadmap](08-roadmap.md)).
+- **There is no canvas, and the flow engine is now built.** M2 was delivered on
+  2026-08-06 — a flow started by one process and finished by another, 6/6 on both
+  `pi` and `mock` ([08-roadmap § M2](08-roadmap.md)). What is still absent is
+  everything above one shape: no `Sequence`, `Loop`, `Fan-out`, `Deliberation` or
+  `Watch`, and no merge.
 - **There is no canvas.** `ai-ui` is [04](04-ai-ui.md) and nothing else. The UI in
   this manual is upstream's.
 - **There is no scoped memory.** `ai-storage` is [05](05-ai-storage.md) and
   nothing else. The `Memory` tab you see is QM's flat `MEMORY.md`.
-- **Orchestrator agents cannot have their own subagents.** Delegation is capped at
-  one level, deliberately, in one line (`pi-harness.ts:1313-1318`).
+- **Orchestrator agents still cannot have their own sub-agents.** Delegation is
+  capped at one level, deliberately, in one line (`pi-harness.ts:1313-1318`). A
+  declared tree is composition the *session* executes, flattened — see Part 3.
 - **Agents are not principals.** `PrincipalType = "internal" | "guest"`. An agent
   cannot be on a roster or hold its own permissions.
 

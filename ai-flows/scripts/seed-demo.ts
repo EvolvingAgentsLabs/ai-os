@@ -12,7 +12,21 @@
  * Idempotent: rerunning it overwrites the same files and reuses the project if
  * one with the same name already exists.
  *
- * ## Why the files are written through TURNS and not through WorkspaceStore
+ * ## Two write paths, and each is the only one that works for its layer
+ *
+ * `ro-layers.ts` opens with `if (layer.mode === "rw") continue;` — it materialises
+ * **read-only layers only**, from the WorkspaceStore, on every turn. So:
+ *
+ * - **System agents (`org:`) are written to the STORE.** The org scope mounts as
+ *   the read-only `global/` layer and is rebuilt from the store each turn. It is
+ *   also the *only* way in: `scopeFor` returns `personal`, `group` or `channel`
+ *   and never `org`, so no conversation resolves to the system scope and a turn
+ *   cannot write there. An earlier version of this script tried, and quietly
+ *   created a group scope called `seed-org` containing the kernel agents.
+ * - **Project agents are written through a TURN.** The read-write layer is the
+ *   persisted sandbox workspace and is never materialised from the store.
+ *
+ * ## Why project files cannot go through WorkspaceStore
  *
  * The first version of this called `workspace.write()`, which is the obvious API
  * and produces a demo that is **visible and unusable**. Measured directly:
@@ -44,7 +58,7 @@ import { loadConfig } from "../../ai-base/src/config.ts";
 import { buildApp } from "../../ai-base/src/wiring.ts";
 
 const config = loadConfig();
-const { projects } = buildApp({ ...config, port: 0 });
+const { projects, workspace } = buildApp({ ...config, port: 0 });
 const core = createCoreClient({
   baseUrl: process.env.CORE_API_URL ?? "http://localhost:8080",
   ...(process.env.CORE_SIGNING_SECRET ? { signingSecret: process.env.CORE_SIGNING_SECRET } : {}),
@@ -83,8 +97,7 @@ function agent(desc: string, tools: string[], subagents: string[], body: string)
 
 // ---- system scope: the kernel agents, mounted read-only into every scope ------
 // Written in the org scope's own conversation, so they land where global/ is served from.
-const orgConv: Conv = { kind: "group", threadRef: `seed-org-${Date.now()}`, channelRef: `seed-org` };
-console.log(`system agents (org scope, via turns as ${OWNER})`);
+console.log(`system agents (org scope, via WorkspaceStore — the ro layer is rebuilt from it)`);
 
 const SYSTEM: Array<[string, string]> = [
   [
@@ -152,7 +165,12 @@ const PROJECT_AGENTS: Array<[string, string]> = [
   ],
 ];
 
-for (const [path, content] of SYSTEM) await writeInScope(orgConv, OWNER, path, content);
+const org = `org:${config.orgId}`;
+await workspace.ensureScope(org);
+for (const [path, content] of SYSTEM) {
+  await workspace.write(org, path, content);
+  console.log(`  ok   ${path}`);
+}
 console.log(`\nproject ${groupRef} — roster ${OWNER} + ${MEMBERS.join(", ")}`);
 for (const [path, content] of PROJECT_AGENTS) await writeInScope(projConv, OWNER, path, content);
 
