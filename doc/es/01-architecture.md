@@ -148,29 +148,52 @@ documento se equivocó en ambas y una de ellas moldeó un ADR:
 Esta es la restricción que más moldea a `ai-flows`, y es invisible hasta que lo
 corrés. Las capacidades **no son uniformes entre harness**:
 
-| Harness | Subagentes + `tasks` | Modelos de OpenRouter |
-|---|:--:|:--:|
-| `pi` (default) | **no** | **sí** |
-| `mock` | no | sí |
-| `claude` | sí | no |
-| `codex` | sí | no |
-| `opencode` | sí | no |
+| Harness | Delegación | Agentes definidos por | Filas `tasks` | Modelos de OpenRouter |
+|---|:--:|---|:--:|:--:|
+| `pi` (default) | **sí** | **el workspace** (`agents/*.md`) | no | **sí** |
+| `mock` | no | — | no | sí |
+| `claude` | sí | el harness (3 fijos) | sí | no |
+| `codex` | sí | la CLI | sí | no |
+| `opencode` | sí | la CLI | sí | no |
 
-Columna izquierda: referencias a `TaskStore` por harness — `pi` y `mock` tienen
-cero; los tres respaldados por CLI tienen cuatro cada uno. Columna derecha:
-`selectableCatalogForHarness` sólo admite `provider === "openrouter"` para `pi` y
-`mock`.
+Columna de delegación: `pi-tools.ts:2415` define una tool `delegate`, admitida a
+la lista de tools sólo cuando el harness provee `runChild`, cosa que
+`pi-harness.ts:1345` hace. Columna `tasks`: referencias a `TaskStore` por harness
+— `pi` y `mock` tienen cero; `claude` y `codex` tienen tres cada uno, `opencode`
+dos. Columna derecha: `selectableCatalogForHarness`
+(`model/model-catalog.ts:109`) sólo admite `provider === "openrouter"` para `pi` y
+`mock`. **[read]**
 
-**Las dos columnas nunca se solapan.** Un modelo barato o no-Anthropic y el
-fan-out con subagentes no se pueden tener al mismo tiempo en la base tal como
-está. Cualquier diseño de flow que asuma ambas cosas está diseñando para una
-configuración que no existe.
+**Corregido el 2026-08-06.** Esta tabla antes leía "Subagentes + `tasks`" como una
+sola columna y concluía *"las dos columnas nunca se solapan — un modelo barato o
+no-Anthropic y el fan-out con subagentes no se pueden tener al mismo tiempo"*. Esa
+conclusión ya no es cierta, y sostenía a
+[03-ai-flows § portabilidad](03-ai-flows.md#la-restricción-de-portabilidad) y a
+[08-roadmap](08-roadmap.md). El commit de upstream que la rompió se llama
+`Agents as markdown, and subagents on the harness that reaches cheap models`.
+Confundir delegación con `tasks` es lo que dejó que una columna se pudriera sin
+que nadie lo viera; ahora son columnas separadas porque son capacidades separadas.
 
-Donde los harness con CLI sí delegan, `claude-harness.ts:341` define tres agentes
-hijos — `research`, `code`, `consult` — cada uno bajo una política que prohíbe
-contactar personas, agendar trabajo o cambiar configuración permanente, con un
-conjunto de tools acotado a
-`execute, read, write, publish, memory, history, background`.
+Lo que sobrevive de la afirmación vieja: **`pi` delega pero no registra nada.** No
+escribe filas en `tasks`, así que en el harness por defecto la ejecución de un
+subagente no deja rastro durable — sólo el reporte que el hijo devuelve, plegado
+en el turno del padre.
+
+**La columna que más importa para cualquier cosa por encima del turno es la
+tercera.** En `pi`, un agente es un archivo markdown en el workspace del propio
+scope — `agents/<name>.md`, con frontmatter declarando `description` y `tools`, el
+cuerpo como instrucciones, parseado por `parseAgentDefinition`
+(`agents/agent-definition.ts`). `pi-tools.ts` es el **único** llamador de ese
+parser en todo el árbol **[read]**: en `claude` los tres agentes hijos están
+hardcodeados en `claude-harness.ts:341` (`research`, `code`, `consult`), y `codex`
+/ `opencode` delegan dentro de su propia CLI. Así que un workspace que define sus
+propios agentes como archivos es un hecho de `pi`, no de la base — ver
+[12-conformation](12-conformation.md#la-carpeta-inerte).
+
+Todo harness que delega acota el árbol a un nivel. En `pi` el mecanismo es
+explícito y es una línea: el conjunto de tools del hijo se construye sin
+`runChild`, "que es lo que le niega `delegate`" (`pi-harness.ts:1313-1318`), y
+`CHILD_POLICY` lo dice en prosa — *"You cannot delegate further."*
 
 ## El hueco de linaje, y por qué le pertenece a ai-os
 

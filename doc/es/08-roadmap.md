@@ -31,6 +31,13 @@ Levantarlo llevó menos de una hora. Sin Postgres (stores en memoria), sin paso 
 build, y la suite ya estaba verde: **3.712 tests, 3.580 pass, 0 fail**, más un
 `tsc --noEmit` limpio.
 
+> **"Sin Postgres" era un hecho sobre M1, no una propiedad permanente.** Queda acá
+> porque es lo que pasó, pero deja de ser cierto en M2 — ver
+> [Fase 0](#fase-0--durable-por-defecto--nuevo-y-no-es-opcional). Los stores en
+> memoria son por proceso, así que un segundo proceso no puede ver el estado del
+> primero y nada sobrevive a un reinicio, que es la mayor parte de lo que M2
+> promete.
+
 Turnos reales completados contra `deepseek/deepseek-v4-flash` vía OpenRouter en
 `HARNESS=pi` — una respuesta de smoke, una escritura de memoria observada en
 disco, y una llamada a herramienta que falló honestamente porque faltaba la imagen
@@ -43,6 +50,18 @@ materiales en `doc/` — dos de ellos ya se habían endurecido en
 delegación en subagentes y los modelos de OpenRouter viven en conjuntos disjuntos
 de harness**, así que modelo barato y multi-agente no se pueden tener juntos.
 Ninguna cantidad de lectura sacó eso a la luz; configurarlo sí.
+
+**Ese hallazgo venció el 2026-08-06** — upstream le dio a `pi` delegación mediante
+agentes markdown definidos en el workspace mientras conservaba OpenRouter, y la
+disyunción desapareció (matriz corregida en
+[01-architecture](01-architecture.md#la-matriz-de-capacidades-por-harness)). Vale
+dejarlo acá en vez de borrarlo, porque afila la lección de M1 en lugar de
+suavizarla: una afirmación **[ran]** sobre una dependencia que se trae cada semana
+es una medición con fecha de vencimiento, y ésta ya estaba citada en cuatro
+documentos cuando se pudrió. La regla que sale de ahí está en
+[12-conformation](12-conformation.md#lo-que-costó-encontrarlo): una afirmación
+sobre una capacidad de upstream nombra el archivo y la línea que tendrían que
+cambiar para que deje de ser cierta.
 
 **La regla permanente que sale de M1:** las afirmaciones en `doc/` se marcan
 **[read]** o **[ran]**. Leer es cómo el flagship anterior llegó a 18.680 líneas
@@ -63,6 +82,132 @@ en caliente, contra ~4 s para un turno sin herramientas. El ciclo de iteración 
 M2 es entonces de minutos por vuelta. O se presupuesta, o se construye una imagen
 arm64 primero; no descubrirlo a mitad del milestone.
 
+## El camino a una versión sobre la cual valga iterar — **agregado 2026-08-06**
+
+Los milestones de abajo están en orden de dependencia pero no son un plan, porque
+no dicen cuáles están *bloqueados* y por qué. Faltan cinco cosas para un sistema
+que corre: el motor de flows, el canvas, la memoria por scope, la delegación de
+profundidad 2, y los agentes-principal. **No son cinco ítems de trabajo
+comparables**, y tratarlos como una lista para quemar es el error que esta sección
+existe para prevenir.
+
+Ordenados por lo que realmente está en el medio:
+
+| Falta | Estado | Qué está en el medio |
+|---|---|---|
+| Stores durables | **prerrequisito, no declarado hasta ahora** | nada — es configuración |
+| Motor de flows (M2) | **desbloqueado** | el cliente HTTP firmado, que nadie escribió |
+| El canvas (M5) | **bloqueado por M2** | no hay estado de flow para renderizar |
+| Memoria por scope (M4) | **con compuerta** | un test de headroom que no se corrió |
+| Delegación profundidad 2 | **diferido** | [ADR-0008](adr/0008-conformation-is-projected.md) — su condición no se disparó |
+| Agentes-principal | **diferido** | ADR-0008 — su condición no se disparó |
+
+Sólo los dos primeros son trabajo. El tercero se sigue del segundo. Los últimos
+tres son decisiones ya tomadas, y reabrirlas es un argumento distinto de
+agendarlas.
+
+### Qué tiene que significar "una versión sobre la cual iterar"
+
+No completitud de features. El sistema más chico cuyo *loop cierra*: **trabajo que
+sobrevive a la interrupción, y una forma de verlo.** Un OS de agentes que no se
+puede dejar y retomar es una app de chat, y uno cuyo estado no se puede ver no se
+puede dirigir. Eso es Fase 0 más Fase 1 más Fase 2. Todo lo demás es mejora sobre
+una cosa que primero tiene que existir.
+
+### Fase 0 · Durable por defecto — **nuevo, y no es opcional**
+
+M1 registró "Postgres opcional (los stores en memoria funcionan)". Era cierto de M1
+y es falso de todo lo que viene después, y correr el sistema el 2026-08-06 es lo
+que lo mostró **[ran]**:
+
+- Un proyecto creado en la UI web fue **invisible para el proyector de
+  conformación** corriendo como segundo proceso contra el mismo `dataDir`. Con
+  `store=memory` el `ProjectStore` vive dentro del proceso del core; otro proceso
+  ve los archivos del workspace y nada del estado
+  ([manual § Parte 4](manual.md#parte-4--lo-que-dijeron-los-agujeros-corriéndolo-en-vivo)).
+- `SessionStore.distinctScopes()` devolvió 0 por la misma razón, así que la lista
+  de scopes hubo que recuperarla decodificando nombres de directorio.
+- Un flow que se retoma el miércoles no puede retomarse de un proceso que terminó
+  el lunes. **La propia definición de "listo" de M2 es inalcanzable con stores en
+  memoria.**
+
+Entonces: `DATABASE_URL` seteado, `npm run test:pg` en verde, y los stores en
+memoria degradados a lo que son — un fixture de tests unitarios. Chico, y es el
+piso sobre el que se para todo lo demás.
+
+### Fase 1 · El motor de flows (M2)
+
+Sin cambios de fondo respecto de M2 más abajo. Dos cosas que el milestone no dice,
+y las dos son las primeras tareas reales:
+
+1. **El cliente HTTP firmado no existe.** [ADR-0006](adr/0006-ai-flows-lives-outside-core.md)
+   decidió que `ai-flows` avanza un paso llamando a la API firmada en vez de
+   importar core — HMAC-SHA256 sobre `v0:{unix}:{METHOD}\n{path}\n{body}`, ventana
+   de replay de cinco minutos. Ese cliente es código propio de ai-os y **nadie lo
+   escribió**. Es tal vez un día, está en el camino crítico, y todas las fases
+   posteriores pasan por ahí.
+2. **La primera rebanada es un flow, un paso, `Open`.** Crear un flow, avanzarlo con
+   `POST /v1/turns?async=1`, pollear `GET /v1/runs/:id` hasta estado terminal,
+   registrar el intento y su observación. Cualquier cosa más allá — formas, fork,
+   diff — es M3 y M6 y no pertenece a la rebanada que prueba el seam.
+
+**Falsificado por:** que el paso no se pueda hacer ejecutar por la API pública y
+termine necesitando modificar core. Eso mata a ADR-0006, no al flow, y es mejor
+enterarse en la primera rebanada que en el séptimo entregable.
+
+### Fase 2 · Verlo — y la versión barata va primero
+
+M5 es un canvas: Lit, `dockview-core`, layout espacial, un quinto plugin. Eso es un
+trimestre de infraestructura para contestar una pregunta que se puede contestar en
+una tarde, y este workspace tiene una regla permanente contra pagar el segundo
+precio antes que el primero.
+
+**Construir primero la vista de sólo lectura.** El proyector de conformación ya
+emite un documento con scopes, agentes, rosters, el grafo de comunicación y sus
+agujeros. Agregarle estado de flow y renderizarlo — una página, sin persistencia de
+layout, sin drag, sin componentes generados. Y después correr **la propia
+falsación de M5, sin cambios**: el test del cronómetro, un flow de tres días,
+canvas contra transcript.
+
+Si la vista plana de sólo lectura ya alcanza para que una persona retome un flow
+después de tres días, **el canvas no es lo próximo a construir** y M5 hay que
+reargumentarlo en vez de agendarlo. Si no alcanza, el cronómetro dice exactamente
+qué faltaba, y eso es mejor especificación para un canvas que [04](04-ai-ui.md).
+
+### Fase 3 · Las tres con compuerta, y sus compuertas
+
+**Memoria por scope (M4).** La compuerta ya está escrita y es una *precondición, no
+un milestone*: extender los fixtures del bench hasta que el baseline de archivo
+plano baje a lo sumo a 7 en `staleness`. Hoy saca **10,0/10**, así que ninguna
+estrategia por niveles puede mejorarlo y todos los brazos empatan en el techo.
+**Correr la compuerta antes de construir nada.** Si el baseline no se puede bajar
+del techo, M4 no procede en este instrumento — esa es la decisión, ya tomada, y es
+barata de ejecutar.
+
+**Delegación de profundidad 2.** ADR-0008 la difiere hasta que *exista un trabajo
+real en el que el hijo de un orquestador deba a su vez delegar, y que no pueda
+resolverse con el padre delegando dos veces.* No apareció ninguno. La forma barata
+de averiguarlo no es construirla: **instrumentarla.** Cuando un hijo delegado
+vuelve, registrar si su tarea contenía sub-trabajo separable. Si eso nunca se
+dispara en uso real, el tope de un nivel no cuesta nada y levantarlo — `runChild`
+al conjunto de tools del hijo, con consecuencia no acotada, dentro de un fork que
+se trae cada semana — no compra nada.
+
+**Agentes-principal.** La condición de ADR-0008 es un agente que deba aparecer en un
+roster, tener memoria que ningún humano posee, o ser denegado por ACL. Las tres son
+**salida del proyector**, así que esto lo decide correr el proyector sobre uso real
+y no un argumento. Ojo con el costo si se dispara: un tercer `PrincipalType` en
+`types.ts`, en el centro de una dependencia que se mergea a mano. Es la línea más
+cara de este plan y hay que comprarla última y con evidencia.
+
+### Lo que este plan deliberadamente no contiene
+
+Más allá de [§ Deliberadamente no planeado](#deliberadamente-no-planeado): **ningún
+intento de hacer las Fases 1 y 2 en paralelo.** La vista renderiza estado de flow;
+construirla contra un motor de flows que todavía no existe significa diseñar para
+estado imaginado, y lo único que este repositorio probó repetidamente es que el
+estado imaginado es donde el instrumento empieza a halagar a su autor.
+
 ## M2 · El primer flow — **no arrancado, y lo que justifica el repositorio**
 
 El `ai-flows` más chico y honesto: **una forma (`Open`), persistida, reanudable.**
@@ -75,8 +220,11 @@ El `ai-flows` más chico y honesto: **una forma (`Open`), persistida, reanudable
 4. `forkedFrom { flowId, atStep }` registrado desde el primer commit — el hueco de
    las sesiones de upstream no se reproduce acá
 5. Rutas de API para crear / avanzar / inspeccionar
-6. **Completa en `pi`, sin subagentes y sin filas de tasks**
-   ([ADR-0004](adr/0004-flows-and-the-subagent-record.md))
+6. **Completa sin subagentes y sin filas de tasks**
+   ([ADR-0004](adr/0004-flows-and-the-subagent-record.md)) — el harness que hace
+   cumplir esto ahora es `mock`, no `pi`; `pi` ganó delegación el 2026-08-06. El
+   entregable no cambia: un flow que necesita hijos para terminar es un flow que no
+   termina en todos lados
 7. **Una observación por intento, capturada al cerrarlo**
    ([ADR-0007](adr/0007-observation-captured-not-derived.md)) — no un agregado a
    M2 sino el instrumento que la propia falsación de M2 ya exige. Sin él la

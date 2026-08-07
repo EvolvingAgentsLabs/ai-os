@@ -145,6 +145,7 @@ export function createMemoryFlowStore(opts: { now?: () => number; id?: () => str
       attempt.state = input.state;
       attempt.error = input.error ?? null;
       attempt.finishedAt = at;
+      if (input.sessionId && !attempt.sessionId) attempt.sessionId = input.sessionId;
       if (input.observation) attempt.observation = { ...input.observation, at: input.observation.at ?? at };
       step.state = input.state === "done" ? "done" : "failed";
       if (input.result !== undefined) step.result = input.result;

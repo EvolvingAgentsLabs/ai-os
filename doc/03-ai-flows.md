@@ -265,22 +265,34 @@ A flow **composes** upstream primitives; it does not replace them.
 
 ## The portability constraint
 
-Verified by running, and it bounds the design more than anything else here:
-**subagent delegation and OpenRouter models live on disjoint sets of harnesses**
-(matrix in [01-architecture](01-architecture.md#the-harness-capability-matrix)).
-`pi` gets cheap models and no subagents; `claude`/`codex`/`opencode` get
-subagents and no OpenRouter.
+**Revised 2026-08-06.** This section used to open: *"subagent delegation and
+OpenRouter models live on disjoint sets of harnesses — `pi` gets cheap models and
+no subagents."* That premise is dead. `pi` now delegates, through workspace-defined
+markdown agents, while keeping OpenRouter (corrected matrix in
+[01-architecture](01-architecture.md#the-harness-capability-matrix)). The three
+design rules below survive the correction, but only one of them still has its
+original reason.
 
-Three consequences, and they are design rules rather than observations:
+1. **A flow must complete on a harness with no subagents.** Unchanged, and it is
+   now `mock` rather than `pi` that makes it bite. Fan-out is an optimisation a
+   step *may* use, never a requirement. A flow that silently does nothing where
+   delegation is absent is a broken flow.
+2. **`Fan-out` and `Deliberation` shapes cannot assume subagents.** Unchanged.
+   Both can be served by sequential steps; parallelism is the fast path, not the
+   only path.
+3. **The eval must run on both.** Unchanged in force, changed in what "both"
+   means. The disjointness that made this a cost trade-off is gone; what remains
+   disjoint is **where the agent is defined** — a file in the scope's workspace on
+   `pi`, a hardcoded or CLI-owned definition everywhere else. An eval tuned on
+   one still generalises to the other only by luck.
 
-1. **A flow must complete on a harness with no subagents.** Fan-out is an
-   optimisation a step *may* use where available, never a requirement. A flow
-   that silently does nothing on `pi` is a broken flow.
-2. **`Fan-out` and `Deliberation` shapes cannot assume subagents.** Both can be
-   served by sequential steps on one harness; parallelism through subagents is
-   the fast path, not the only path.
-3. **The eval must run on both.** Otherwise the design gets tuned to whichever
-   harness happens to be configured that week.
+The genuinely new consequence, and the one this section previously could not
+have: **delegation on the default harness leaves no durable record.** `pi` writes
+no `tasks` rows, so a step that fans out returns its children's reports and
+nothing else. ADR-0004 said a flow reads the subagent record and never owns it;
+on `pi` there is no record to read. A flow that wants to know what its children
+did has to capture it in the attempt's observation ([ADR-0007](adr/0007-observation-captured-not-derived.md)),
+which is the mechanism that already exists for exactly this reason.
 
 This is also the strongest argument yet for the `Harness` seam: the moment a
 flow reaches past it into a specific harness's subagent machinery, `ai-flows`

@@ -1,0 +1,137 @@
+{
+  "generatedAt": "2026-08-06T12:07:16.147Z",
+  "arm": "control",
+  "model": "deepseek/deepseek-v4-flash",
+  "provider": "openrouter",
+  "harness": "pi",
+  "seed": 1,
+  "headroomFloor": 0.2,
+  "complete": 6,
+  "omitted": 0,
+  "misread": 0,
+  "noteOmissionRate": 0,
+  "unreadable": 0,
+  "handoffLossRate": 0,
+  "rows": [
+    {
+      "id": "pendulum-handoff-1",
+      "system": "pendulum-handoff",
+      "level": "L1",
+      "tolerance": 0.001,
+      "grade": {
+        "present": ["P", "K(m)"],
+        "missing": [],
+        "noteComplete": true,
+        "finisher": "pass",
+        "finisherRelativeError": 0.000016224026035559477,
+        "noteOmission": false,
+        "handoffLoss": false
+      },
+      "note": "# Pendulum computation — handoff\n\n## Parameters\n- L = 1.717 m\n- g = 9.80665 m/s²\n- Angular amplitude = 5.04°\n\n## Results\n\n| Quantity | Value |\n|---|---|\n| P = √(L/g) | 0.41843192250151073 |\n| m = sin²(amplitude/2) | 0.001933195428413767 |\n| K(m) (complete elliptic integral of the first kind) | 1.5715563175063318 |\n| P × K(m) | 0.657589331253569 |",
+      "explorerReply": "Done — `handoff/note.md` is written with both quantities:\n\n- **P = √(L/g)** = **0.4184319225**\n- **K(m)** (complete elliptic integral, m = sin²(2.52°)) = **1.5715563175**\n\nThe product P·K(m) = 0.6575893313 (which, if this is for the exact pendulum period, is T = 4·P·K(m) = 2.630357325 s).",
+      "finisherReply": "2.6304",
+      "unreadable": false,
+      "ms": 116338
+    },
+    {
+      "id": "relativistic-handoff-13",
+      "system": "relativistic-handoff",
+      "level": "L3",
+      "tolerance": 0.001,
+      "grade": {
+        "present": ["β²", "s"],
+        "missing": [],
+        "noteComplete": true,
+        "finisher": "pass",
+        "finisherRelativeError": 3.8384175840073745e-9,
+        "noteOmission": false,
+        "handoffLoss": false
+      },
+      "note": "# Handoff — relativistic quantities\n\n**β = 0.1671** (fraction of lightspeed, c = 299792458 m/s)\n\n| Quantity | Value |\n|----------|-------|\n| β²       | 0.02792241 |\n| s = √(1 − β²) | 0.98593995 |\n\nBoth values computed with full double precision.",
+      "explorerReply": "Done — the results are written to `handoff/note.md`.\n\n- **β²** = 0.02792241\n- **s = √(1 − β²)** = 0.98593995\n\nReady for the next agent to pick up.",
+      "finisherReply": "1.2816744560e+15",
+      "unreadable": false,
+      "ms": 122320
+    },
+    {
+      "id": "logistic-handoff-25",
+      "system": "logistic-handoff",
+      "level": "L3",
+      "tolerance": 0.001,
+      "grade": {
+        "present": ["K", "A", "B"],
+        "missing": [],
+        "noteComplete": true,
+        "finisher": "pass",
+        "finisherRelativeError": 1.369202818107082e-14,
+        "noteOmission": false,
+        "handoffLoss": false
+      },
+      "note": "```\n# Logistic growth parameters\n\n| Quantity | Value |\n|----------|-------|\n| K  | 571.02 |\n| A  | 6.844758895452671 |\n| B  | 0.04528057257316896 |\n\nComputed from:\n- N₀ = 72.79\n- r  = 0.3932\n- K  = 571.02\n- t  = 7.871\n\nFormulae:\n- A = (K − N₀) / N₀\n- B = e^(−r·t)\n```",
+      "explorerReply": "Done. Here are the computed results, now written to `handoff/note.md`:\n\n| Quantity | Value |\n|----------|-------|\n| **K** | 571.02 |\n| **A** = (K−N₀)/N₀ | 6.8448 |\n| **B** = e^(−r·t) | 0.04528 |\n\nThe next agent can pick up `handoff/note.md` and carry on.",
+      "finisherReply": "435.9148916036",
+      "unreadable": false,
+      "ms": 125205
+    },
+    {
+      "id": "drag-fall-handoff-37",
+      "system": "drag-fall-handoff",
+      "level": "L3",
+      "tolerance": 0.001,
+      "grade": {
+        "present": ["C", "D"],
+        "missing": [],
+        "noteComplete": true,
+        "finisher": "pass",
+        "finisherRelativeError": 0.0000022602480447994333,
+        "noteOmission": false,
+        "handoffLoss": false
+      },
+      "note": "# Handoff — free-fall quantities\n\nComputed with `g = 9.80665 m/s²`, `vT = 105 m/s`, `t = 14.33 s`.\n\n| Quantity | Value |\n|---|---|\n| **C** = vT² / g | **1124.2371248081658** m |\n| **x** = g·t / vT | **1.3383742333333333** (dimensionless) |\n| **D** = x − 1 + e^(−x) | **0.600645948105456** (dimensionless) |",
+      "explorerReply": "Done. `handoff/note.md` now contains:\n\n- **C** = vT² / g = **1124.237** m  \n- **D** = x − 1 + e^(−x) = **0.600646**  \n\nThe intermediate x was **1.338374**. All values are written and ready for the next agent to pick up.",
+      "finisherReply": "675.27",
+      "unreadable": false,
+      "ms": 198970
+    },
+    {
+      "id": "pendulum-handoff-4",
+      "system": "pendulum-handoff",
+      "level": "L3",
+      "tolerance": 0.001,
+      "grade": {
+        "present": ["P", "K(m)"],
+        "missing": [],
+        "noteComplete": true,
+        "finisher": "pass",
+        "finisherRelativeError": 0.0000067466075497156625,
+        "noteOmission": false,
+        "handoffLoss": false
+      },
+      "note": "# Pendulum computation — handoff\n\n**Parameters**\n- Length L = 1.508 m\n- Angular amplitude θ₀ = 94.5°\n- g = 9.80665 m/s²\n\n**Results**\n\n| Quantity | Formula | Value |\n|---|---|---|\n| P | √(L/g) | **0.392139267247** |\n| m | sin²(θ₀/2) | **0.539229547864** |\n| K(m) | Complete elliptic integral of the first kind | **1.888818741048** |",
+      "explorerReply": "Done. Here's what's in `handoff/note.md`:\n\n| Quantity | Value |\n|---|---|\n| **P = √(L/g)** | **0.392139267247** |\n| **m = sin²(θ₀/2)** | **0.539229547864** |\n| **K(m)** — complete elliptic integral of the first kind | **1.888818741048** |\n\nThe file is ready for the next agent to pick up.",
+      "finisherReply": "2.9627",
+      "unreadable": false,
+      "ms": 275961
+    },
+    {
+      "id": "relativistic-handoff-16",
+      "system": "relativistic-handoff",
+      "level": "L3",
+      "tolerance": 0.001,
+      "grade": {
+        "present": ["β²", "s"],
+        "missing": [],
+        "noteComplete": true,
+        "finisher": "pass",
+        "finisherRelativeError": 9.87879792948216e-7,
+        "noteOmission": false,
+        "handoffLoss": false
+      },
+      "note": "# Handoff — relativistic quantities\n\n**Given values:**\n- β = 0.8376\n- c = 299792458 m/s\n\n**Results:**\n\n| Quantity | Value |\n|----------|-------|\n| β²       | 0.70157376 |\n| s = √(1 − β²) | 0.5462840286883738 |\n\nAll computed with double precision.",
+      "explorerReply": "Done. `handoff/note.md` written at `workspace/handoff/note.md` with these results:\n\n| Quantity | Value |\n|----------|-------|\n| β² | 0.70157376 |\n| s = √(1 − β²) | 0.5462840286883738 |\n\nAll computed in double precision. Another agent can pick up from that file.",
+      "finisherReply": "7.4646e16",
+      "unreadable": false,
+      "ms": 122070
+    }
+  ]
+}

@@ -26,6 +26,12 @@ Running took under an hour. No Postgres (in-memory stores), no build step, and
 the suite was already green: **3,712 tests, 3,580 pass, 0 fail**, plus a clean
 `tsc --noEmit`.
 
+> **"No Postgres" was a fact about M1, not a standing property.** It is carried
+> here because it is what happened, but it stops being true at M2 — see
+> [Phase 0](#phase-0--durable-by-default--new-and-it-is-not-optional). In-memory
+> stores are per-process, so a second process cannot see the first one's state and
+> nothing survives a restart, which is most of what M2 promises.
+
 Real turns completed against `deepseek/deepseek-v4-flash` through OpenRouter on
 `HARNESS=pi` — a smoke reply, a memory write observed on disk, and a tool call
 that failed honestly because the sandbox image was not built.
@@ -37,6 +43,18 @@ and corrected — two of them had already hardened into
 **subagent delegation and OpenRouter models live on disjoint sets of harnesses**,
 so cheap-model and multi-agent cannot be had together. No amount of reading
 surfaced that; configuring it did.
+
+**That finding expired on 2026-08-06** — upstream gave `pi` delegation through
+workspace-defined markdown agents while it kept OpenRouter, and the disjointness
+is gone (corrected matrix in
+[01-architecture](01-architecture.md#the-harness-capability-matrix)). Worth
+leaving here rather than deleting, because it sharpens the M1 lesson instead of
+softening it: a **[ran]** claim about a weekly-pulled dependency is a measurement
+with a shelf life, and this one was cited in four documents by the time it went
+stale. The rule that follows is in
+[12-conformation](12-conformation.md#what-this-cost-to-find): a claim about
+upstream capability names the file and line that would have to change for it to
+stop being true.
 
 **The standing rule that comes out of M1:** claims in `doc/` are marked **[read]**
 or **[ran]**. Reading is how the previous flagship reached 18,680 lines with three
@@ -55,9 +73,170 @@ Silicon every tool call is emulated — ~47 s cold, ~25 s warm, against ~4 s for
 turn without tools. M2's iteration loop is therefore minutes per cycle. Either
 budget for that or build an arm64 image first; do not discover it mid-milestone.
 
-## M2 · The first flow — **not started, and the one that justifies the repository**
+## The path to a version worth iterating on — **added 2026-08-06**
+
+The milestones below are in dependency order but they are not a plan, because
+they do not say which of them are *blocked* and by what. Five things are missing
+from a running system: the flow engine, the canvas, scoped memory, depth-2
+delegation, and agent principals. **They are not five comparable work items**, and
+treating them as a list to burn down is the mistake this section exists to
+prevent.
+
+Sorted by what is actually in the way:
+
+| Missing | Status | What is in the way |
+|---|---|---|
+| Durable stores | **prerequisite, undeclared until now** | nothing — it is configuration |
+| Flow engine (M2) | **unblocked** | the signed HTTP client, which nobody has written |
+| The canvas (M5) | **blocked on M2** | there is no flow state to render |
+| Scoped memory (M4) | **gate passed 2026-08-06** | nothing — the baseline scored 3.0 on a long-horizon fixture, so the axis has room |
+| Depth-2 delegation | **deferred** | [ADR-0008](adr/0008-conformation-is-projected.md) — its condition has not fired |
+| Agent principals | **deferred** | ADR-0008 — its condition has not fired |
+
+Only the first two are work. The third follows from the second. The last three
+are decisions already made, and reopening them is a separate argument from
+scheduling them.
+
+> **Where this stands, same day.** Phase 0 done (148 `test:pg` green, and the
+> cross-process claim verified rather than assumed). Phase 1 done — the signed
+> client and the engine exist, M2 passes 6/6 on `pi` and on `mock`, and its
+> deliverables are ticked off in [M2](#m2--the-first-flow--built-and-proven-live-2026-08-06).
+> Phase 2 built and **not falsified**: the page renders, the stopwatch test needs
+> a person and three days. Phase 3: the M4 gate has one half run and one half
+> pending; depth-2 instrumentation is unbuilt; agent principals correctly
+> untouched. **Updated later the same day: the M4 gate's second half opened it —
+> see [M4](#m4--ai-storage-v1--not-started).**
+
+### What "a version worth iterating on" has to mean
+
+Not feature-completeness. The smallest system whose *loop closes*: **work that
+survives interruption, and a way to see it.** An agent OS that cannot be left and
+returned to is a chat app, and one whose state cannot be seen cannot be steered.
+That is Phase 0 plus Phase 1 plus Phase 2 below. Everything after is improvement
+to a thing that must first exist.
+
+### Phase 0 · Durable by default — **new, and it is not optional**
+
+M1 recorded "Postgres optional (in-memory stores work)". That was true of M1 and
+is false of everything after it, and running the system on 2026-08-06 is what
+showed it **[ran]**:
+
+- A project created in the web UI was **invisible to the conformation projector**
+  running as a second process against the same `dataDir`. With `store=memory` the
+  `ProjectStore` lives inside the core's process; another process sees workspace
+  files and none of the state ([manual § Part 4](manual.md#part-4--what-the-holes-told-us-running-it-live)).
+- `SessionStore.distinctScopes()` returned 0 for the same reason, so the scope
+  list had to be recovered by decoding directory names.
+- A flow that resumes on Wednesday cannot resume out of a process that exited on
+  Monday. **M2's own definition of done is unreachable on in-memory stores.**
+
+So: `DATABASE_URL` set, `npm run test:pg` green, and the in-memory stores demoted
+to what they are — a unit-test fixture. Small, and it is the floor everything else
+stands on.
+
+### Phase 1 · The flow engine (M2)
+
+Unchanged in substance from M2 below. Two things the milestone does not say, and
+both are the actual first tasks:
+
+1. **The signed HTTP client does not exist.** [ADR-0006](adr/0006-ai-flows-lives-outside-core.md)
+   decided `ai-flows` advances a step by calling the signed API rather than
+   importing core — HMAC-SHA256 over `v0:{unix}:{METHOD}\n{path}\n{body}`, five
+   minute replay window. That client is first-party ai-os code and **nobody has
+   written it**. It is perhaps a day, it is on the critical path, and every later
+   phase runs through it.
+2. **The first slice is one flow, one step, `Open`.** Create a flow, advance it by
+   `POST /v1/turns?async=1`, poll `GET /v1/runs/:id` to terminal, record the
+   attempt and its observation. Anything beyond that — shapes, fork, diff — is M3
+   and M6 and does not belong in the slice that proves the seam.
+
+**Falsified by:** the step cannot be made to execute through the public API and
+needs core modification after all. That kills ADR-0006, not the flow, and it is
+better to find out in the first slice than in the seventh deliverable.
+
+### Phase 2 · Seeing it — and the cheap version comes first
+
+M5 is a canvas: Lit, `dockview-core`, spatial layout, a fifth plugin. That is a
+quarter of infrastructure to answer a question that can be answered in an
+afternoon, and this workspace has a standing rule against paying the second price
+before the first.
+
+**Build the read-only view first.** The conformation projector already emits a
+document with scopes, agents, rosters, the communication graph and its holes. Add
+flow state to it and render it — one page, no layout persistence, no drag, no
+generated components. Then run **M5's own falsification, unchanged**: the
+stopwatch test, a three-day-old flow, canvas against transcript.
+
+If the flat read-only view already lets a person pick a flow up after three days,
+**the canvas is not the next thing to build** and M5 should be reargued rather
+than scheduled. If it does not, the stopwatch says exactly what was missing, and
+that is a better specification for a canvas than [04](04-ai-ui.md) is.
+
+### Phase 3 · The three that are gated, and their gates
+
+**Scoped memory (M4).** The gate is already written and is a *precondition, not a
+milestone*: extend the bench fixtures until the flat-file baseline drops to at most
+7 on `staleness`. It scores **10.0/10 today**, so no levelled strategy can improve
+on it and every arm ties at the ceiling. **Run the gate before building anything.**
+If the baseline cannot be pushed off the ceiling, M4 does not proceed on this
+instrument — that is the decision, already made, and it is cheap to execute.
+
+**Depth-2 delegation.** ADR-0008 defers it until *a real piece of work exists in
+which an orchestrator's child must itself delegate, and which cannot be served by
+the parent delegating twice.* No such work has appeared. The cheap way to find out
+is not to build it: **instrument for it.** When a delegated child returns, record
+whether its task contained separable sub-work. If that never fires across real
+use, the one-level cap costs nothing and lifting it — `runChild` into the child's
+tool set, with unbounded consequence, inside a weekly-pulled fork — buys nothing.
+
+**Agent principals.** ADR-0008's condition is an agent that must appear in a
+roster, hold memory no human owns, or be denied something by ACL. All three are
+**projector output**, so this is decided by running the projector on real use
+rather than by argument. Note the cost if it does fire: a third `PrincipalType` in
+`types.ts`, at the centre of a hand-merged dependency. That is the most expensive
+line in this plan and it should be bought last and on evidence.
+
+### What this plan deliberately does not contain
+
+Beyond [§ Deliberately not planned](#deliberately-not-planned): **no attempt to do
+Phases 1 and 2 in parallel.** The view renders flow state; building it against a
+flow engine that does not exist yet means designing for imagined state, and the
+one thing this repository has repeatedly proven is that imagined state is where
+the instrument starts flattering its author.
+
+## M2 · The first flow — **built and proven live (2026-08-06)**
 
 The smallest honest `ai-flows`: **one shape (`Open`), persisted, resumable.**
+
+**Status per deliverable, all [ran] on 2026-08-06** against Postgres, the real
+core, and both `pi` and `mock`:
+
+| # | Deliverable | |
+|---|---|---|
+| 1 | `flow_` tables | ✅ pre-existing |
+| 2 | Step executes as a run, `turn-resume` reused | ✅ *by construction* — see below |
+| 3 | Survives restart **and compaction** | ✅ 6/6 and 6/6 |
+| 4 | `forkedFrom` recorded | ✅ exercised through the API |
+| 5 | API routes create / advance / inspect | ✅ `ai-flows/src/server.ts` |
+| 6 | Completes with no subagents, no `tasks` rows | ✅ 6/6 on `mock` |
+| 7 | An observation per attempt | ✅ every attempt |
+
+**Deliverable 2 is met by a different mechanism than its wording implies, and the
+wording was unsatisfiable.** It asks `ai-flows` to reuse `src/core/turn-resume.ts`
+— a module [ADR-0006](adr/0006-ai-flows-lives-outside-core.md) forbids it from
+importing. The resolution is that it does not have to: a step's attempt **is** a
+core run, `turn-resume` is imported by `core/orchestrator.ts:111` on that path,
+and the crash recovery inside a turn is therefore inherited rather than
+re-implemented. A deliverable that could only be met by breaking an ADR was a
+deliverable written before the ADR existed.
+
+**What "resumable" turned out to require**, and it is one ordering decision:
+`startAttempt` takes the `runId` at open and cannot be given one later, so the
+turn is queued **first** and the attempt records the id it got. The alternative —
+open the attempt, then launch — produces an attempt saying `running` with
+`runId: null`, which a process restarting on Wednesday cannot interpret. The cost
+is a crash window that orphans a run and does the step twice; a bounded duplicate
+is recoverable and an ambiguous attempt is not.
 
 1. `flow_` tables; a flow record with goal, state, steps
 2. A step's attempt executes as an existing run (`ai-base/src/runs/`), reusing
@@ -66,8 +245,11 @@ The smallest honest `ai-flows`: **one shape (`Open`), persisted, resumable.**
 4. `forkedFrom { flowId, atStep }` recorded from the first commit — the gap in
    upstream sessions is not reproduced here
 5. API routes for create / advance / inspect
-6. **Completes on `pi`, with no subagents and no task rows**
-   ([ADR-0004](adr/0004-flows-and-the-subagent-record.md))
+6. **Completes with no subagents and no task rows**
+   ([ADR-0004](adr/0004-flows-and-the-subagent-record.md)) — the harness that
+   enforces this is now `mock`, not `pi`; `pi` gained delegation on 2026-08-06.
+   The deliverable is unchanged: a flow that needs children to finish is a flow
+   that does not finish everywhere
 7. **An observation per attempt, captured when it closes**
    ([ADR-0007](adr/0007-observation-captured-not-derived.md)) — not an addition
    to M2 but the instrument M2's own falsification already requires. Without it
@@ -89,6 +271,14 @@ Not in M2: shapes beyond `Open`, merge, canvas, new memory.
 restart, with its state intact — **on both `pi` and one CLI-backed harness.**
 Testing on one alone would tune the design to whichever happened to be
 configured that week.
+
+**Met, with one substitution stated rather than hidden.** `scripts/flow-smoke.ts`
+passes 6/6 on `pi` and 6/6 on `mock`. `mock` is not CLI-backed — it is the harness
+with neither delegation nor `tasks`, which is what deliverable 6 is about. The
+second-harness requirement was written to stop the design being tuned to one
+configuration, and running it against a harness whose reply is a bare echo did
+catch exactly that: a content check that passed on the echo while testing nothing.
+A CLI-backed harness remains unrun.
 
 **Falsified by:** a plain QM session doing the same. See
 [03](03-ai-flows.md#how-this-gets-falsified). This is the pillar that forces the
@@ -116,9 +306,70 @@ judge as upstream's three — `staleness` first, `signalToNoise` and
 `inferenceVsObservation` as guards. **The number is published whichever way it
 comes out.**
 
-**Falsified by:** no reduction in `staleness` against the flat-file baseline.
-That is the claim four levels exist to make; without it the upstream flat file
-wins and this pillar is dropped.
+**Falsified by — rewritten 2026-08-05, because the original condition cannot fire.**
+It read: _no reduction in `staleness` against the flat-file baseline_. That is
+unfalsifiable on this harness. The flat-file baseline **already scores `staleness`
+10.0 out of 10** on all six conversations **[ran]**, so no strategy can reduce
+anything and every arm ties at the ceiling. A condition that cannot fail is not a
+falsification condition, and shipping M4 against it would have produced a tie
+readable as a success.
+
+The replacement has two parts, and the first is a gate rather than a claim:
+
+1. **Headroom, before the levels are built.** Extend
+   `test/memory-bench/conversations/` until the flat-file baseline scores **at most 7
+   on `staleness`** — conversations where a fact is superseded several times, or
+   across a horizon long enough that a 300-bullet FIFO starts dropping things. If the
+   baseline cannot be pushed off the ceiling, the axis has no room on this instrument
+   and **M4 does not proceed on it**. Publish the fixtures either way; they are useful
+   to upstream regardless of what we conclude.
+2. **Then the claim, unchanged in substance.** Level-ordered recall lowers `staleness`
+   against the flat file without losing `signalToNoise` or
+   `inferenceVsObservation`. Without that, the flat file wins and this pillar is
+   dropped.
+
+**The gate was run, and it opened — 2026-08-06 [ran].** Two fixtures, and they
+disagree in a way that locates where the axis has room:
+
+| fixture | shape | turns | **staleness** |
+|---|---|---:|---:|
+| existing six | — | 5–12 | **10.0** (the ceiling that made the old condition unfalsifiable) |
+| `supersession-storm` | one fact revised **six times**, short horizon | 13 | **10.0** |
+| `long-horizon-eviction` | one policy revised **once, far later**, buried under volume | 43 | **3.0** |
+
+**Density does not break the flat file; horizon does.** Revising a fact six times
+inside thirteen turns is handled perfectly — the judge noted it kept *"no stale
+intermediate values"*. Stating a policy, burying it under fifty turns of
+unrelated ownership and doc-path detail, and then contradicting it once at the
+end produces a notebook that *"retains the superseded deploy policy"* and scores
+**3.0**, below even the bench's own quality floor of 4.
+
+So the gate's condition — *push the baseline to at most 7, or M4 does not proceed
+on this instrument* — **is met, with room to spare**, and it is met by the second
+half of the gate rather than the first. Had only `supersession-storm` been run,
+the honest conclusion would have been the opposite one, and the axis would have
+been dropped on a fixture that was testing the wrong property.
+
+**M4 proceeds.** The claim it now has to beat is stated in (2) below and the
+baseline it must beat is 3.0 on `long-horizon-eviction`, not 10.0 on anything.
+
+Two things this does not establish, and both belong next to the number wherever
+it is quoted:
+
+- **One fixture is not a benchmark.** `long-horizon-eviction` was written by the
+  same hand that wants the axis to have room, which is exactly the failure mode
+  [05](05-ai-storage.md) warns about. Before M4's own claim is scored, the
+  fixture set needs at least one more long-horizon conversation written to a
+  different shape, and the six existing ones stay in as guards.
+- **The judge is still deepseek grading deepseek's own summariser**, which is the
+  weakest form of this evidence.
+
+Two known instrument defects to fix while doing (1)Two known instrument defects to fix while doing (1), both disclosed in
+[05](05-ai-storage.md#two-disclosures-about-the-arms): the judge penalises every arm
+that writes `- (YYYY-MM-DD)` bullets for "inferring" the date, which is upstream's own
+grammar being scored as speculation; and on this configuration the judge is
+deepseek grading deepseek's own summariser, which is the weakest form of the evidence
+and should be stated wherever the number is quoted.
 
 **One experiment runs ahead of this milestone**, because it needs M4's instrument
 and none of M4's design: `MEMORY_STRATEGY=dream` distils the notebook from the raw

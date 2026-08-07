@@ -1,0 +1,178 @@
+{
+  "id": "long-horizon-eviction",
+  "description": "A policy stated first, superseded far later, and buried under ~55 turns of unrelated detail in between. Written for the second half of M4's gate: whether a flat 300-bullet FIFO drops or dilutes the correction once the horizon is long enough. See doc/08-roadmap.md Phase 3.",
+  "turns": [
+    {
+      "input": "policy, write this down: production deploys are Tuesdays and Thursdays only, and they need two approvals.",
+      "reply": "Noted \u2014 Tue/Thu, two approvals."
+    },
+    {
+      "input": "also for the record: the deploy window owner is teammate-0, and it was reviewed in sprint 1.",
+      "reply": "Recorded \u2014 deploy window owned by teammate-0."
+    },
+    {
+      "input": "minor: the deploy window doc lives at docs/deploy-window.md and is generated nightly.",
+      "reply": "docs/deploy-window.md, nightly."
+    },
+    {
+      "input": "also for the record: the oncall owner is teammate-1, and it was reviewed in sprint 2.",
+      "reply": "Recorded \u2014 oncall owned by teammate-1."
+    },
+    {
+      "input": "minor: the oncall doc lives at docs/oncall.md and is generated nightly.",
+      "reply": "docs/oncall.md, nightly."
+    },
+    {
+      "input": "also for the record: the dashboard owner is teammate-2, and it was reviewed in sprint 3.",
+      "reply": "Recorded \u2014 dashboard owned by teammate-2."
+    },
+    {
+      "input": "minor: the dashboard doc lives at docs/dashboard.md and is generated nightly.",
+      "reply": "docs/dashboard.md, nightly."
+    },
+    {
+      "input": "also for the record: the runbook owner is teammate-3, and it was reviewed in sprint 4.",
+      "reply": "Recorded \u2014 runbook owned by teammate-3."
+    },
+    {
+      "input": "minor: the runbook doc lives at docs/runbook.md and is generated nightly.",
+      "reply": "docs/runbook.md, nightly."
+    },
+    {
+      "input": "also for the record: the alerting owner is teammate-4, and it was reviewed in sprint 5.",
+      "reply": "Recorded \u2014 alerting owned by teammate-4."
+    },
+    {
+      "input": "minor: the alerting doc lives at docs/alerting.md and is generated nightly.",
+      "reply": "docs/alerting.md, nightly."
+    },
+    {
+      "input": "also for the record: the backup owner is teammate-5, and it was reviewed in sprint 6.",
+      "reply": "Recorded \u2014 backup owned by teammate-5."
+    },
+    {
+      "input": "minor: the backup doc lives at docs/backup.md and is generated nightly.",
+      "reply": "docs/backup.md, nightly."
+    },
+    {
+      "input": "also for the record: the index owner is teammate-6, and it was reviewed in sprint 7.",
+      "reply": "Recorded \u2014 index owned by teammate-6."
+    },
+    {
+      "input": "minor: the index doc lives at docs/index.md and is generated nightly.",
+      "reply": "docs/index.md, nightly."
+    },
+    {
+      "input": "also for the record: the cache owner is teammate-7, and it was reviewed in sprint 8.",
+      "reply": "Recorded \u2014 cache owned by teammate-7."
+    },
+    {
+      "input": "minor: the cache doc lives at docs/cache.md and is generated nightly.",
+      "reply": "docs/cache.md, nightly."
+    },
+    {
+      "input": "also for the record: the queue owner is teammate-8, and it was reviewed in sprint 9.",
+      "reply": "Recorded \u2014 queue owned by teammate-8."
+    },
+    {
+      "input": "minor: the queue doc lives at docs/queue.md and is generated nightly.",
+      "reply": "docs/queue.md, nightly."
+    },
+    {
+      "input": "also for the record: the tracing owner is teammate-9, and it was reviewed in sprint 10.",
+      "reply": "Recorded \u2014 tracing owned by teammate-9."
+    },
+    {
+      "input": "minor: the tracing doc lives at docs/tracing.md and is generated nightly.",
+      "reply": "docs/tracing.md, nightly."
+    },
+    {
+      "input": "also for the record: the lint rule owner is teammate-10, and it was reviewed in sprint 11.",
+      "reply": "Recorded \u2014 lint rule owned by teammate-10."
+    },
+    {
+      "input": "minor: the lint rule doc lives at docs/lint-rule.md and is generated nightly.",
+      "reply": "docs/lint-rule.md, nightly."
+    },
+    {
+      "input": "also for the record: the codeowners owner is teammate-11, and it was reviewed in sprint 12.",
+      "reply": "Recorded \u2014 codeowners owned by teammate-11."
+    },
+    {
+      "input": "minor: the codeowners doc lives at docs/codeowners.md and is generated nightly.",
+      "reply": "docs/codeowners.md, nightly."
+    },
+    {
+      "input": "also for the record: the feature flag owner is teammate-12, and it was reviewed in sprint 13.",
+      "reply": "Recorded \u2014 feature flag owned by teammate-12."
+    },
+    {
+      "input": "minor: the feature flag doc lives at docs/feature-flag.md and is generated nightly.",
+      "reply": "docs/feature-flag.md, nightly."
+    },
+    {
+      "input": "also for the record: the rollout owner is teammate-13, and it was reviewed in sprint 14.",
+      "reply": "Recorded \u2014 rollout owned by teammate-13."
+    },
+    {
+      "input": "minor: the rollout doc lives at docs/rollout.md and is generated nightly.",
+      "reply": "docs/rollout.md, nightly."
+    },
+    {
+      "input": "also for the record: the canary owner is teammate-14, and it was reviewed in sprint 15.",
+      "reply": "Recorded \u2014 canary owned by teammate-14."
+    },
+    {
+      "input": "minor: the canary doc lives at docs/canary.md and is generated nightly.",
+      "reply": "docs/canary.md, nightly."
+    },
+    {
+      "input": "also for the record: the quota owner is teammate-15, and it was reviewed in sprint 16.",
+      "reply": "Recorded \u2014 quota owned by teammate-15."
+    },
+    {
+      "input": "minor: the quota doc lives at docs/quota.md and is generated nightly.",
+      "reply": "docs/quota.md, nightly."
+    },
+    {
+      "input": "important policy change, supersedes what I said at the start: deploys are now ANY weekday, and they need one approval, not two.",
+      "reply": "Updated \u2014 any weekday, one approval."
+    },
+    {
+      "input": "follow-up on deploy window: we closed the sprint 1 action items, nothing outstanding.",
+      "reply": "Closed."
+    },
+    {
+      "input": "follow-up on oncall: we closed the sprint 2 action items, nothing outstanding.",
+      "reply": "Closed."
+    },
+    {
+      "input": "follow-up on dashboard: we closed the sprint 3 action items, nothing outstanding.",
+      "reply": "Closed."
+    },
+    {
+      "input": "follow-up on runbook: we closed the sprint 4 action items, nothing outstanding.",
+      "reply": "Closed."
+    },
+    {
+      "input": "follow-up on alerting: we closed the sprint 5 action items, nothing outstanding.",
+      "reply": "Closed."
+    },
+    {
+      "input": "follow-up on backup: we closed the sprint 6 action items, nothing outstanding.",
+      "reply": "Closed."
+    },
+    {
+      "input": "follow-up on index: we closed the sprint 7 action items, nothing outstanding.",
+      "reply": "Closed."
+    },
+    {
+      "input": "follow-up on cache: we closed the sprint 8 action items, nothing outstanding.",
+      "reply": "Closed."
+    },
+    {
+      "input": "what is our deploy policy right now?",
+      "reply": "Any weekday, with one approval."
+    }
+  ]
+}

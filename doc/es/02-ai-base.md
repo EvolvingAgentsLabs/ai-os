@@ -229,9 +229,16 @@ de código más allá de `execute`. **[read]**
 La restricción que más importa, y la que este documento antes omitía por completo.
 Ver la matriz en
 [01-architecture](01-architecture.md#la-matriz-de-capacidades-por-harness): el
-tracking de subagentes existe sólo en `claude` / `codex` / `opencode`; los modelos
-de OpenRouter funcionan sólo en `pi` / `mock`. **Los conjuntos son disjuntos.**
-Modelo barato y multi-agente son mutuamente excluyentes hoy. **[ran]**
+*tracking* de subagentes (filas `tasks`) existe sólo en `claude` / `codex` /
+`opencode`; los modelos de OpenRouter funcionan sólo en `pi` / `mock`. **[read]**
+
+**Corregido el 2026-08-06.** Este párrafo terminaba en *"los conjuntos son
+disjuntos — modelo barato y multi-agente son mutuamente excluyentes hoy"*, marcado
+**[ran]**. Delegación y `tasks` son dos capacidades, no una, y la frase las
+confundía. `pi` hoy delega y conserva OpenRouter; lo que no hace es registrar. La
+marca **[ran]** se ganó observando filas `tasks` y después se gastó en una
+afirmación sobre multi-agente — que es cómo un hecho bien medido se convierte en
+una conclusión equivocada.
 
 ### Ya existe un benchmark de memoria
 

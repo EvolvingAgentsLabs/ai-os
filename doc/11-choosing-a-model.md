@@ -4,11 +4,14 @@
 
 <sub>Two lifts that each look like a result. The gap between their tops is the only number that decides — and it swaps sign.</sub>
 
-
-> **Status: estimators implemented and tested. No model comparison has been run.**
-> `stats.ts`, `conformance.ts` and `tasks/physics.ts` — 97 tests **[ran]** across
-> `ai-flows`. There is no task suite and no second model yet, and this document
-> is careful to say which claims are cited and which are measured.
+> **Status: estimators implemented and tested. One harness comparison run; no
+> model comparison yet.** `stats.ts`, `conformance.ts`, `tasks/physics.ts` and
+> `tasks/handoff.ts` — 112 tests **[ran]** across `ai-flows`. The suite has now been
+> scored bare against with-tools on one model
+> ([below](#scored-at-last-the-harness-lift-at-l2-is-total-ran)), which measures the
+> **lift** and not the **interaction term** — and this document's whole argument is
+> that the lift is the number that does not decide anything. A second model is still
+> missing, so the quantity that matters remains unmeasured.
 
 ## The question, and the trap inside it
 
@@ -20,7 +23,7 @@ number is always large and it is always beside the point.
 
 **Your competitor runs a harness too.** So the comparison that decides anything
 is `small+harness` against `frontier+harness`, and the small model closes the gap
-only if the harness lifts it *more*. That difference of differences — the
+only if the harness lifts it _more_. That difference of differences — the
 **interaction term** — is the quantity, and it can be near zero while both lifts
 are enormous.
 
@@ -41,8 +44,8 @@ Paid for by reading rather than by GPU time.
 **The sign flips with difficulty.** A pre-registered controlled comparison —
 three scaffolds × five models × GAIA Levels 1 and 2, tasks fixed, three attempts
 per question ([arXiv:2606.08529](https://arxiv.org/abs/2606.08529)) — reports
-that the prediction that stronger models are less scaffold-sensitive *"is
-rejected in direction"*: the most capable model **gained the most** from
+that the prediction that stronger models are less scaffold-sensitive _"is
+rejected in direction"_: the most capable model **gained the most** from
 structured scaffolds at the harder level, and tier-scaling held only at the easy
 level. Substitution on easy work, complementarity on hard work.
 
@@ -72,19 +75,19 @@ The estimator has a failure mode nobody predicted, and it fails in the expensive
 direction.
 
 Log-odds is undefined at 0 and 1, so cells are corrected by adding ½ before the
-transform. That correction also *shrinks* extremes — and it shrinks an arm near
+transform. That correction also _shrinks_ extremes — and it shrinks an arm near
 the floor by a different amount than an arm near the ceiling. The two lifts are
 compressed unequally and the difference of differences inherits the gap.
 
 Measured against a construction whose true interaction is **exactly zero**:
 
-| steps per item | 4 | 8 | 16 | 32 | 64 | 128 |
-|---|---|---|---|---|---|---|
+| steps per item       | 4          | 8          | 16         | 32     | 64     | 128    |
+| -------------------- | ---------- | ---------- | ---------- | ------ | ------ | ------ |
 | measured interaction | **+0.597** | **+0.394** | **+0.211** | +0.067 | −0.002 | −0.001 |
-| clears zero? | **yes** | **yes** | **yes** | no | no | no |
+| clears zero?         | **yes**    | **yes**    | **yes**    | no     | no     | no     |
 
 The first three columns are false positives, and every one of them points toward
-*"ship the small fleet"*. An evaluation with eight observations per item would
+_"ship the small fleet"_. An evaluation with eight observations per item would
 have produced a confident, wrong, expensive answer — from a harness that does
 nothing.
 
@@ -139,10 +142,10 @@ per-step error compounds. Four independent results, one direction.
 The estimators needed something to estimate from, and the workload had to satisfy
 one hard requirement — an oracle that is exact, so a disagreement is the model's
 and not the grader's. `ai-flows/src/tasks/physics.ts` builds one from physical
-systems where a first approximation is wrong, a fuller model is *less* wrong, and
+systems where a first approximation is wrong, a fuller model is _less_ wrong, and
 both are computable to machine precision.
 
-The shape is Asimov's *The Relativity of Wrong*: a flat earth is wrong, a sphere
+The shape is Asimov's _The Relativity of Wrong_: a flat earth is wrong, a sphere
 is wrong, an oblate spheroid is wrong, and the wrongness shrinks. Newtonian
 kinetic energy is not false — it is the leading term of the relativistic one. A
 pendulum is not a harmonic oscillator, but at five degrees you cannot tell.
@@ -153,12 +156,12 @@ logistic), falling body (vacuum → linear drag).
 
 **Difficulty stops being a label and becomes arithmetic.** A task asks for an
 answer within a relative tolerance τ, and whether the first approximation clears
-τ is *computed*:
+τ is _computed_:
 
-| | |
-|---|---|
-| **L1** | the linear model already clears τ |
-| **L2** | it misses, but within 10× τ |
+|        |                                                            |
+| ------ | ---------------------------------------------------------- |
+| **L1** | the linear model already clears τ                          |
+| **L2** | it misses, but within 10× τ                                |
 | **L3** | it misses by more than 10× τ — only the full model will do |
 
 That matters more than it sounds. The stratification that decides where the
@@ -177,8 +180,8 @@ condition genuinely cannot do what a sandboxed one can, so the harness lift bein
 measured is real rather than simulated.
 
 **And the undetected-error rate becomes measurable.** Every prompt permits the
-answer `UNSURE`. A wrong number stated confidently is an *undetected* error; the
-same wrongness flagged is a *detected* one. That distinction is normally hard to
+answer `UNSURE`. A wrong number stated confidently is an _undetected_ error; the
+same wrongness flagged is a _detected_ one. That distinction is normally hard to
 instrument and here it is one branch in the grader. `errorReduction` reports how
 much less wrong an answer is than the linear model — 1 for exact, 0 for merely
 reproducing the approximation, **negative for doing worse than not modelling the
@@ -205,11 +208,62 @@ would have been graded against noise precisely where the easy answer was correct
 ### What this suite is not
 
 Textbook systems, and a model may have memorised the method. Parameters are
-randomised so the *answer* must be computed rather than recalled, but the
+randomised so the _answer_ must be computed rather than recalled, but the
 approach certainly is not novel to anyone. **This is a calibration suite for the
 instrument and a first read on where the crossing point sits. It is not a legal
 or literary workload**, and a result here transfers to those as a hypothesis, not
 as evidence.
+
+## Scored, at last: the harness lift at L2 is total **[ran]**
+
+2026-08-05, `deepseek/deepseek-v4-flash` on `pi`, L2 tasks, same suite and the same
+arithmetic grader in both arms. The only variable is whether the model has tools.
+
+| arm                                             |   n |   pass | detected | undetected |
+| ----------------------------------------------- | --: | -----: | -------: | ---------: |
+| bare — `oneShot`, no tools                      |  24 |  **0** |       24 |          0 |
+| harness — real turn path, sandbox and `execute` |  12 | **12** |        0 |          0 |
+
+Reports: [`physics-probe-2026-08-05-L2.json`](../ai-flows/measurements/physics-probe-2026-08-05-L2.json),
+[`physics-agent-probe-2026-08-05-L2.json`](../ai-flows/measurements/physics-agent-probe-2026-08-05-L2.json).
+
+**The suite's fourth design claim is confirmed.** It was written asserting that "the
+tools become load-bearing … a bare condition genuinely cannot do what a sandboxed one
+can, so the harness lift being measured is real rather than simulated." That was
+**[read]** when written. It is now **[ran]**, and the lift is not marginal — it is the
+whole interval, 0% to 100%, on identical tasks with an exact oracle. The passing arm
+lands at relative errors between 1e-6 and 1e-13, and it produced zero protocol
+violations, so the grader never had to guess.
+
+**The bare arm's number is a floor, not a capability measure**, and two defects
+inflate it. The generator demanded a flat six significant figures regardless of a
+tolerance spanning 1e-1 to 1e-5, so a task needing two figures still asked for six;
+and both probes appended that instruction a second time, since `PhysicsTask.prompt`
+already carries it. Both are fixed — precision now derives from tolerance — and
+neither touches the harness arm, where Python makes the demand trivially satisfiable.
+So "0 of 24" is safely read as _nothing passes bare_, and not as an estimate of how
+often a bare model would be wrong under a fair protocol.
+
+### The consequence, which is not the one that was being looked for
+
+The probes were run as a headroom pre-check for a different experiment: whether an
+agent can **learn** a procedure at rest and apply it later
+([05 § Experiment 1](05-ai-storage.md#experiment-1--distil-at-rest-memory_strategydream)).
+For that purpose the answer is no — 12 of 12 passing leaves nothing for a learned
+strategy to supply, and building the treatment arm on this suite was cancelled for the
+price of one arm.
+
+Those are the same fact seen from two directions, and the direction matters. It is
+tempting to write this down as "the instrument is blind"; that is unfair to the
+instrument. **The suite measured something large and real. It simply closed the gap so
+completely that no procedural residue was left to learn**, which is a finding about the
+domain rather than a defect in the tool. Arithmetic with a sandbox is not where an
+agent's second version beats its first.
+
+Where the residue survives is the **informational** failure — one agent not recording
+what the next one needs — because no amount of Python fixes it. That is what
+`structure: "sequential"` is for, and it was a declared type with zero instances until
+[`handoff.ts`](../ai-flows/src/tasks/handoff.ts) populated it.
 
 ## How this gets falsified
 
@@ -234,16 +288,16 @@ available here.
 
 Stated in the present tense, per house rule 3.
 
-- **No run against a model.** The suite exists and grades correctly; nothing has
-  been scored with it. The next step is a real workload labelled by human-time
-  length, sequential-versus-decomposable, and verifiability — three labels, no
-  models, and between them they predict most of the answer.
+- ~~**No run against a model.**~~ **Scored 2026-08-05 — see below.** What is still
+  missing is a _real workload_ labelled by human-time length,
+  sequential-versus-decomposable, and verifiability — three labels, no models, and
+  between them they predict most of the answer.
 - **No second model.** `deepseek/deepseek-v4-flash` runs on `pi` and its δ is
   measured ([10](10-observability.md)). Nothing else is wired, and **no local
   model has passed conformance, because none is running.**
 - **No ε and no u.** Task error and silent-failure rate need an oracle per task.
 - **Trajectories are not flows yet.** They should be, once M2's engine exists: a
-  `Flow` with *h* steps **is** a trajectory of *h* hops, and
+  `Flow` with _h_ steps **is** a trajectory of _h_ hops, and
   `Attempt.observation` is already the per-step record (ADR-0007). Then `r` falls
   out of `flow_attempts` instead of being fitted, the eval measures the system
   that ships rather than a simulation of it, and it becomes the falsification

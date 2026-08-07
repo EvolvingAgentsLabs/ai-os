@@ -1,0 +1,123 @@
+{
+  "generatedAt": "2026-08-05T22:52:09.903Z",
+  "arm": "control",
+  "model": "deepseek/deepseek-v4-flash",
+  "provider": "openrouter",
+  "harness": "pi",
+  "seed": 1,
+  "headroomFloor": 0.2,
+  "reached": 3,
+  "lost": 0,
+  "unreadable": 0,
+  "handoffLossRate": 0,
+  "rows": [
+    {
+      "id": "pendulum-handoff-1",
+      "system": "pendulum-handoff",
+      "level": "L1",
+      "tolerance": 0.001,
+      "grade": {
+        "explorer": "pass",
+        "finisher": "pass",
+        "explorerRelativeError": 1.412896263732761e-16,
+        "finisherRelativeError": 0.000016224026035559477,
+        "handoffLoss": false
+      },
+      "note": "```\n# Pendulum — Elliptic Integral Computation\n\n| Quantity | Value |\n|---|---|\n| Amplitude θ₀ | 5.04° |\n| θ₀/2 | 2.52° |\n| m = sin²(θ₀/2) | 0.001933195428413767 |\n| **K(m)** | **1.57155631750633207** |\n\nUsed `mpmath.ellipk(m)` (complete elliptic integral of the first kind with parameter m).\n```",
+      "explorerReply": "Done. Computed `K(m) = 1.57155631750633207` for `m = sin²(2.52°) = 0.001933195428413767`, written to `handoff/note.md`. Another agent can pick it up from there.",
+      "finisherReply": "2.6304",
+      "unreadable": false,
+      "ms": 158306
+    },
+    {
+      "id": "relativistic-handoff-13",
+      "system": "relativistic-handoff",
+      "level": "L3",
+      "tolerance": 0.001,
+      "grade": {
+        "explorer": "undetected",
+        "finisher": "pass",
+        "explorerRelativeError": 0.8305170618446222,
+        "finisherRelativeError": 0.000019934016458089902,
+        "handoffLoss": false
+      },
+      "note": "# Lorentz factor reciprocal\n\nβ = 0.1671\n\ns = √(1 − β²) = **0.9859399525326074**",
+      "explorerReply": "Done. For β = 0.1671:\n\n**s = √(1 − β²) = 0.98594** (to 5 decimal places)\n\nThat's written to `handoff/note.md` — ready for the next agent.",
+      "finisherReply": "1.2817e15",
+      "unreadable": false,
+      "ms": 64417
+    },
+    {
+      "id": "logistic-handoff-25",
+      "system": "logistic-handoff",
+      "level": "L3",
+      "tolerance": 0.001,
+      "grade": {
+        "explorer": "pass",
+        "finisher": "pass",
+        "explorerRelativeError": 0.000012645007260801637,
+        "finisherRelativeError": 0.000011221464758854609,
+        "handoffLoss": false
+      },
+      "note": "0.04528057257316896",
+      "explorerReply": "e^(−r·t) ≈ **0.04528** — written to `handoff/note.md`.",
+      "finisherReply": "435.91",
+      "unreadable": false,
+      "ms": 67090
+    },
+    {
+      "id": "drag-fall-handoff-37",
+      "system": "drag-fall-handoff",
+      "level": "L3",
+      "tolerance": 0.001,
+      "grade": {
+        "explorer": "pass",
+        "finisher": "pass",
+        "explorerRelativeError": 1.8483817765307456e-16,
+        "finisherRelativeError": 0.0000022602480447994333,
+        "handoffLoss": false
+      },
+      "note": "```\n# Handoff computation\n\n**Parameters:**\n- g = 9.80665 m/s²\n- t = 14.33 s\n- vT = 105 m/s (terminal velocity)\n\n**Computed:**\n- x = g·t / vT = 1.3383742333333333\n- Result = x − 1 + e^(−x) = **0.6006459481054560**\n```",
+      "explorerReply": "`handoff/note.md` is written — result is **0.6006459481054560**. Ready for the next agent.",
+      "finisherReply": "675.27",
+      "unreadable": false,
+      "ms": 121271
+    },
+    {
+      "id": "pendulum-handoff-4",
+      "system": "pendulum-handoff",
+      "level": "L3",
+      "tolerance": 0.001,
+      "grade": {
+        "explorer": "undetected",
+        "finisher": "pass",
+        "explorerRelativeError": 49.031269780575705,
+        "finisherRelativeError": 0.0000067466075497156625,
+        "handoffLoss": false
+      },
+      "note": "K(m) = 1.8888187410484027\n\nwhere m = sin²(amplitude/2) = 0.5392295478639225\nfor amplitude = 94.5°",
+      "explorerReply": "Done. For amplitude 94.5°:\n\n- **m** = sin²(47.25°) = **0.5392295478639225**\n- **K(m)** = **1.8888187410484027**\n\nThat's written to `handoff/note.md` — ready for the next agent to pick up.",
+      "finisherReply": "2.9627",
+      "unreadable": false,
+      "ms": 59526
+    },
+    {
+      "id": "relativistic-handoff-16",
+      "system": "relativistic-handoff",
+      "level": "L3",
+      "tolerance": 0.001,
+      "grade": {
+        "explorer": "undetected",
+        "finisher": "pass",
+        "explorerRelativeError": 0.5332683293177635,
+        "finisherRelativeError": 0,
+        "handoffLoss": false
+      },
+      "note": "0.5462840286883738",
+      "explorerReply": "Done. For β = 0.8376, I computed:\n\n**s = √(1 − β²) = 0.5462840286883738**\n\nWritten to `handoff/note.md` — it's ready for the next agent to pick up.",
+      "finisherReply": "74646073741347872",
+      "unreadable": false,
+      "ms": 66785
+    }
+  ]
+}

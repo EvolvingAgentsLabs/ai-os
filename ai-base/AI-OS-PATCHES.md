@@ -128,6 +128,23 @@ Run after every pull, before committing the merge:
 | `src/memory/strategy.ts` | Add promotion strategy to `MemoryStrategyKind` | [0003](../doc/adr/0003-storage-scope-axis.md) |
 | `src/wiring.ts`          | Register `ai-storage` as the `MemoryService`   | [01](../doc/01-architecture.md)               |
 
+## Additions that are not modifications
+
+Two files were **added** under `ai-base/`, and nothing upstream was changed. They
+are recorded here anyway because the ledger check is keyed to the directory rather
+than to the kind of change, and because an addition upstream did not make is still
+something a subtree pull has to reconcile.
+
+| File                                                         | Why it is here rather than in `ai-flows/`                                                                                                                                                                                                                                                  | ADR / doc                       |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| `test/memory-bench/conversations/supersession-storm.json`    | The bench discovers fixtures from `readdirSync` over its own directory (`scripts/memory-bench.ts`), so a fixture outside it is invisible to the harness. Written for the first half of M4's gate — one fact revised six times, short horizon. Baseline scored **10.0**, the ceiling intact | [08 § M4](../doc/08-roadmap.md) |
+| `test/memory-bench/conversations/long-horizon-eviction.json` | Same reason. The second half of the gate — one policy revised once, far later, buried under volume. Baseline scored **3.0**, which is what opened M4                                                                                                                                       | [08 § M4](../doc/08-roadmap.md) |
+
+**These should go upstream rather than stay ours.** They are fixtures for
+upstream's own benchmark, they exercise a property that benchmark did not cover,
+and they are useful to qm whether or not `ai-storage` is ever built. Added to the
+send list below.
+
 ## Sending things upstream — two channels, and picking the wrong one is the mistake
 
 **Vulnerabilities go privately.** `SECURITY.md` is explicit: report through the
@@ -147,3 +164,4 @@ generated document is the wrong artifact here even when the idea is right.
 | `actorMayReadScope` fail-open on an unrecognised scope kind (`src/triggers/run-trigger.ts`) | **Private — Security → Report a vulnerability** | not sent | A trigger whose `ownerScopeId` does not parse runs for an actor with no membership evidence. **Send first.** Include affected revision, config, impact, smallest reproduction. The fix is in the ledger above; offer it, do not publish it |
 | Record `forkedFrom { sessionId, upToSeq }` on session fork (`src/api/app-sessions.ts:392`)  | Public — `adrs/`                                | not sent | Small, self-contained, useful to them without ai-os. Send second, and keep it short                                                                                                                                                        |
 | Add `flow` to `SCOPE_KINDS`                                                                 | Public — `adrs/`                                | not sent | Only after `ai-flows` exists to justify it                                                                                                                                                                                                 |
+| Two memory-bench fixtures covering a long horizon (`test/memory-bench/conversations/`)      | Public — `adrs/`                                | not sent | Their bench had no conversation long enough to move `staleness` off 10.0/10; one of ours scores it 3.0. Useful to them independently of ai-storage. Send with the numbers, not with the pillar                                             |

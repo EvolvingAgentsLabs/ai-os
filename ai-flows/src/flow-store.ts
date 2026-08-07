@@ -32,6 +32,16 @@ export interface FinishAttemptInput {
    * (ADR-0007).
    */
   observation?: Omit<Observation, "at"> & { at?: number };
+  /**
+   * Recorded at close because it is not knowable at open.
+   *
+   * `POST /v1/turns?async=1` answers `{status, runId}` and nothing else — the
+   * session id only appears on the run's `result` once it is terminal. So an
+   * attempt opened on the async path had `sessionId: null` forever, which meant
+   * the field existed, read as "this attempt had no conversation", and was wrong
+   * every time. Found by a probe whose transcript arm came back empty.
+   */
+  sessionId?: string;
 }
 
 export interface ForkInput {
