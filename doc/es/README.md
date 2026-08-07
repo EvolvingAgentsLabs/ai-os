@@ -43,6 +43,7 @@ escrito cuando se toma, **nunca editado después** — se reemplaza (*superseded
 | [0006](adr/0006-ai-flows-lives-outside-core.md) | `ai-flows` se construye contra el seam HTTP firmado, no adentro del core | Aceptada |
 | [0007](adr/0007-observation-captured-not-derived.md) | La observación de un intento se captura al cerrarlo, nunca se deriva después | Aceptada |
 | [0008](adr/0008-conformation-is-projected.md) | La conformación del sistema se proyecta desde stores existentes; las carpetas nunca contienen membresía | Aceptada |
+| [0009](adr/0009-a-flow-records-who-it-acts-for.md) | Un flow registra el principal para el que actúa; sin `PrincipalType` nuevo | Aceptada |
 
 ## Reglas de la casa para estos documentos
 
