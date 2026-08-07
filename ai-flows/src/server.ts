@@ -37,6 +37,8 @@ import type { FlowEngine } from "./engine.ts";
 import type { FlowStore } from "./flow-store.ts";
 import { verifySignature } from "./core-client.ts";
 import { FLOW_SHAPES, type FlowShape } from "./types.ts";
+import { composeFromAgent } from "./compose.ts";
+import type { ScopeNode } from "./conformation.ts";
 
 export interface FlowServerOptions {
   store: FlowStore;
@@ -47,6 +49,11 @@ export interface FlowServerOptions {
   allowUnauthenticated?: boolean;
   /** Optional page renderer, so the view can be served live rather than written to a file. */
   renderView?: () => Promise<string>;
+  /**
+   * Resolves a scope's agents, so a declared tree can be turned into steps.
+   * Absent, `POST /flows/from-agent` answers 501 rather than half-working.
+   */
+  scopeAgents?: (scopeId: string) => Promise<{ scope: ScopeNode; systemScope?: ScopeNode } | null>;
   now?: () => number;
 }
 
@@ -154,6 +161,49 @@ export function createFlowServer(opts: FlowServerOptions) {
       if (!Number.isInteger(atStep) || atStep < 0) return { status: 400, body: { error: "atStep must be an index" } };
       const forked = await store.fork({ flowId: params.id!, atStep });
       return forked ? { status: 201, body: forked } : { status: 404, body: { error: "not_found" } };
+    }),
+
+    /**
+     * Build a flow from an agent's declared `subagents` tree and, optionally, run
+     * it. This is what turns composition from a drawing into work.
+     *
+     * `?dryRun=1` returns the plan without creating anything — the tree is
+     * hand-declared, so being able to see what it would run before it runs is the
+     * difference between a composition and a surprise.
+     */
+    route("POST", "/flows/from-agent", async ({ body, query }) => {
+      if (!opts.scopeAgents) {
+        return { status: 501, body: { error: "not_configured", message: "no agent source is wired into this server" } };
+      }
+      const b = (body ?? {}) as Record<string, unknown>;
+      if (typeof b.scopeId !== "string" || !b.scopeId) return { status: 400, body: { error: "scopeId is required" } };
+      if (typeof b.agent !== "string" || !b.agent) return { status: 400, body: { error: "agent is required" } };
+      if (typeof b.goal !== "string" || !b.goal) return { status: 400, body: { error: "goal is required" } };
+
+      const found = await opts.scopeAgents(b.scopeId);
+      if (!found) return { status: 404, body: { error: "no_such_scope" } };
+      const plan = composeFromAgent({
+        scope: found.scope,
+        ...(found.systemScope ? { systemScope: found.systemScope } : {}),
+        root: b.agent,
+        goal: b.goal,
+      });
+      if (!plan) {
+        return {
+          status: 404,
+          body: { error: "no_such_agent", message: `no agents/${b.agent}.md in ${b.scopeId} or the system scope` },
+        };
+      }
+      if (!plan.steps.length) {
+        // A tree whose every branch was missing produces no work. Creating an
+        // empty flow would report success for a composition that is broken.
+        return { status: 422, body: { error: "nothing_to_run", plan } };
+      }
+      if (query.get("dryRun") === "1") return { status: 200, body: { plan } };
+
+      const flow = await store.createFlow({ scopeId: plan.scopeId, title: plan.title, goal: plan.goal });
+      for (const step of plan.steps) await store.appendStep({ flowId: flow.id, intent: step.intent });
+      return { status: 201, body: { plan, flow: await store.getFlow(flow.id) } };
     }),
 
     route("GET", "/healthz", async () => ({ status: 200, body: { ok: true } })),

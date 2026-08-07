@@ -41,6 +41,8 @@ const DB = config.databaseUrl;
 if (!DB) throw new Error("DATABASE_URL is required — flows are not durable without it");
 
 const PORT = Number(process.env.FLOWS_PORT ?? 8097);
+/** Must be a member of every shared scope this server advances flows in. */
+const FLOWS_ACTOR = process.env.FLOWS_ACTOR ?? "flows";
 const store = createPostgresFlowStore(DB);
 const core = createCoreClient({
   baseUrl: process.env.CORE_API_URL ?? "http://localhost:8080",
@@ -49,14 +51,64 @@ const core = createCoreClient({
 const engine = createEngine({
   store,
   core,
-  turnFor: (flow, step) => ({
-    surface: "ai-flows",
-    actor: { externalId: "flows", displayName: "ai-flows" },
+  /**
+   * A step runs IN THE FLOW'S SCOPE, and getting this wrong is silent.
+   *
+   * Upstream derives a turn's scope from the conversation, not from anything the
+   * caller declares: `kind: "dm"` resolves to `personal:<actor>`
+   * (`resolution-service.ts:18-22`). The first version of this sent every step as
+   * a DM, so a flow declaring `group:web-project-…` executed in the ai-flows
+   * user's own personal scope — wrong workspace, wrong memory, and the project's
+   * `agents/*.md` unreachable by `delegate`, which is most of what composition
+   * needs. Nothing failed; the work just happened somewhere else.
+   *
+   * So the flow's `scopeId` is mapped back to the conversation that resolves to
+   * it. A `personal:` flow stays a DM because that is what personal means.
+   */
+  turnFor: (flow, step) => {
+    const sep = flow.scopeId.indexOf(":");
+    const kind = flow.scopeId.slice(0, sep);
+    const ref = flow.scopeId.slice(sep + 1);
     // One thread per step: runs are serialised per session upstream, so steps
     // sharing a thread would queue behind each other.
-    conversation: { kind: "dm", threadRef: `flow-${flow.id}-${step.index}` },
-    text: step.intent,
-  }),
+    const threadRef = `flow-${flow.id}-${step.index}`;
+    const conversation =
+      kind === "group"
+        ? ({ kind: "group", threadRef, channelRef: ref } as const)
+        : kind === "channel"
+          ? ({ kind: "channel", threadRef, channelRef: ref } as const)
+          : ({ kind: "dm", threadRef } as const);
+    return {
+      surface: "ai-flows",
+      // For a personal flow the actor IS the scope's owner, or the turn would
+      // resolve to a different person's private scope.
+      /**
+       * Who the step acts AS, and this turned out to be a real hole rather than a
+       * configuration detail.
+       *
+       * A shared scope refuses a turn from a non-member — `"you're not a member of
+       * that context"`, upstream's roster guard doing exactly its job. So a flow
+       * in a project must run as somebody on that project's roster. But **a flow
+       * records no actor**: it has a `scopeId` and nothing about who it acts for,
+       * so there is nobody to be.
+       *
+       * `FLOWS_ACTOR` is the stopgap — one configured principal who must be a
+       * member of every scope this server runs flows in. It is wrong in the way
+       * shared service accounts are always wrong: every flow in the audit log is
+       * attributed to the same person regardless of who asked for it.
+       *
+       * This is [ADR-0008](../../doc/adr/0008-conformation-is-projected.md)'s
+       * condition for agent principals firing: *an agent that must appear in a
+       * roster*. See doc/08-roadmap § Phase 3.
+       */
+      actor:
+        kind === "personal"
+          ? { externalId: ref, displayName: ref }
+          : { externalId: FLOWS_ACTOR, displayName: FLOWS_ACTOR },
+      conversation,
+      text: step.intent,
+    };
+  },
   awaitOptions: { intervalMs: 1000, timeoutMs: 20_000 },
 });
 
@@ -140,9 +192,22 @@ async function conformation() {
   return c;
 }
 
+/**
+ * Agents for the composer, resolved from the same projection the page renders,
+ * so a tree that is drawn and a tree that is run can never disagree.
+ */
+async function scopeAgents(scopeId: string) {
+  const c = await conformation();
+  const scope = c.scopes.find((s) => s.scopeId === scopeId);
+  if (!scope) return null;
+  const systemScope = c.scopes.find((s) => s.role === "system");
+  return { scope, ...(systemScope ? { systemScope } : {}) };
+}
+
 const server = createFlowServer({
   store,
   engine,
+  scopeAgents,
   ...(process.env.FLOWS_SIGNING_SECRET
     ? { signingSecret: process.env.FLOWS_SIGNING_SECRET }
     : { allowUnauthenticated: process.env.FLOWS_ALLOW_UNAUTHENTICATED === "1" }),

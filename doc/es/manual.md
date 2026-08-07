@@ -135,7 +135,133 @@ crear uno.
 
 ---
 
-## Parte 3 · El proyector de conformación
+## Parte 3 · El sistema multiagente
+
+Esta es la parte que más cambió el 2026-08-07, y todo lo de abajo se verificó
+corriéndolo **[ran]**.
+
+### Todos los niveles, su gente y sus agentes — en una página
+
+`ai-flows` sirve una página en `GET /` con todo el sistema: los niveles que el OS
+realmente tiene, quién está en cada uno, y los agentes que define cada scope.
+
+```bash
+cd ai-os/ai-flows
+FLOWS_SIGNING_SECRET=<secret> node --env-file=/ruta/al/core.env scripts/serve.ts
+# → http://localhost:8097
+```
+
+<img src="../assets/manual/06-system-explorer.jpg" alt="" width="100%">
+
+<sub>El sistema primero, porque <code>global/</code> se monta sólo-lectura en todos los scopes de abajo.</sub>
+
+De arriba hacia abajo:
+
+- **System** — `org:<tu-org>`, cuyos `agents/` se montan en todos los demás scopes
+  como `global/agents/`.
+- **Projects** — `group:web-project-<uuid>`, cada uno con un **roster leído de
+  `ProjectStore`**. La membresía nunca se lee de una carpeta; ver
+  [ADR-0008](adr/0008-conformation-is-projected.md).
+- **Groups & channels**, **Teams**, **Individuals** — los demás tipos de scope.
+
+### Los agentes y subagentes son markdown
+
+Un agente es `agents/<nombre>.md`. El frontmatter declara qué es; el cuerpo es su
+system prompt:
+
+```markdown
+---
+description: Owns the ledger rewrite. Splits work and routes it to the specialists.
+tools: [read, write, execute]
+subagents: [SchemaAgent, MigrationAgent, ReviewAgent]
+---
+You lead the ledger rewrite. Split the goal, route each piece to the agent in
+your subagents list, and report what came back.
+```
+
+`description` y `tools` son de upstream. **`subagents:` es nuestro**, y funciona
+porque el parser de upstream valida esos tres campos e ignora cualquier otra
+clave — así que el mismo archivo sigue siendo un agente válido y delegable
+mientras carga el árbol. No hay registro paralelo ni schema que sincronizar.
+
+Un nombre declarado sin archivo se renderiza tachado como **`declared, no file`**.
+Es deliberado: un nombre declarado es una afirmación, un archivo es un hecho, y un
+árbol que renderiza un typo como composición funcional es peor que no tener árbol.
+
+### Ejecutar un árbol
+
+`POST /flows/from-agent` convierte el árbol declarado en un flow. Usá `?dryRun=1`
+primero — un árbol declarado a mano es exactamente lo que conviene mirar antes de
+que gaste llamadas al modelo.
+
+```jsonc
+POST /flows/from-agent?dryRun=1
+{ "scopeId": "group:web-project-…", "agent": "LedgerLead", "goal": "add a currency column" }
+
+// → step -> SchemaAgent     via:delegate depth:1
+//   step -> MigrationAgent  via:delegate depth:1
+//   step -> ReviewAgent     via:delegate depth:1
+```
+
+Sacá `?dryRun=1` para crearlo, y después `POST /flows/:id/advance` por paso.
+
+<img src="../assets/manual/07-composed-flow.jpg" alt="" width="100%">
+
+<sub>Cada paso es una delegación real al archivo markdown del agente.</sub>
+
+### Lo que la composición NO hace, y por qué
+
+**La profundidad se aplana, no se respeta.** El hijo delegado se construye sin
+`runChild` (`pi-harness.ts:1313-1318`), así que **un agente no puede delegar a su
+propio subagente**. Lo que corre es el patrón de SystemAgent de llmunix: la sesión
+orquestadora lee el árbol y delega ella misma a cada agente nombrado. Un árbol más
+profundo aporta sus descendientes como pasos más adelante en la misma secuencia
+plana, y el plan lo dice en vez de dejar que te des cuenta solo.
+
+**Un agente de sistema no se puede delegar desde un proyecto.** `delegate` resuelve
+`agents/<nombre>.md` contra la raíz del propio scope; el scope de sistema monta en
+`global/` y los nombres de agente no pueden llevar `/`. El compositor marca esos
+pasos como `inline` — las instrucciones se pegan en el paso. Eso es estrictamente
+peor (sin contexto aislado, sin acotamiento de tools) y está etiquetado para que
+nadie lea un paso inline como uno delegado.
+
+### Dos caminos de escritura, y usar el equivocado falla en silencio
+
+Lo más útil de este manual, porque equivocarse produce una página que renderiza
+perfecto y un runtime que no encuentra nada:
+
+| Capa | Se materializa desde | Escribir agentes con |
+|---|---|---|
+| `global/` — el scope org, sólo lectura | el `WorkspaceStore`, **reconstruido en cada turno** | `workspace.write()`. Es además el **único** camino: `scopeFor` devuelve `personal`, `group` o `channel` y nunca `org`, así que ninguna conversación alcanza el scope de sistema |
+| tu propio scope, lectura-escritura | el **sandbox persistido** | un **turno** — pedirle al agente que haga `write` del archivo |
+
+`ro-layers.ts` abre con `if (layer.mode === "rw") continue;`. Medido: después de
+escribir seis archivos de agente al store de un scope de proyecto, `ls -1 agents/`
+dentro del sandbox de ese scope devolvió **dos**, y un séptimo escrito y listado un
+minuto después nunca apareció. La materialización va sandbox → store, no al revés.
+
+`scripts/seed-demo.ts` construye toda la demostración de arriba — agentes de
+sistema, proyecto, roster, árboles — usando el camino correcto para cada capa.
+
+```bash
+node --env-file=/ruta/al/core.env scripts/seed-demo.ts
+```
+
+### Una cosa que es un parche, y no pretende ser otra cosa
+
+Un scope compartido rechaza un turno de un no-miembro, y **un flow no registra
+actor** — tiene un `scopeId` y nada sobre para quién actúa. `FLOWS_ACTOR` nombra un
+principal que tiene que ser miembro de todos los scopes donde el servidor corre
+flows. Está mal como siempre están mal las cuentas de servicio compartidas: cada
+flow en la auditoría queda atribuido a la misma persona sin importar quién lo pidió.
+
+Esto es la condición de [ADR-0008](adr/0008-conformation-is-projected.md) para
+agentes-principal disparándose — *un agente que debe aparecer en un roster* — y
+está registrado en vez de tapado.
+
+---
+
+## Parte 4 · El proyector de conformación
 
 Lo único de `ai-flows` que podés apuntar a un sistema real. Contesta *qué forma
 tiene este sistema, y quién le habló a quién* — sólo lectura, sin escrituras, sin
@@ -175,7 +301,7 @@ agujeros primero; son más informativos que el árbol.**
 
 ---
 
-## Parte 4 · Lo que dijeron los agujeros, corriéndolo en vivo
+## Parte 5 · Lo que dijeron los agujeros, corriéndolo en vivo
 
 Tres hallazgos de la corrida exacta de arriba, y son la razón por la que este
 manual vale más que una lista de features.
@@ -205,16 +331,19 @@ participante: 4 de 4 en el par medido, con el principal id en vez del display na
 
 Dicho sin vueltas, porque un manual que omite esto es un folleto:
 
-- **No hay motor de flows.** `ai-flows` tiene un flow store, un instrumento de
-  observabilidad y este proyector. Un paso que ejecuta como run — todo M2 — no está
-  construido ([08-roadmap](08-roadmap.md)).
+- **No hay canvas, y el motor de flows ya está construido.** M2 se entregó el
+  2026-08-06 — un flow arrancado por un proceso y terminado por otro, 6/6 en `pi` y
+  en `mock` ([08-roadmap § M2](08-roadmap.md)). Lo que sigue faltando es todo lo
+  que va más allá de una forma: sin `Sequence`, `Loop`, `Fan-out`, `Deliberation`
+  ni `Watch`, y sin merge.
 - **No hay canvas.** `ai-ui` es [04](04-ai-ui.md) y nada más. La UI de este manual
   es la de upstream.
 - **No hay memoria por scope.** `ai-storage` es [05](05-ai-storage.md) y nada más.
   La pestaña `Memory` que ves es el `MEMORY.md` plano de QM.
-- **Los agentes orquestadores no pueden tener sus propios subagentes.** La
+- **Los agentes orquestadores siguen sin poder tener subagentes propios.** La
   delegación está topeada a un nivel, a propósito, en una línea
-  (`pi-harness.ts:1313-1318`).
+  (`pi-harness.ts:1313-1318`). Un árbol declarado es composición que ejecuta la
+  *sesión*, aplanada — ver Parte 3.
 - **Los agentes no son principals.** `PrincipalType = "internal" | "guest"`. Un
   agente no puede estar en un roster ni tener permisos propios.
 
