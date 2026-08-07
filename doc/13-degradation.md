@@ -4,9 +4,10 @@
 
 <sub>A review step that runs, reports, and adds nothing.</sub>
 
-> **Status: a documented failure mode and one measurement of our own. Nothing here
-> is built.** This document exists to name a thing ai-os cannot currently notice,
-> and to state what noticing it would take — not to claim it does.
+> **Status: a documented failure mode, one measurement of our own, and one
+> candidate signal built and falsified.** ai-os still cannot notice a step that
+> contributed nothing. This document names that gap and records what has already
+> been tried — see § It was built, it was run, and it does not work.
 
 Everything else in `doc/` asks whether a design is worth building. This one asks a
 different question: **once it is running, how would anyone find out it had stopped
@@ -123,16 +124,68 @@ about the distance between it and what happens.
 
 But the claim has to be falsifiable or it is a slogan:
 
-> **Falsification.** Build (1) — flag a step whose observation adds nothing over
-> its predecessor — and run it over real flows. If it fires on runs that were
-> genuinely fine as often as on runs that were not, it is noise and should be
-> deleted rather than tuned. If it never fires, the failure mode above was a
-> one-off and this document is a story rather than a design input.
+> **Falsification, written before building it.** Build (1) — flag a step whose
+> observation adds nothing over its predecessor — and run it over real flows. If it
+> fires on runs that were genuinely fine as often as on runs that were not, it is
+> noise and should be deleted rather than tuned. If it never fires, the failure
+> mode above was a one-off and this document is a story rather than a design input.
 
-The honest prior is that (1) will be noisy: a step that legitimately restates its
-input looks identical to one that failed to add anything. That is exactly the
-distinction δ was built to reason about, and it is why this reuses that instrument
-instead of proposing a new one.
+## It was built, it was run, and it does not work — 2026-08-07 [ran]
+
+`ai-flows/src/contribution.ts`. The digest comparison doc/13 originally proposed
+was abandoned within one function: the real failure produced *different* text
+from its predecessor, so digest equality catches a step that repeated itself and
+not a step that ignored its input. The replacement measures **how much of the
+predecessor's distinctive content the step carried into its own output** — zero
+carry-over meaning the step used nothing it was handed.
+
+Against the two quoted runs above it separates perfectly: the ignored run carries
+**0.00**, the engaged run **0.21**, sharing `currency` and `ledger`.
+
+Against the real database it fires on nothing. **18 flows, 9 judgeable
+comparisons, 0 flagged.** Including — and this is the result — the two runs it was
+built for:
+
+| flow | carried | what it shared | verdict |
+|---|---:|---|---|
+| `a7bc98a3` step 2 | 0.20 | migration, table, ledger, column, currency | `used-input`, and fairly: that step did comment on the proposal after saying there were no files |
+| `25cb60f5` step 2 | **0.03** | **`review`** — one incidental word | `used-input` |
+
+The second is the failure. A single word shared by coincidence clears a rule that
+only fires at exactly zero, and the real output is never exactly zero.
+
+**The threshold is not going to be lowered until it catches that case.** Moving a
+cutoff until the known-bad example falls on the correct side of it is fitting the
+instrument to the answer, and this repository has already recorded what that costs
+— *count the redesigns: fine once, suspicious twice, and by the third it is
+looking for the result rather than measuring it*. One labelled example is not a
+calibration set.
+
+### What the negative result actually tells us
+
+Two things, and the second is more useful than the signal would have been.
+
+**A pairwise content overlap is the wrong instrument.** It cannot separate "used
+its input" from "mentioned a word from its input", and the gap between 0.03 and
+0.20 is not a gap a threshold can live in without evidence about where real runs
+fall.
+
+**The step already said it.** The failing output began *"There are no files in the
+workspace to review."* The system did not need to infer the non-contribution — it
+was **stated in plain language in the result**, and nothing read it. But detecting
+that means asserting that a phrase appears in a model's reply, and this repository
+has a standing rule against exactly that: *a check that can fail while the
+capability works is measuring phrasing.* Which cuts both ways here — a check that
+passes on phrasing is measuring phrasing too.
+
+So the honest position is that **ai-os still cannot notice a step that contributed
+nothing**, the cheapest candidate signal has been built and falsified, and the next
+idea should not be a fourth threshold on the same statistic.
+
+`contribution.ts` is kept rather than deleted: it reports `carried` on every
+comparison, so the labelled data a real threshold would need can accumulate from
+ordinary use instead of being invented. Its verdict is worth ignoring until it
+does.
 
 ## The rule this leaves behind
 
