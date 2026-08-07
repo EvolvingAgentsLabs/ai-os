@@ -8,6 +8,7 @@ const SCHEMA = [
      id TEXT PRIMARY KEY,
      seq BIGSERIAL NOT NULL,
      scope_id TEXT NOT NULL,
+     actor_id TEXT,
      title TEXT NOT NULL,
      goal TEXT NOT NULL,
      shape TEXT NOT NULL,
@@ -16,6 +17,12 @@ const SCHEMA = [
      forked_from_at_step INTEGER,
      created_at BIGINT NOT NULL,
      updated_at BIGINT NOT NULL)`,
+  /**
+   * Added after the table shipped, so it is nullable and added separately.
+   * Existing rows keep `NULL` rather than being backfilled — ADR-0009 rejects a
+   * guessed actor, and those flows are simply not advanceable.
+   */
+  `ALTER TABLE flow_flows ADD COLUMN IF NOT EXISTS actor_id TEXT`,
   `CREATE INDEX IF NOT EXISTS flow_flows_scope_idx ON flow_flows(scope_id, seq DESC)`,
   `CREATE TABLE IF NOT EXISTS flow_steps(
      id TEXT PRIMARY KEY,
@@ -56,6 +63,7 @@ function toFlow(r: Row): Flow {
   return {
     id: r.id as string,
     scopeId: r.scope_id as string,
+    actorId: (r.actor_id as string | null) ?? null,
     title: r.title as string,
     goal: r.goal as string,
     shape: r.shape as Flow["shape"],
@@ -147,11 +155,12 @@ export function createPostgresFlowStore(
     async createFlow(input: CreateFlowInput): Promise<Flow> {
       const at = now();
       const rows = await q(
-        `INSERT INTO flow_flows(id, scope_id, title, goal, shape, state, forked_from_flow_id, forked_from_at_step, created_at, updated_at)
-         VALUES ($1,$2,$3,$4,$5,'draft',$6,$7,$8,$8) RETURNING *`,
+        `INSERT INTO flow_flows(id, scope_id, actor_id, title, goal, shape, state, forked_from_flow_id, forked_from_at_step, created_at, updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,'draft',$7,$8,$9,$9) RETURNING *`,
         [
           nextId(),
           input.scopeId,
+          input.actorId,
           input.title,
           input.goal,
           input.shape ?? "open",
@@ -289,9 +298,11 @@ export function createPostgresFlowStore(
         if (input.atStep < 0 || input.atStep >= steps.rows.length) return null;
         const id = nextId();
         await c.query(
-          `INSERT INTO flow_flows(id, scope_id, title, goal, shape, state, forked_from_flow_id, forked_from_at_step, created_at, updated_at)
-           VALUES ($1,$2,$3,$4,$5,'draft',$6,$7,$8,$8)`,
-          [id, row.scope_id, input.title ?? row.title, row.goal, row.shape, input.flowId, input.atStep, at],
+          `INSERT INTO flow_flows(id, scope_id, actor_id, title, goal, shape, state, forked_from_flow_id, forked_from_at_step, created_at, updated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,'draft',$7,$8,$9,$9)`,
+          // A fork inherits its ancestor's actor: the same person is continuing
+          // the same work down a different branch.
+          [id, row.scope_id, row.actor_id, input.title ?? row.title, row.goal, row.shape, input.flowId, input.atStep, at],
         );
         for (const [index, step] of steps.rows.slice(0, input.atStep + 1).entries()) {
           await c.query(

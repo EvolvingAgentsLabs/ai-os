@@ -34,8 +34,7 @@ for (const backend of backends) {
     });
 
     const newFlow = () =>
-      store.createFlow({
-        scopeId: SCOPE,
+      store.createFlow({ actorId: "U1", scopeId: SCOPE,
         title: `t-${randomUUID()}`,
         goal: "ship it",
       });
@@ -168,7 +167,7 @@ for (const backend of backends) {
     });
 
     it("an attempt closed without an observation keeps none — absence is not sameness", async () => {
-      const flow = await store.createFlow({ scopeId: SCOPE, title: "t", goal: "g" });
+      const flow = await store.createFlow({ actorId: "U1", scopeId: SCOPE, title: "t", goal: "g" });
       const step = await store.appendStep({ flowId: flow.id, intent: "one" });
       const attempt = await store.startAttempt({ stepId: step!.id });
       await store.finishAttempt({ attemptId: attempt!.id, state: "done" });
@@ -178,7 +177,7 @@ for (const backend of backends) {
     });
 
     it("an observation is captured on the attempt, because upstream telemetry expires within the hour", async () => {
-      const flow = await store.createFlow({ scopeId: SCOPE, title: "t", goal: "g" });
+      const flow = await store.createFlow({ actorId: "U1", scopeId: SCOPE, title: "t", goal: "g" });
       const step = await store.appendStep({ flowId: flow.id, intent: "one" });
       const attempt = await store.startAttempt({ stepId: step!.id });
       await store.finishAttempt({
@@ -196,7 +195,7 @@ for (const backend of backends) {
     });
 
     it("every attempt keeps its own observation, so a repeat is visible across retries", async () => {
-      const flow = await store.createFlow({ scopeId: SCOPE, title: "t", goal: "g" });
+      const flow = await store.createFlow({ actorId: "U1", scopeId: SCOPE, title: "t", goal: "g" });
       const step = await store.appendStep({ flowId: flow.id, intent: "one" });
 
       for (const digest of ["a1", "a1", "b2"]) {
@@ -216,7 +215,7 @@ for (const backend of backends) {
     });
 
     it("a numeric value rides alongside the digest for shapes that declare a metric", async () => {
-      const flow = await store.createFlow({ scopeId: SCOPE, title: "t", goal: "g" });
+      const flow = await store.createFlow({ actorId: "U1", scopeId: SCOPE, title: "t", goal: "g" });
       const step = await store.appendStep({ flowId: flow.id, intent: "one" });
       const attempt = await store.startAttempt({ stepId: step!.id });
       await store.finishAttempt({
@@ -269,13 +268,11 @@ for (const backend of backends) {
 
     it("flows are listed by scope, newest first", async () => {
       const scope = `personal:${randomUUID()}`;
-      const older = await store.createFlow({
-        scopeId: scope,
+      const older = await store.createFlow({ actorId: "U1", scopeId: scope,
         title: "older",
         goal: "g",
       });
-      const newer = await store.createFlow({
-        scopeId: scope,
+      const newer = await store.createFlow({ actorId: "U1", scopeId: scope,
         title: "newer",
         goal: "g",
       });
@@ -295,8 +292,7 @@ describe(
   () => {
     it("a second store, with its own pool, reads the flow and its attempts back", async () => {
       const writer = createPostgresFlowStore(DATABASE_URL!);
-      const flow = await writer.createFlow({
-        scopeId: SCOPE,
+      const flow = await writer.createFlow({ actorId: "U1", scopeId: SCOPE,
         title: "monday",
         goal: "finish on wednesday",
       });

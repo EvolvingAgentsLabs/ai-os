@@ -106,8 +106,7 @@ await new Promise((r) => setTimeout(r, COOLDOWN_MS));
 
 console.log("\n[flow] running a step inside the compacted thread");
 const store = createPostgresFlowStore(DB);
-const flow = await store.createFlow({
-  scopeId: session.scopeId,
+const flow = await store.createFlow({ actorId: "U1", scopeId: session.scopeId,
   title: "compaction survival",
   goal: "one step, executed in a session that has been compacted",
 });

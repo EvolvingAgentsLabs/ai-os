@@ -22,6 +22,7 @@ Leer en orden la primera vez:
 | 10 | [Observabilidad](10-observability.md) | ¿Se puede leer el progreso de un flow? Deriva contra ilegible, y el piso de ruido que las separa |
 | 11 | [Elegir un modelo](11-choosing-a-model.md) | Modelo chico + harness contra frontier + harness — el término de interacción, y dónde cambia de signo |
 | 12 | [Conformación](12-conformation.md) | Proyectos, agentes y carpetas: qué es ya el workspace por capas, por qué la membresía nunca vive ahí, y quién puede ver la forma del sistema |
+| 13 | [Degradación](13-degradation.md) | Una vez corriendo, cómo se enteraría alguien de que dejó de ser bueno — un caso documentado donde la supervisión restó, y uno propio |
 
 ## Correrlo
 

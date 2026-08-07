@@ -17,17 +17,68 @@ está congelado — ver [`doc/es/07-freeze-policy.md`](doc/es/07-freeze-policy.m
 documentos; ver [Idiomas](#idiomas).
 
 > **Estado: dos pilares corren, dos son diseño.** `ai-base/` es una copia
-> vendorizada de QM y corre. **`ai-flows/` corre**: el motor de flows
-> ([M2](doc/es/08-roadmap.md), un flow arrancado por un proceso y terminado por
-> otro, probado en `pi` y en `mock`), una API HTTP firmada, composición multiagente
-> desde árboles declarados en markdown, el instrumento de observabilidad
-> ([10](doc/es/10-observability.md)) y el proyector de conformación
-> ([12](doc/es/12-conformation.md)) — 189 tests. Lo que `ai-flows` **no** tiene es
-> ninguna forma más allá de `Open`: sin `Sequence`, `Loop`, `Fan-out`,
-> `Deliberation`, `Watch`, y sin merge. `ai-ui/` y `ai-storage/` están
-> especificados y **no implementados** en absoluto — la página del
-> [manual](doc/es/manual.md) la sirve `ai-flows`, no `ai-ui`. Nada en este README
+> vendorizada de QM y corre. **`ai-flows/` corre** — 197 tests. `ai-ui/` y
+> `ai-storage/` están especificados y **no implementados** en absoluto; la página
+> que se muestra abajo la sirve `ai-flows`, no `ai-ui`. Nada en este README
 > describe software que exista, salvo que lo diga explícitamente.
+
+## Qué podés hacer con esto hoy
+
+Todo lo de acá se corrió, y el manual lo muestra con capturas de una instancia
+viva: **[Correr ai-os](doc/es/manual.md)** · **[Running ai-os](doc/manual.md)**.
+
+**Organizar gente y agentes por scope.** Organización, proyectos, grupos, equipos e
+individuos no son una taxonomía que ai-os inventó — un proyecto *es* el group scope
+de upstream con un prefijo reservado, y su roster viene de `ProjectStore`. Una
+página muestra cada nivel, quién está en él, y qué define cada uno. La membresía
+nunca se lee de una carpeta, y una carpeta que parece membresía se reporta como
+hallazgo ([ADR-0008](doc/es/adr/0008-conformation-is-projected.md)).
+
+**Escribir agentes y subagentes como markdown.** Un agente es `agents/<nombre>.md`
+— frontmatter para su descripción y tools, cuerpo para sus instrucciones. Una clave
+`subagents:` declara qué compone. El mismo archivo sigue siendo un agente válido y
+delegable, porque el parser de upstream ignora las claves que no conoce, así que no
+hay un segundo registro que mantener sincronizado.
+
+**Ejecutar un árbol declarado como trabajo real.** `POST /flows/from-agent`
+convierte `LedgerLead → SchemaAgent, MigrationAgent, ReviewAgent` en un flow y lo
+ejecuta, delegando cada paso al archivo del agente. `?dryRun=1` muestra el plan
+primero. A cada paso se le entrega lo que produjeron los anteriores.
+
+**Irte y volver.** Un flow arrancado por un proceso lo termina otro, después de un
+reinicio y después de una compactación de contexto, sin re-ejecutar trabajo que ya
+estaba en vuelo. Ese es el milestone por el que existe el repositorio
+([M2](doc/es/08-roadmap.md)).
+
+**Ver si todavía se mueve.** El progreso se juzga contra un piso de ruido *medido*
+en vez de una suposición — δ = 0% en digests normalizados, 21,1% en crudo
+([10](doc/es/10-observability.md)). Una repetición es prueba; una diferencia es un
+rumor.
+
+**Saber quién hizo qué.** Cada flow registra la persona para la que actúa y corre
+como ella, así que el guard de roster se le aplica exactamente igual que a esa
+persona ([ADR-0009](doc/es/adr/0009-a-flow-records-who-it-acts-for.md)).
+
+### Lo que te va a decir que no puede hacer
+
+La parte inusual, y la razón para confiar en la lista de arriba. El sistema reporta
+las preguntas que no pudo contestar en vez de renderizar una página limpia: qué
+scopes no puede enumerar, qué subagente declarado no tiene archivo, qué agentes
+están inertes en el harness que estás corriendo, qué mensajes no puede atribuir.
+
+La falla contra la que esto protege está documentada con un caso y con una corrida
+propia en **[13 · Degradación](doc/es/13-degradation.md)** — un paso de revisión que
+se ejecutó, reportó limpio y no aportó nada, mientras cada señal decía que el
+trabajo había salido bien. *La configuración es una hipótesis; la ejecución es la
+evidencia.*
+
+### Lo que no está construido
+
+Ninguna forma más allá de `Open` — sin `Sequence`, `Loop`, `Fan-out`,
+`Deliberation`, `Watch`, y sin merge. Sin canvas. Sin memoria por scope. Un agente
+no puede delegar a su propio subagente (ese tope es de upstream, y es deliberado).
+Estado completo, milestone por milestone: [08 · Roadmap](doc/es/08-roadmap.md).
+
 
 ## El problema: la IA sigue siendo de un solo jugador
 

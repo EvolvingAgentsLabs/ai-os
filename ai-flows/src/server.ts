@@ -106,6 +106,15 @@ export function createFlowServer(opts: FlowServerOptions) {
       const b = (body ?? {}) as Record<string, unknown>;
       if (typeof b.scopeId !== "string" || !b.scopeId) return { status: 400, body: { error: "scopeId is required" } };
       if (typeof b.goal !== "string" || !b.goal) return { status: 400, body: { error: "goal is required" } };
+      /**
+       * Required, with no default. [ADR-0009](../../doc/adr/0009-a-flow-records-who-it-acts-for.md):
+       * a flow with no actor is not created, rather than created and silently
+       * attributed to a service account. An optional field with a fallback
+       * behind it is the same shared-account attribution with an extra step.
+       */
+      if (typeof b.actorId !== "string" || !b.actorId) {
+        return { status: 400, body: { error: "actorId is required — a flow records the principal it acts for" } };
+      }
       if (b.shape !== undefined && !isShape(b.shape)) {
         // Named explicitly rather than defaulted: a caller asking for `sequence`
         // today is asking for M6, and silently giving them `open` would answer a
@@ -114,6 +123,7 @@ export function createFlowServer(opts: FlowServerOptions) {
       }
       const flow = await store.createFlow({
         scopeId: b.scopeId,
+        actorId: b.actorId,
         title: typeof b.title === "string" && b.title ? b.title : b.goal.slice(0, 80),
         goal: b.goal,
         ...(isShape(b.shape) ? { shape: b.shape } : {}),
@@ -179,6 +189,9 @@ export function createFlowServer(opts: FlowServerOptions) {
       if (typeof b.scopeId !== "string" || !b.scopeId) return { status: 400, body: { error: "scopeId is required" } };
       if (typeof b.agent !== "string" || !b.agent) return { status: 400, body: { error: "agent is required" } };
       if (typeof b.goal !== "string" || !b.goal) return { status: 400, body: { error: "goal is required" } };
+      if (typeof b.actorId !== "string" || !b.actorId) {
+        return { status: 400, body: { error: "actorId is required — a flow records the principal it acts for" } };
+      }
 
       const found = await opts.scopeAgents(b.scopeId);
       if (!found) return { status: 404, body: { error: "no_such_scope" } };
@@ -201,7 +214,12 @@ export function createFlowServer(opts: FlowServerOptions) {
       }
       if (query.get("dryRun") === "1") return { status: 200, body: { plan } };
 
-      const flow = await store.createFlow({ scopeId: plan.scopeId, title: plan.title, goal: plan.goal });
+      const flow = await store.createFlow({
+        scopeId: plan.scopeId,
+        actorId: b.actorId,
+        title: plan.title,
+        goal: plan.goal,
+      });
       for (const step of plan.steps) await store.appendStep({ flowId: flow.id, intent: step.intent });
       return { status: 201, body: { plan, flow: await store.getFlow(flow.id) } };
     }),

@@ -49,6 +49,7 @@ export function createMemoryFlowStore(opts: { now?: () => number; id?: () => str
       const flow: Flow = {
         id: nextId(),
         scopeId: input.scopeId,
+        actorId: input.actorId,
         title: input.title,
         goal: input.goal,
         shape: input.shape ?? "open",
@@ -162,6 +163,9 @@ export function createMemoryFlowStore(opts: { now?: () => number; id?: () => str
       const flow: Flow = {
         id: nextId(),
         scopeId: row.flow.scopeId,
+        // A fork inherits its ancestor's actor: the same person continuing the
+        // same work down a different branch.
+        actorId: row.flow.actorId,
         title: input.title ?? row.flow.title,
         goal: row.flow.goal,
         shape: row.flow.shape,
