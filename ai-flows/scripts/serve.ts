@@ -23,7 +23,7 @@ import { parseAgentDefinition } from "../../ai-base/src/agents/agent-definition.
 import { parseFrontmatter } from "../../ai-base/src/skills/frontmatter.ts";
 import { isProjectGroupRef } from "../../ai-base/src/projects/project-store.ts";
 import { createCoreClient } from "../src/core-client.ts";
-import { createEngine } from "../src/engine.ts";
+import { carryPriorResults, createEngine } from "../src/engine.ts";
 import { createPostgresFlowStore } from "../src/postgres-flow-store.ts";
 import { createFlowServer } from "../src/server.ts";
 import { renderViewHtml } from "../src/view.ts";
@@ -97,7 +97,11 @@ const engine = createEngine({
       text: step.intent,
     };
   },
-  awaitOptions: { intervalMs: 1000, timeoutMs: 20_000 },
+  // Each step is shown what the ones before it produced. Without it a composed
+  // flow is three agents that ran, not a pipeline — measured: a ReviewAgent
+  // asked to review a schema it had never been shown.
+  carry: carryPriorResults(),
+  awaitOptions: { intervalMs: 1000, timeoutMs: 25_000 },
 });
 
 // The conformation half of the page, rebuilt per render. Cheap, and it means the

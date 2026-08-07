@@ -46,6 +46,22 @@ export interface EngineDeps {
   now?: () => number;
   /** Defaults to the measured, normalizing fingerprint. See doc/10. */
   digest?: (text: string) => string;
+  /**
+   * What earlier steps produced, handed to the next one.
+   *
+   * Without this a flow is a list of independent turns that happen to be
+   * numbered. The symptom that forced it: a composed flow ran
+   * `SchemaAgent → MigrationAgent → ReviewAgent`, and ReviewAgent answered
+   * *"there are no files in the workspace to review"* — correctly, because it had
+   * never been shown the schema the first step proposed. Three agents ran and
+   * nothing was a pipeline.
+   *
+   * Off by default, and that is deliberate rather than timid: carrying context
+   * costs tokens on every step and widens what each step can see, so a flow whose
+   * steps really are independent should not pay for it. `carryPriorResults` is
+   * the ready-made one.
+   */
+  carry?: (flow: FlowWithSteps, step: Step) => string;
   awaitOptions?: { intervalMs?: number; timeoutMs?: number; sleep?: (ms: number) => Promise<void> };
 }
 
@@ -181,7 +197,11 @@ export function createEngine(deps: EngineDeps) {
 
       // Queue first, then record. See the header: this is what makes an attempt
       // unambiguous to a process that restarts between the two.
-      const queued = await deps.core.queueTurn(deps.turnFor(flow, step));
+      const request = deps.turnFor(flow, step);
+      const carried = deps.carry?.(flow, step) ?? "";
+      const queued = await deps.core.queueTurn(
+        carried ? { ...request, text: `${carried}\n\n${request.text}` } : request,
+      );
       const attempt = await deps.store.startAttempt({
         stepId: step.id,
         ...(queued.runId ? { runId: queued.runId } : {}),
@@ -241,3 +261,40 @@ export function createEngine(deps: EngineDeps) {
 }
 
 export type FlowEngine = ReturnType<typeof createEngine>;
+
+/**
+ * Hand each step the results of the steps before it.
+ *
+ * Only *settled* results are carried — a step that failed contributed no result,
+ * and passing its error forward as though it were an input is how a downstream
+ * step builds on something that did not happen.
+ *
+ * `maxChars` truncates the oldest first and **says that it truncated**. A silent
+ * cut here is the worst kind: the step still runs, still answers confidently, and
+ * the thing it was not shown is invisible in the output.
+ */
+export function carryPriorResults(maxChars = 6000): (flow: FlowWithSteps, step: Step) => string {
+  return (flow, step) => {
+    const prior = flow.steps
+      .filter((s) => s.index < step.index && s.state === "done" && s.result)
+      .map((s) => `--- step ${s.index} produced ---\n${s.result}`);
+    if (!prior.length) return "";
+
+    const kept: string[] = [];
+    let used = 0;
+    let dropped = 0;
+    // Newest first: the most recent step is the one the next one usually needs.
+    for (const block of [...prior].reverse()) {
+      if (used + block.length > maxChars) {
+        dropped += 1;
+        continue;
+      }
+      kept.unshift(block);
+      used += block.length;
+    }
+    const note = dropped
+      ? `\n\n[${dropped} earlier step result(s) omitted here for length — they are not lost, only not shown]`
+      : "";
+    return `Work already done in this flow, for you to build on:\n\n${kept.join("\n\n")}${note}`;
+  };
+}

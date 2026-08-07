@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { CoreClient, QueuedTurn, RunState } from "../src/core-client.ts";
-import { createEngine } from "../src/engine.ts";
+import { carryPriorResults, createEngine } from "../src/engine.ts";
 import { createMemoryFlowStore } from "../src/memory-flow-store.ts";
 import type { FlowStore } from "../src/flow-store.ts";
 
@@ -12,6 +12,7 @@ import type { FlowStore } from "../src/flow-store.ts";
 function fakeCore(mode: "pending" | "ok" | "fail" = "ok") {
   const runs = new Map<string, RunState>();
   const queued: string[] = [];
+  const sent: string[] = [];
   const state = { mode };
   let n = 0;
   // The real shape: two statuses at two levels, reply on the inner one.
@@ -20,7 +21,8 @@ function fakeCore(mode: "pending" | "ok" | "fail" = "ok") {
       ? { id: runId, status: "done", result: { status: "ok", reply: `reply for ${runId}` } }
       : { id: runId, status: "done", result: { status: "failed", reason: `failure for ${runId}` } };
   const core = {
-    async queueTurn(): Promise<QueuedTurn> {
+    async queueTurn(req?: { text?: string }): Promise<QueuedTurn> {
+      sent.push(req?.text ?? "");
       n += 1;
       const runId = `run-${n}`;
       runs.set(runId, state.mode === "pending" ? { id: runId, status: "running" } : terminal(runId));
@@ -46,6 +48,7 @@ function fakeCore(mode: "pending" | "ok" | "fail" = "ok") {
   return {
     core,
     queued,
+    sent,
     setMode: (m: "pending" | "ok" | "fail") => {
       state.mode = m;
     },
@@ -139,6 +142,82 @@ describe("advancing a step", () => {
     await engine.advance(flow.id);
     await engine.advance(flow.id);
     assert.equal(f.queued.length, 1);
+  });
+});
+
+describe("carrying work forward between steps", () => {
+  const flowWith = (steps: Array<{ index: number; state: string; result: string | null }>) =>
+    ({ steps: steps.map((s) => ({ ...s, id: `s${s.index}`, attempts: [] })) }) as never;
+
+  it("shows a step what the steps before it produced", async () => {
+    // Without this a flow is a list of independent turns that happen to be
+    // numbered: a ReviewAgent asked to review a schema it was never shown.
+    const carry = carryPriorResults();
+    const text = carry(
+      flowWith([
+        { index: 0, state: "done", result: "ALTER TABLE ledger ADD COLUMN currency" },
+        { index: 1, state: "pending", result: null },
+      ]),
+      { index: 1 } as never,
+    );
+    assert.match(text, /step 0 produced/);
+    assert.match(text, /ALTER TABLE ledger/);
+  });
+
+  it("carries nothing to the first step", () => {
+    const text = carryPriorResults()(flowWith([{ index: 0, state: "pending", result: null }]), { index: 0 } as never);
+    assert.equal(text, "");
+  });
+
+  it("does not carry a failed step's error forward as an input", () => {
+    // A step that failed produced nothing. Passing its error on as though it were
+    // a result is how the next step builds on something that did not happen.
+    const text = carryPriorResults()(
+      flowWith([
+        { index: 0, state: "failed", result: null },
+        { index: 1, state: "pending", result: null },
+      ]),
+      { index: 1 } as never,
+    );
+    assert.equal(text, "");
+  });
+
+  it("truncates oldest-first and says that it truncated", () => {
+    // A silent cut is the worst kind: the step still runs, still answers
+    // confidently, and what it was not shown is invisible in the output.
+    const text = carryPriorResults(120)(
+      flowWith([
+        { index: 0, state: "done", result: "A".repeat(200) },
+        { index: 1, state: "done", result: "B".repeat(60) },
+        { index: 2, state: "pending", result: null },
+      ]),
+      { index: 2 } as never,
+    );
+    assert.match(text, /BBB/);
+    assert.ok(!text.includes("AAA"), "the oldest is the one dropped");
+    assert.match(text, /1 earlier step result\(s\) omitted/);
+  });
+
+  it("prepends what was carried to the step's own instruction", async () => {
+    const store = createMemoryFlowStore();
+    const f = fakeCore();
+    const flow = await seed(store, ["first", "second"]);
+    const engine = createEngine({
+      store,
+      core: f.core,
+      carry: carryPriorResults(),
+      turnFor: (fl, st) => ({
+        surface: "t",
+        actor: { externalId: "U1" },
+        conversation: { kind: "dm", threadRef: `${fl.id}-${st.index}` },
+        text: st.intent,
+      }),
+    });
+    await engine.advance(flow.id);
+    await engine.advance(flow.id);
+    assert.match(f.sent[1]!, /Work already done in this flow/);
+    assert.match(f.sent[1]!, /reply for run-1/);
+    assert.match(f.sent[1]!, /second$/);
   });
 });
 
