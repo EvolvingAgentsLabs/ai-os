@@ -188,6 +188,57 @@ comparación, así que los datos etiquetados que un umbral real necesitaría pue
 acumularse del uso normal en vez de inventarse. Su veredicto conviene ignorarlo
 hasta entonces.
 
+## El loop, cerrado — 2026-08-07 [ran]
+
+La señal falsificada de arriba falló por una razón: juzgaba calidad sin ninguna
+noción de respuesta correcta. `ai-flows/src/evaluation.ts` y `src/scenarios.ts`
+aportan la mitad que faltaba — doce tareas cuyas respuestas fueron **computadas y
+no recordadas**, cada una chequeable por una función simple, corridas por dos
+arreglos de agentes que difieren en una propiedad.
+
+**El chequeo de margen fue primero, y solo.** Un brazo, doce escenarios: la línea
+base sacó 9/12. Si hubiera sacado 12/12 la comparación no habría valido nada y no
+había razón para pagar el segundo brazo.
+
+Después la comparación:
+
+| configuración | resultado |
+|---|---|
+| `single-step-recall` — contestar directo | 10/12 |
+| `verify-then-answer` — computarlo y después decirlo | **12/12** |
+
+**Y la línea base se corrió tres veces, porque un número no es una medición.**
+9, 10, 9 — y *cuáles* fallan también se mueve:
+
+| escenario | corrida 1 | 2 | 3 |
+|---|:--:|:--:|:--:|
+| `leap-years-1900-2100` | ✗ | ✗ | ✗ |
+| `digit-sum-2-100` | ✗ | ✗ | ✗ |
+| `sum-primes-below-100` | ✗ | ✓ | ✓ |
+| `trailing-zeros-100-factorial` | ✓ | ✓ | ✗ |
+
+Esa separación es lo útil. **Dos escenarios fallan siempre — ésa es la señal. Uno
+flota — ése es el ruido.** El tratamiento pasó los doce, incluidos los dos
+consistentes, así que el efecto es mayor que la variación entre corridas en vez de
+indistinguible de ella.
+
+Reportado como una sola corrida, `10/12 → 12/12` habría sido una afirmación de dos
+escenarios apoyada en una línea base que se mueve un escenario sola. La tercera
+corrida costó minutos y es la diferencia entre un número y una medición.
+
+### Qué establece y qué no
+
+**Sí:** el loop está cerrado. Un cambio en cómo se arreglan los agentes produce una
+diferencia medible sobre un set fijo, con su ruido estimado en vez de asumido. Toda
+afirmación sobre *evolucionar* agentes necesita que ese instrumento exista primero,
+y ahora existe.
+
+**No:** nada sobre degradación en el tiempo, que es de lo que trata este documento.
+Estas doce tareas tienen respuestas estables y ningún paso de supervisión. La forma
+de g-AMIE — donde una etapa de *revisión* es lo que se evalúa y a veces resta —
+necesita escenarios donde revisar pueda ayudar o dañar, y ésos todavía no existen
+acá. **Ésa es la próxima cosa cara, y son escenarios, no código.**
+
 ## La regla que deja
 
 Corta como para sobrevivir:

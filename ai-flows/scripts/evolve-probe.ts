@@ -35,44 +35,20 @@ const engine = createEngine({
   awaitOptions: { intervalMs: 900, timeoutMs: 90_000 },
 });
 
-/** Checkable without a model: the answer is a number, or it is not there. */
-const SCENARIOS: Scenario[] = [
-  {
-    id: "fib-30",
-    goal: "compute the 30th Fibonacci number, where F(1)=1 and F(2)=1",
-    check: (p) => {
-      const ok = p.replace(/[,_\s]/g, "").includes("832040");
-      return { passed: ok, detail: ok ? "832040 present" : "832040 absent" };
-    },
+import { NUMERIC_SCENARIOS, statesNumber } from "../src/scenarios.ts";
+
+/**
+ * Checkable without a model: the number is stated as a whole word, or it is not.
+ * Answers computed in `src/scenarios.ts`, never recalled.
+ */
+const SCENARIOS: Scenario[] = NUMERIC_SCENARIOS.map((s) => ({
+  id: s.id,
+  goal: s.goal,
+  check: (produced) => {
+    const ok = statesNumber(produced, s.expect);
+    return { passed: ok, detail: ok ? `${s.expect} stated` : `${s.expect} not stated` };
   },
-  {
-    id: "primes-below-50",
-    goal: "count the prime numbers below 50",
-    check: (p) => {
-      const ok = /\b15\b/.test(p);
-      return { passed: ok, detail: ok ? "15 present" : "15 absent" };
-    },
-  },
-  /**
-   * There was a fourth scenario here, asking whether 2100 is a leap year, checked
-   * with `/not a leap year/`. Both configurations FAILED it and both were right:
-   * the model answered "The year 2100 is **not** a leap year" and the markdown
-   * asterisks broke the match.
-   *
-   * A check that fails while the capability works is measuring phrasing — written
-   * into the very instrument built to avoid that. Replaced rather than loosened,
-   * with a scenario whose answer is a number, because the two numeric checks in
-   * this file never had the problem.
-   */
-  {
-    id: "leap-years-in-century",
-    goal: "count how many leap years there are from 2001 to 2100 inclusive, under the Gregorian rules",
-    check: (p) => {
-      const ok = /\b24\b/.test(p);
-      return { passed: ok, detail: ok ? "24 present" : "24 absent" };
-    },
-  },
-];
+}));
 
 const make = (id: string, steps: (s: Scenario) => string[]) => ({
   id,
@@ -94,17 +70,28 @@ const make = (id: string, steps: (s: Scenario) => string[]) => ({
  * of edit "evolving an agent" means in practice — a change to its instructions,
  * not to the code around it.
  */
+const RECALL = make("single-step-recall", (s) => [`${s.goal}. Answer directly and briefly.`]);
+const COMPUTE = make("verify-then-answer", (s) => [
+  `Use your execute tool to run Python that computes this, and report only what the program printed: ${s.goal}`,
+  `State the final answer plainly, using the computed result above. ${s.goal}`,
+]);
+
+/**
+ * `--headroom` runs the BASELINE ALONE and stops.
+ *
+ * Buying the arms in sequence rather than as a grid: if the baseline already
+ * answers everything, no treatment can move the number and every comparison
+ * ties at the ceiling — which this repository has now mistaken for a finding
+ * four times. One arm answers whether the second is worth paying for, and it is
+ * the cheapest thing in the file.
+ */
+const headroomOnly = process.argv.includes("--headroom");
+
 const report = await evaluate({
   store,
   engine,
   scenarios: SCENARIOS,
-  configurations: [
-    make("single-step-recall", (s) => [`${s.goal}. Answer directly and briefly.`]),
-    make("verify-then-answer", (s) => [
-      `Use your execute tool to run Python that computes this, and report only what the program printed: ${s.goal}`,
-      `State the final answer plainly, using the computed result above. ${s.goal}`,
-    ]),
-  ],
+  configurations: headroomOnly ? [RECALL] : [RECALL, COMPUTE],
 });
 
 console.log(renderEvaluation(report));

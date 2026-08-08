@@ -187,6 +187,58 @@ comparison, so the labelled data a real threshold would need can accumulate from
 ordinary use instead of being invented. Its verdict is worth ignoring until it
 does.
 
+## The loop, closed — 2026-08-07 [ran]
+
+The falsified signal above failed for one reason: it judged quality with no notion
+of a right answer. `ai-flows/src/evaluation.ts` and `src/scenarios.ts` supply the
+missing half — twelve tasks whose answers were **computed rather than recalled**,
+each checkable by a plain function, run through two arrangements of agents that
+differ in one property.
+
+**The headroom check came first, and alone.** One arm, twelve scenarios: the
+baseline scored 9/12. Had it scored 12/12 the comparison would have been worthless
+and there would have been no reason to pay for the second arm.
+
+Then the comparison:
+
+| configuration | result |
+|---|---|
+| `single-step-recall` — answer directly | 10/12 |
+| `verify-then-answer` — compute it, then state it | **12/12** |
+
+**And the baseline was run three times, because one number is not a measurement.**
+9, 10, 9 — and *which* scenarios fail moves too:
+
+| scenario | run 1 | run 2 | run 3 |
+|---|:--:|:--:|:--:|
+| `leap-years-1900-2100` | ✗ | ✗ | ✗ |
+| `digit-sum-2-100` | ✗ | ✗ | ✗ |
+| `sum-primes-below-100` | ✗ | ✓ | ✓ |
+| `trailing-zeros-100-factorial` | ✓ | ✓ | ✗ |
+
+That separation is the useful part. **Two scenarios fail every time — that is the
+signal. A third floats — that is the noise.** The treatment cleared all twelve,
+including both consistent failures, so the effect is larger than the run-to-run
+variation rather than indistinguishable from it.
+
+Reported as one run, `10/12 → 12/12` would have been a two-scenario claim resting
+on a baseline that moves by one scenario on its own. The third run cost minutes
+and is the difference between a number and a measurement.
+
+### What this does and does not establish
+
+**Does:** the loop is closed. A change to how agents are arranged produces a
+measurable difference on a fixed task set, with its noise estimated rather than
+assumed. Every claim about *evolving* agents needs that instrument to exist first,
+and now it does.
+
+**Does not:** anything about degradation over time, which is what this document is
+about. These twelve tasks have stable answers and no oversight step. The g-AMIE
+shape — where a *review* stage is the thing being evaluated and sometimes
+subtracts — needs scenarios where review can help or hurt, and those do not exist
+here yet. **That is the next expensive thing, and it is scenarios rather than
+code.**
+
 ## The rule this leaves behind
 
 Short enough to survive:
