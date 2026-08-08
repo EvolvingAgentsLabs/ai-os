@@ -92,16 +92,43 @@ The screenshot taken for the README showed step 0 answering `24 trailing zeros.`
 and step 1 answering `24.` — two correct answers, one of them scored as damage.
 **The number was wrong and the transcript was right there.**
 
-## What this suite would need to run the study
+## A second domain, and the same ceiling — 2026-08-08 [ran]
 
-Scenarios where a competent producer is genuinely wrong some of the time. Twelve
-arithmetic questions a model answers correctly in one step are not that, and
-making them harder by adding digits mostly makes them slower. The g-AMIE shape
-needs a domain where the *first* answer is contestable — which is why their study
-is in clinical reasoning and not in arithmetic.
+The obvious diagnosis was that arithmetic was the wrong domain. So a second set
+was built against **this repository's own source**: twelve questions about
+constants, tuple lengths and union sizes in six files, seeded into the read-only
+`global/source/` layer where any scope's sandbox can read them
+(`scripts/seed-source.ts`). Every answer computed by grepping the tree.
 
-That is the next expensive thing, and it remains scenarios rather than code: the
-harness works, and it correctly reported that it had nothing to measure.
+Baseline: **12/12.** Including the deliberate trap — a question about a file that
+was *not* seeded, whose correct answer is that it cannot be read.
+
+**Three domains, three ceilings.** And the third one localises the problem, which
+the first two did not:
+
+> **The producer is not weak.** "Single-step recall" was designed on the
+> assumption that one step would be a handicap. It is not. That step still has
+> `read` and `execute` and a capable model behind it, so the two arrangements
+> being compared differ in *prompt* and not in *capability* — and a treatment that
+> tells the model to compute has nothing to add to a baseline that already
+> computes.
+
+Headroom for this comparison does not live in the questions. It lives in the
+producer, and there are two honest ways to find it:
+
+1. **Vary the model, not the prompt.** A smaller model as the producer and a
+   larger one as the reviewer is the arrangement that can actually differ — and
+   [11-choosing-a-model](11-choosing-a-model.md) is already the document about
+   where that trade sits and where its sign flips.
+2. **Ask questions no lookup settles.** Anything a well-tooled model can grep, it
+   will grep. A contestable first answer needs judgement, and judgement needs a
+   grader — which this harness refuses on purpose, because a model judging a model
+   is the weakest evidence available ([05](05-ai-storage.md)).
+
+Route 1 is the cheap one and it is not a scenario problem at all, which is the
+opposite of the conclusion drawn twice above. **Recording that reversal is the
+point of this section**: "we need better scenarios" was the wrong diagnosis, held
+across two attempts, and it was a third measurement that dislodged it.
 
 ## How to run it
 

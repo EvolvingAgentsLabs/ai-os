@@ -35,13 +35,20 @@ const engine = createEngine({
   awaitOptions: { intervalMs: 900, timeoutMs: 90_000 },
 });
 
-import { NUMERIC_SCENARIOS, statesNumber } from "../src/scenarios.ts";
+import { NUMERIC_SCENARIOS, SOURCE_SCENARIOS, statesNumber } from "../src/scenarios.ts";
 
 /**
  * Checkable without a model: the number is stated as a whole word, or it is not.
  * Answers computed in `src/scenarios.ts`, never recalled.
  */
-const SCENARIOS: Scenario[] = NUMERIC_SCENARIOS.map((s) => ({
+/**
+ * `--source` selects the codebase questions instead of the arithmetic ones.
+ * The arithmetic set has no headroom — the producer answers all twelve in one
+ * step — so it is kept only as the control that demonstrated that.
+ */
+const SET = process.argv.includes("--source") ? SOURCE_SCENARIOS : NUMERIC_SCENARIOS;
+
+const SCENARIOS: Scenario[] = SET.map((s) => ({
   id: s.id,
   goal: s.goal,
   check: (produced) => {

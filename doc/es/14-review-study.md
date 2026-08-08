@@ -95,16 +95,45 @@ captura tomada para el README mostraba el paso 0 respondiendo `24 trailing zeros
 el paso 1 respondiendo `24.` — dos respuestas correctas, una de ellas puntuada como
 daño. **El número estaba mal y el transcript estaba ahí al lado.**
 
-## Qué necesitaría esta suite para correr el estudio
+## Un segundo dominio, y el mismo techo — 2026-08-08 [ran]
 
-Escenarios donde un productor competente se equivoque genuinamente parte del tiempo.
-Doce preguntas de aritmética que un modelo contesta bien en un paso no son eso, y
-hacerlas más difíciles agregando dígitos sobre todo las hace más lentas. La forma de
-g-AMIE necesita un dominio donde la *primera* respuesta sea discutible — por eso su
-estudio es sobre razonamiento clínico y no sobre aritmética.
+El diagnóstico obvio era que la aritmética era el dominio equivocado. Así que se
+construyó un segundo set contra **el propio código de este repositorio**: doce
+preguntas sobre constantes, largos de tuplas y tamaños de uniones en seis archivos,
+sembrados en la capa de sólo lectura `global/source/` donde el sandbox de cualquier
+scope los puede leer (`scripts/seed-source.ts`). Cada respuesta computada grepeando
+el árbol.
 
-Ésa es la próxima cosa cara, y siguen siendo escenarios y no código: el harness
-funciona, y reportó correctamente que no tenía nada que medir.
+Línea base: **12/12.** Incluida la trampa deliberada — una pregunta sobre un archivo
+que *no* se sembró, cuya respuesta correcta es que no se puede leer.
+
+**Tres dominios, tres techos.** Y el tercero localiza el problema, cosa que los dos
+primeros no hicieron:
+
+> **El productor no es débil.** "Single-step recall" se diseñó suponiendo que un
+> paso sería una desventaja. No lo es. Ese paso igual tiene `read` y `execute` y un
+> modelo capaz detrás, así que los dos arreglos que se comparan difieren en el
+> *prompt* y no en la *capacidad* — y un tratamiento que le dice al modelo que
+> compute no tiene nada que agregarle a una línea base que ya computa.
+
+El margen para esta comparación no vive en las preguntas. Vive en el productor, y
+hay dos formas honestas de encontrarlo:
+
+1. **Variar el modelo, no el prompt.** Un modelo más chico como productor y uno más
+   grande como revisor es el arreglo que sí puede diferir — y
+   [11-choosing-a-model](11-choosing-a-model.md) ya es el documento sobre dónde está
+   ese trade y dónde cambia de signo.
+2. **Preguntar cosas que ninguna búsqueda resuelva.** Todo lo que un modelo bien
+   equipado pueda grepear, lo va a grepear. Una primera respuesta discutible
+   necesita juicio, y el juicio necesita un evaluador — que este harness rechaza a
+   propósito, porque un modelo juzgando a un modelo es la evidencia más débil
+   disponible ([05](05-ai-storage.md)).
+
+La ruta 1 es la barata y no es un problema de escenarios en absoluto, que es lo
+contrario de la conclusión sacada dos veces arriba. **Registrar esa reversión es el
+punto de esta sección**: "necesitamos mejores escenarios" era el diagnóstico
+equivocado, sostenido a lo largo de dos intentos, y fue una tercera medición la que
+lo movió.
 
 ## Cómo correrlo
 

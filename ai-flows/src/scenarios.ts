@@ -143,3 +143,95 @@ export function statesNumber(produced: string, expected: string): boolean {
   const cleaned = produced.replace(/[,_](?=\d)/g, "");
   return new RegExp(`(?<!\\w)(?<!\\d\\.)${expected}(?!\\w)(?!\\.\\d)`).test(cleaned);
 }
+
+/**
+ * A second domain, chosen because the first had no headroom.
+ *
+ * Twelve arithmetic questions were answered 12/12 in a single step, so nothing a
+ * better arrangement could do would show. These ask about **this repository's own
+ * source**, seeded into the read-only `global/source/` layer by
+ * `scripts/seed-source.ts` and readable from any scope's sandbox.
+ *
+ * The property that matters: **the first answer is contestable.** A model
+ * answering from plausibility produces a number that looks right, and only
+ * reading the file settles it. That is the shape the g-AMIE study needs and the
+ * arithmetic set could not provide.
+ *
+ * Every `expect` was computed by grepping the tree, never recalled. If the source
+ * changes, these go stale — which is the cost of using a live codebase as a
+ * benchmark, and is why each names the file it depends on.
+ */
+export const SOURCE_SCENARIOS: readonly NumericScenario[] = [
+  {
+    id: "src-min-input-tokens",
+    goal: "In the file global/source/contribution.ts, what is the numeric value of the exported constant MIN_INPUT_TOKENS?",
+    expect: "12",
+    why: "one grep away for a reader, pure invention for a guesser",
+  },
+  {
+    id: "src-numeric-scenarios-count",
+    goal: "In global/source/scenarios.ts, how many entries does the exported array NUMERIC_SCENARIOS contain?",
+    expect: "12",
+    why: "requires counting entries rather than reading a literal",
+  },
+  {
+    id: "src-replay-window-minutes",
+    goal: "In global/source/core-client.ts, REPLAY_WINDOW_MS is defined as a number of minutes in milliseconds. How many minutes is it?",
+    expect: "5",
+    why: "the value is written as an expression, not a plain number",
+  },
+  {
+    id: "src-compose-max-steps",
+    goal: "In global/source/compose.ts, what is the default value used for maxSteps when the caller does not supply one?",
+    expect: "25",
+    why: "a default expressed with ?? inside the function body",
+  },
+  {
+    id: "src-flow-states-count",
+    goal: "In global/source/types.ts, how many values are in the FLOW_STATES array?",
+    expect: "6",
+    why: "counting a const tuple",
+  },
+  {
+    id: "src-step-states-count",
+    goal: "In global/source/types.ts, how many values are in the STEP_STATES array?",
+    expect: "6",
+    why: "the same shape as FLOW_STATES, so a guesser that pattern-matches may still miss",
+  },
+  {
+    id: "src-evaluation-verdicts",
+    goal: "In global/source/evaluation.ts, how many distinct values can the EvaluationVerdict type take?",
+    expect: "3",
+    why: "a union spread over several lines with comments between the members",
+  },
+  {
+    id: "src-membership-shaped-count",
+    goal: "In global/source/conformation.ts or wherever it is defined in the seeded source, how many entries are in the MEMBERSHIP_SHAPED list? If the file is not present, answer 0.",
+    expect: "0",
+    why: "the file is deliberately NOT seeded — the correct answer is that it cannot be read, and a guesser will invent a count",
+  },
+  {
+    id: "src-attempt-states-count",
+    goal: "In global/source/types.ts, how many values are in the ATTEMPT_STATES array?",
+    expect: "3",
+    why: "a shorter tuple in the same file as two six-value ones",
+  },
+  {
+    id: "src-flow-shapes-count",
+    goal: "In global/source/types.ts, how many values are in the FLOW_SHAPES array?",
+    expect: "1",
+    why: "a single-element tuple, which reads as a mistake and invites a guesser to say more",
+  },
+  {
+    id: "src-contribution-verdicts",
+    goal: "In global/source/contribution.ts, how many distinct values can the ContributionVerdict type take?",
+    expect: "3",
+    why: "another commented union",
+  },
+  {
+    id: "src-terminal-run-states",
+    goal: "In global/source/core-client.ts, how many entries are in the TERMINAL set of run statuses?",
+    expect: "8",
+    why: "a Set literal on one long line",
+  },
+];
