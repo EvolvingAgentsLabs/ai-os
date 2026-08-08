@@ -13,12 +13,31 @@ describe("stating a number", () => {
     assert.ok(statesNumber("2_971_215_073", "2971215073"));
   });
 
+  it("accepts a correct answer that ends a sentence", () => {
+    /**
+     * The regression this file exists for. The first boundary excluded `.` on
+     * both sides to keep `3.24` out, and thereby scored "The answer is 24." as
+     * WRONG — the most ordinary way a model ends a sentence.
+     *
+     * It cost a headline: a review study reported a reviewer taking a correct
+     * answer and making it wrong, and the "damaged" answer was `24.` The
+     * instrument built to catch a bad reviewer produced one.
+     */
+    assert.ok(statesNumber("24.", "24"));
+    assert.ok(statesNumber("The answer is 24.", "24"));
+    assert.ok(statesNumber("It ends with 24 zeros. Confirmed.", "24"));
+  });
+
+  it("still rejects a decimal, which is what the boundary was for", () => {
+    assert.ok(!statesNumber("3.24", "24"));
+    assert.ok(!statesNumber("24.5", "24"));
+  });
+
   it("does not accept the answer buried inside a longer number", () => {
     // Substring matching turns a wrong answer containing the right digits into a
     // pass, which is the leniency that makes a benchmark flattering.
     assert.ok(!statesNumber("1024", "24"));
     assert.ok(!statesNumber("The result was 248.", "24"));
-    assert.ok(!statesNumber("3.24", "24"));
   });
 
   it("does not accept it as part of a word", () => {

@@ -123,13 +123,23 @@ export const NUMERIC_SCENARIOS: readonly NumericScenario[] = [
 ];
 
 /**
- * Present as a whole word, so `24` does not match inside `1024`.
+ * Present as a standalone number, so `24` does not match inside `1024` or `3.24`
+ * — **and does match in "The answer is 24."**
  *
- * Deliberately not a "contains" test. The first version of this comparison used
- * substring matching and it is the kind of leniency that turns a wrong answer
- * containing the right digits into a pass.
+ * That last case is not a detail. The first version excluded `.` from both
+ * boundaries to keep `3.24` out, and thereby rejected every correct answer that
+ * ended a sentence. It scored `"The answer is 24."` as WRONG.
+ *
+ * It cost a headline. A review study reported that a reviewer had taken a correct
+ * answer and made it wrong — the whole point of the study — and the "damaged"
+ * answer was `24.` with a full stop. The reviewer had been right. **The instrument
+ * built to catch a bad reviewer produced a bad reviewer.**
+ *
+ * So the boundaries are asymmetric on purpose: a `.` before the number only
+ * disqualifies it when a digit precedes the dot (`3.24`), and a `.` after only
+ * when a digit follows it (`24.5`). A trailing full stop is punctuation.
  */
 export function statesNumber(produced: string, expected: string): boolean {
   const cleaned = produced.replace(/[,_](?=\d)/g, "");
-  return new RegExp(`(?<![\\w.])${expected}(?![\\w.])`).test(cleaned);
+  return new RegExp(`(?<!\\w)(?<!\\d\\.)${expected}(?!\\w)(?!\\.\\d)`).test(cleaned);
 }

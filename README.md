@@ -64,10 +64,24 @@ questions it could not answer instead of rendering a clean page: which scopes it
 cannot enumerate, which declared sub-agent has no file, which agents are inert on
 the harness you are running, which messages it cannot attribute.
 
-The failure this guards against is documented with a case and with one of our own
-runs in **[13 · Degradation](doc/13-degradation.md)** — a review step that
-executed, reported cleanly, and added nothing, while every signal said the work had
-succeeded. *The configuration is a hypothesis; the execution is the evidence.*
+**Measure whether a change to the agents helped.** Same scenarios, two arrangements,
+ground truth computed rather than recalled. The headroom check runs first and alone:
+if the baseline already answers everything, no arrangement can show anything, and
+the harness says `NO-HEADROOM` rather than letting a tie read as a finding
+([13 · Degradation](doc/13-degradation.md)).
+
+**And measure whether the reviewer you added is helping** — a pass rate cannot,
+because a reviewer's repairs and its damage cancel inside it. The study that does
+is **[14 · Review study](doc/14-review-study.md)**, and it is the one worth reading
+for a different reason than intended: it reported that a reviewer had taken a
+correct answer and made it wrong, and **that finding was an artefact of one
+character** — a check that rejected every correct answer ending in a full stop. It
+is written up in full rather than deleted, because it invalidated four other
+numbers with it.
+
+*The configuration is a hypothesis; the execution is the evidence.* An agent tree
+with a `ReviewAgent` in it looks safer than one without. Whether it **is** safer is
+a measurement.
 
 ### What is not built
 

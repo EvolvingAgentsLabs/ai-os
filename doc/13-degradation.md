@@ -187,59 +187,54 @@ comparison, so the labelled data a real threshold would need can accumulate from
 ordinary use instead of being invented. Its verdict is worth ignoring until it
 does.
 
-## The loop, closed — 2026-08-07 [ran]
+## The loop — closed on 2026-08-07, and void by 2026-08-08 [ran]
 
-The falsified signal above failed for one reason: it judged quality with no notion
-of a right answer. `ai-flows/src/evaluation.ts` and `src/scenarios.ts` supply the
-missing half — twelve tasks whose answers were **computed rather than recalled**,
-each checkable by a plain function, run through two arrangements of agents that
-differ in one property.
+The falsified signal above failed because it judged quality with no notion of a
+right answer. `ai-flows/src/evaluation.ts` and `src/scenarios.ts` supplied the
+missing half: twelve tasks with computed ground truth, run through two
+arrangements of agents.
 
-**The headroom check came first, and alone.** One arm, twelve scenarios: the
-baseline scored 9/12. Had it scored 12/12 the comparison would have been worthless
-and there would have been no reason to pay for the second arm.
+**It reported this, and every number in it was wrong:**
 
-Then the comparison:
-
-| configuration | result |
+| claimed | actually |
 |---|---|
-| `single-step-recall` — answer directly | 10/12 |
-| `verify-then-answer` — compute it, then state it | **12/12** |
+| baseline 9, 10, 9 across three runs — "±1 scenario of noise" | 12, 12 |
+| "the headroom check passed, the comparison is worth paying for" | there is no headroom |
+| `single-step-recall` 10/12 vs `verify-then-answer` 12/12, `COMPARABLE` | both 12/12 |
 
-**And the baseline was run three times, because one number is not a measurement.**
-9, 10, 9 — and *which* scenarios fail moves too:
+The check `statesNumber` excluded `.` from both boundaries — to stop `3.24`
+matching `24` — and thereby **rejected every correct answer that ended a
+sentence**. `"The answer is 24."` scored as wrong. The spread it produced was
+punctuation.
 
-| scenario | run 1 | run 2 | run 3 |
-|---|:--:|:--:|:--:|
-| `leap-years-1900-2100` | ✗ | ✗ | ✗ |
-| `digit-sum-2-100` | ✗ | ✗ | ✗ |
-| `sum-primes-below-100` | ✗ | ✓ | ✓ |
-| `trailing-zeros-100-factorial` | ✓ | ✓ | ✗ |
+The corrected suite has **no headroom at all**: the one-step producer answers all
+twelve. The comparison it seemed to support does not exist, and the study built on
+top of it is written up in [14-review-study](14-review-study.md), which reports the
+same reversal.
 
-That separation is the useful part. **Two scenarios fail every time — that is the
-signal. A third floats — that is the noise.** The treatment cleared all twelve,
-including both consistent failures, so the effect is larger than the run-to-run
-variation rather than indistinguishable from it.
+**The guard could not catch it.** `evaluation.ts` refuses to report a comparison
+when every arm ties at the limit — and it was satisfied, because 9/12 and 10/12
+look exactly like a suite with room. A guard reading the same numbers a broken
+check produced cannot tell that they are broken.
 
-Reported as one run, `10/12 → 12/12` would have been a two-scenario claim resting
-on a baseline that moves by one scenario on its own. The third run cost minutes
-and is the difference between a number and a measurement.
+So the loop is *not* closed. What exists is the instrument; what is missing is a
+scenario set a competent producer genuinely fails some of the time, which twelve
+arithmetic questions are not. That remains scenarios rather than code.
 
-### What this does and does not establish
+### What survives
 
-**Does:** the loop is closed. A change to how agents are arranged produces a
-measurable difference on a fixed task set, with its noise estimated rather than
-assumed. Every claim about *evolving* agents needs that instrument to exist first,
-and now it does.
+The direction, and one narrowed rule. A pass rate cannot see a reviewer whose
+repairs and damage cancel, so the before/after classification in
+`review-evaluation.ts` is still the right shape — it simply had nothing to measure
+on this suite. And:
 
-**Does not:** anything about degradation over time, which is what this document is
-about. These twelve tasks have stable answers and no oversight step. The g-AMIE
-shape — where a *review* stage is the thing being evaluated and sometimes
-subtracts — needs scenarios where review can help or hurt, and those do not exist
-here yet. **That is the next expensive thing, and it is scenarios rather than
-code.**
+> **A check that can fail while the capability works does not only lose signal —
+> it manufactures one.**
 
-## The rule this leaves behind
+The version of that rule this repository already had was about losing signal. This
+is the expensive half.
+
+## The rule this leaves behind## The rule this leaves behind
 
 Short enough to survive:
 
