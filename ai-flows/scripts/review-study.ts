@@ -27,18 +27,35 @@ const DB = config.databaseUrl;
 if (!DB) throw new Error("DATABASE_URL is required");
 const store = createPostgresFlowStore(DB);
 const core = createCoreClient({ baseUrl: process.env.CORE_API_URL ?? "http://localhost:8080" });
-const engine = createEngine({
-  store,
-  core,
-  carry: carryPriorResults(),
-  turnFor: (flow, step) => ({
-    surface: "review-study",
-    actor: { externalId: "evalbot", displayName: "evalbot" },
-    conversation: { kind: "dm", threadRef: `rev-${flow.id}-${step.index}` },
-    text: step.intent,
-  }),
-  awaitOptions: { intervalMs: 900, timeoutMs: 90_000 },
-});
+
+/**
+ * `PRODUCER_CORE_URL` points step 0 at a different core, and therefore a
+ * different model, from the reviewer.
+ *
+ * Three scenario sets in a row tied at the ceiling because the arrangements being
+ * compared differed in prompt and not in capability. Varying the model is the
+ * change that can differ, and it is configuration rather than code: two cores,
+ * two `PI_MODEL` values ([14](../../doc/14-review-study.md)).
+ */
+const PRODUCER_URL = process.env.PRODUCER_CORE_URL;
+const producerCore = PRODUCER_URL ? createCoreClient({ baseUrl: PRODUCER_URL }) : null;
+
+const engineOn = (client: typeof core) =>
+  createEngine({
+    store,
+    core: client,
+    carry: carryPriorResults(),
+    turnFor: (flow, step) => ({
+      surface: "review-study",
+      actor: { externalId: "evalbot", displayName: "evalbot" },
+      conversation: { kind: "dm", threadRef: `rev-${flow.id}-${step.index}` },
+      text: step.intent,
+    }),
+    awaitOptions: { intervalMs: 900, timeoutMs: 90_000 },
+  });
+
+const engine = engineOn(core);
+const producerEngine = producerCore ? engineOn(producerCore) : null;
 
 const SCENARIOS: ReviewScenario[] = NUMERIC_SCENARIOS.map((s) => ({
   id: s.id,
@@ -65,6 +82,7 @@ const reviewInstruction = (goal: string) =>
 const report = await runReviewStudy({
   store,
   engine,
+  ...(producerEngine ? { producerEngine } : {}),
   scenarios: SCENARIOS,
   async createFlow(scenario) {
     const flow = await store.createFlow({
@@ -80,6 +98,9 @@ const report = await runReviewStudy({
   },
 });
 
+console.log(
+  `producer: ${PRODUCER_URL ?? "same core as reviewer"} · reviewer: ${process.env.CORE_API_URL ?? "http://localhost:8080"}`,
+);
 console.log(`reviewer posture: ${STRICT ? "sceptical (rework it yourself)" : "deferential (check and correct)"}\n`);
 console.log(renderReviewStudy(report));
 process.exit(0);

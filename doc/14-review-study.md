@@ -130,6 +130,53 @@ opposite of the conclusion drawn twice above. **Recording that reversal is the
 point of this section**: "we need better scenarios" was the wrong diagnosis, held
 across two attempts, and it was a third measurement that dislodged it.
 
+## Route 1 was run too, and it also failed — 2026-08-08 [ran]
+
+Two cores, two `PI_MODEL` values: `google/gemini-2.5-flash-lite` as the producer,
+`deepseek/deepseek-v4-flash` as the reviewer. Configuration, not code — the study
+now takes a `producerEngine` so step 0 can sit on a different model.
+
+The headroom check on the weak model alone gave **11/12**, one scenario of room.
+Worth stating before the study rather than after: **repair headroom was one
+scenario and damage headroom was eleven**, so that configuration was well placed to
+detect a reviewer that breaks things and poorly placed to detect one that fixes
+them.
+
+The study:
+
+| | correct before | correct after | improved | unchanged | reduced | unreadable |
+|---|---:|---:|---:|---:|---:|---:|
+| weak producer → strong reviewer | 100% | 100% | 0 | 9 | 0 | **3** |
+
+`NO HEADROOM FOR REPAIR` again. The one scenario the weak model failed during the
+headroom check came back correct here — run-to-run variance, on a margin of one.
+
+And three of twelve runs were lost to `Provider finish_reason: error`. Not a
+capability difference; the provider failed. The harness counted them `unreadable`
+rather than passing or failing them, which is the one thing that went right.
+
+### Four attempts, four ceilings. Stopping.
+
+Arithmetic; the codebase; a weaker prompt; a weaker model. This repository's own
+rule applies to the person applying it:
+
+> **Count the redesigns.** Each one that moves the instrument closer to the
+> hypothesis is fine once, suspicious twice, and by the third it is looking for the
+> result rather than measuring it.
+
+This is the fourth. Continuing to search for a configuration that produces the
+g-AMIE shape would be exactly that search. **The honest position is that on this
+model class and these task types, a single well-tooled step is at the ceiling, and
+a review stage has nothing to add — which is itself the g-AMIE finding, arrived at
+from the other side.** Their reviewers added least where the output was already
+strong; here the output is always already strong, so a reviewer adds nothing at
+all.
+
+What would change the answer is a domain where the first answer is genuinely
+contestable, and every cheap proxy for that has now been tried. The next attempt
+should not be another scenario set; it should be a real task from real work, where
+being wrong is possible because nobody knows the answer in advance.
+
 ## How to run it
 
 ```bash

@@ -78,7 +78,19 @@ export interface ReviewReport {
 
 export interface RunReviewOptions {
   store: FlowStore;
+  /** Runs every step unless `producerEngine` is given, in which case it runs the reviewer. */
   engine: FlowEngine;
+  /**
+   * Optional engine for step 0 only, so the producer and the reviewer can be
+   * **different models** rather than the same model under different prompts.
+   *
+   * Three scenario sets in a row hit the ceiling because the two arrangements
+   * being compared differed in prompt and not in capability: a single step with
+   * `execute` and a capable model behind it is not a handicap, so a treatment
+   * telling it to compute had nothing to add. Varying the model is the change
+   * that can actually differ ([14](../../doc/14-review-study.md)).
+   */
+  producerEngine?: FlowEngine;
   scenarios: readonly ReviewScenario[];
   /** Must produce a flow whose FIRST step answers and whose LAST step reviews. */
   createFlow: (scenario: ReviewScenario) => Promise<string | null>;
@@ -102,8 +114,13 @@ export async function runReviewStudy(opts: RunReviewOptions): Promise<ReviewRepo
     const flowId = await opts.createFlow(scenario);
     if (!flowId) continue;
     for (let i = 0; i < maxAdvances; i += 1) {
-      await opts.engine.resume(flowId);
-      const outcome = await opts.engine.advance(flowId);
+      // Which engine runs this step is decided by which step is next, so the
+      // producer and reviewer can sit on different models.
+      const current = await opts.store.getFlow(flowId);
+      const nextIndex = current?.steps.find((s) => s.state === "pending" || s.state === "running")?.index ?? -1;
+      const engine = nextIndex === 0 && opts.producerEngine ? opts.producerEngine : opts.engine;
+      await engine.resume(flowId);
+      const outcome = await engine.advance(flowId);
       if (outcome.kind === "complete" || outcome.kind === "halted") break;
     }
     const flow = await opts.store.getFlow(flowId);
