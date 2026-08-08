@@ -135,6 +135,53 @@ punto de esta sección**: "necesitamos mejores escenarios" era el diagnóstico
 equivocado, sostenido a lo largo de dos intentos, y fue una tercera medición la que
 lo movió.
 
+## La ruta 1 también se corrió, y también falló — 2026-08-08 [ran]
+
+Dos cores, dos valores de `PI_MODEL`: `google/gemini-2.5-flash-lite` como productor,
+`deepseek/deepseek-v4-flash` como revisor. Configuración, no código — el estudio
+ahora acepta un `producerEngine` para que el paso 0 corra en otro modelo.
+
+El chequeo de margen sobre el modelo débil solo dio **11/12**, un escenario de
+espacio. Vale decirlo antes del estudio y no después: **el margen de reparación era
+un escenario y el de daño once**, así que esa configuración estaba bien puesta para
+detectar un revisor que rompe y mal puesta para detectar uno que arregla.
+
+El estudio:
+
+| | correcto antes | correcto después | mejoró | sin cambio | dañó | ilegible |
+|---|---:|---:|---:|---:|---:|---:|
+| productor débil → revisor fuerte | 100% | 100% | 0 | 9 | 0 | **3** |
+
+`NO HEADROOM FOR REPAIR` otra vez. El único escenario que el modelo débil falló en
+el chequeo de margen volvió correcto acá — varianza entre corridas, sobre un margen
+de uno.
+
+Y tres de doce corridas se perdieron por `Provider finish_reason: error`. No es una
+diferencia de capacidad; falló el proveedor. El harness las contó como `unreadable`
+en vez de aprobarlas o reprobarlas, que es lo único que salió bien.
+
+### Cuatro intentos, cuatro techos. Se para.
+
+Aritmética; el código del repo; un prompt más débil; un modelo más débil. La regla
+del propio repositorio aplica a quien la aplica:
+
+> **Contar los rediseños.** Cada uno que acerca el instrumento a la hipótesis es
+> aceptable una vez, sospechoso dos, y a la tercera está buscando el resultado en
+> vez de medirlo.
+
+Éste es el cuarto. Seguir buscando una configuración que produzca la forma de
+g-AMIE sería exactamente esa búsqueda. **La posición honesta es que sobre esta clase
+de modelo y estos tipos de tarea, un solo paso bien equipado está en el techo, y una
+etapa de revisión no tiene nada que agregar — que es el hallazgo de g-AMIE llegando
+desde el otro lado.** Sus revisores aportaron menos donde la salida ya era fuerte;
+acá la salida siempre ya es fuerte, así que un revisor no aporta nada.
+
+Lo que cambiaría la respuesta es un dominio donde la primera respuesta sea
+genuinamente discutible, y todos los proxies baratos de eso ya se probaron. El
+próximo intento no debería ser otro set de escenarios; debería ser una tarea real de
+trabajo real, donde equivocarse sea posible porque nadie sabe la respuesta de
+antemano.
+
 ## Cómo correrlo
 
 ```bash
