@@ -20,6 +20,7 @@ Read in order the first time:
 | 11 | [Choosing a model](11-choosing-a-model.md) | Small model plus harness against frontier plus harness — the interaction term, and where its sign flips |
 | 12 | [Conformation](12-conformation.md) | Projects, agents and folders: what the layered workspace already is, why membership never lives in it, and who can see the shape of the system at all |
 | 13 | [Degradation](13-degradation.md) | Once it is running, how would anyone find out it had stopped being good — a documented case where oversight subtracted, and one of our own |
+| 14 | [Review study](14-review-study.md) | **Does adding a reviewer help?** The study ran and found nothing — and the finding the first draft reported was an artefact of one full stop, which voided four other numbers with it |
 
 ## Decisions
 

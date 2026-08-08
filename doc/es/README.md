@@ -23,6 +23,7 @@ Leer en orden la primera vez:
 | 11 | [Elegir un modelo](11-choosing-a-model.md) | Modelo chico + harness contra frontier + harness — el término de interacción, y dónde cambia de signo |
 | 12 | [Conformación](12-conformation.md) | Proyectos, agentes y carpetas: qué es ya el workspace por capas, por qué la membresía nunca vive ahí, y quién puede ver la forma del sistema |
 | 13 | [Degradación](13-degradation.md) | Una vez corriendo, cómo se enteraría alguien de que dejó de ser bueno — un caso documentado donde la supervisión restó, y uno propio |
+| 14 | [Estudio de revisión](14-review-study.md) | **¿Agregar un revisor ayuda?** El estudio corrió y no encontró nada — y el hallazgo que reportó el primer borrador era un artefacto de un punto final, que se llevó otros cuatro números |
 
 ## Correrlo
 

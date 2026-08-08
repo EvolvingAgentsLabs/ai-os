@@ -188,58 +188,55 @@ comparación, así que los datos etiquetados que un umbral real necesitaría pue
 acumularse del uso normal en vez de inventarse. Su veredicto conviene ignorarlo
 hasta entonces.
 
-## El loop, cerrado — 2026-08-07 [ran]
+## El loop — cerrado el 2026-08-07, y anulado el 2026-08-08 [ran]
 
-La señal falsificada de arriba falló por una razón: juzgaba calidad sin ninguna
-noción de respuesta correcta. `ai-flows/src/evaluation.ts` y `src/scenarios.ts`
-aportan la mitad que faltaba — doce tareas cuyas respuestas fueron **computadas y
-no recordadas**, cada una chequeable por una función simple, corridas por dos
-arreglos de agentes que difieren en una propiedad.
+La señal falsificada de arriba falló porque juzgaba calidad sin noción de respuesta
+correcta. `ai-flows/src/evaluation.ts` y `src/scenarios.ts` aportaron la mitad que
+faltaba: doce tareas con verdad de referencia computada, corridas por dos arreglos
+de agentes.
 
-**El chequeo de margen fue primero, y solo.** Un brazo, doce escenarios: la línea
-base sacó 9/12. Si hubiera sacado 12/12 la comparación no habría valido nada y no
-había razón para pagar el segundo brazo.
+**Reportó esto, y todos sus números estaban mal:**
 
-Después la comparación:
-
-| configuración | resultado |
+| se afirmó | en realidad |
 |---|---|
-| `single-step-recall` — contestar directo | 10/12 |
-| `verify-then-answer` — computarlo y después decirlo | **12/12** |
+| línea base 9, 10, 9 en tres corridas — "±1 escenario de ruido" | 12, 12 |
+| "el chequeo de margen pasó, la comparación vale lo que cuesta" | no hay margen |
+| `single-step-recall` 10/12 contra `verify-then-answer` 12/12, `COMPARABLE` | ambos 12/12 |
 
-**Y la línea base se corrió tres veces, porque un número no es una medición.**
-9, 10, 9 — y *cuáles* fallan también se mueve:
+El check `statesNumber` excluía el `.` de ambos bordes — para que `3.24` no
+matcheara `24` — y con eso **rechazaba toda respuesta correcta que terminara una
+oración**. `"The answer is 24."` puntuaba como incorrecta. La dispersión que
+producía era puntuación.
 
-| escenario | corrida 1 | 2 | 3 |
-|---|:--:|:--:|:--:|
-| `leap-years-1900-2100` | ✗ | ✗ | ✗ |
-| `digit-sum-2-100` | ✗ | ✗ | ✗ |
-| `sum-primes-below-100` | ✗ | ✓ | ✓ |
-| `trailing-zeros-100-factorial` | ✓ | ✓ | ✗ |
+La suite corregida **no tiene margen alguno**: el productor de un paso acierta las
+doce. La comparación que parecía sostener no existe, y el estudio construido encima
+está escrito en [14-review-study](14-review-study.md), que reporta la misma
+reversión.
 
-Esa separación es lo útil. **Dos escenarios fallan siempre — ésa es la señal. Uno
-flota — ése es el ruido.** El tratamiento pasó los doce, incluidos los dos
-consistentes, así que el efecto es mayor que la variación entre corridas en vez de
-indistinguible de ella.
+**El guard no podía atraparlo.** `evaluation.ts` se niega a reportar una comparación
+cuando todos los brazos empatan en el límite — y estaba satisfecho, porque 9/12 y
+10/12 se ven exactamente como una suite con espacio. Un guard que lee los mismos
+números que produjo un check roto no puede saber que están rotos.
 
-Reportado como una sola corrida, `10/12 → 12/12` habría sido una afirmación de dos
-escenarios apoyada en una línea base que se mueve un escenario sola. La tercera
-corrida costó minutos y es la diferencia entre un número y una medición.
+Así que el loop *no* está cerrado. Lo que existe es el instrumento; lo que falta es
+un set de escenarios que un productor competente falle genuinamente parte del
+tiempo, cosa que doce preguntas de aritmética no son. Eso sigue siendo escenarios,
+no código.
 
-### Qué establece y qué no
+### Qué sobrevive
 
-**Sí:** el loop está cerrado. Un cambio en cómo se arreglan los agentes produce una
-diferencia medible sobre un set fijo, con su ruido estimado en vez de asumido. Toda
-afirmación sobre *evolucionar* agentes necesita que ese instrumento exista primero,
-y ahora existe.
+La dirección, y una regla afilada. Una tasa de acierto no puede ver un revisor cuyas
+reparaciones y daños se cancelan, así que la clasificación antes/después de
+`review-evaluation.ts` sigue siendo la forma correcta — simplemente no tenía nada
+que medir en esta suite. Y:
 
-**No:** nada sobre degradación en el tiempo, que es de lo que trata este documento.
-Estas doce tareas tienen respuestas estables y ningún paso de supervisión. La forma
-de g-AMIE — donde una etapa de *revisión* es lo que se evalúa y a veces resta —
-necesita escenarios donde revisar pueda ayudar o dañar, y ésos todavía no existen
-acá. **Ésa es la próxima cosa cara, y son escenarios, no código.**
+> **Un check que puede fallar mientras la capacidad funciona no sólo pierde señal —
+> la fabrica.**
 
-## La regla que deja
+La versión de esa regla que este repositorio ya tenía era sobre perder señal. Ésta
+es la mitad cara.
+
+## La regla que deja## La regla que deja
 
 Corta como para sobrevivir:
 

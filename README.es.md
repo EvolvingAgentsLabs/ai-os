@@ -66,11 +66,23 @@ las preguntas que no pudo contestar en vez de renderizar una página limpia: qu�
 scopes no puede enumerar, qué subagente declarado no tiene archivo, qué agentes
 están inertes en el harness que estás corriendo, qué mensajes no puede atribuir.
 
-La falla contra la que esto protege está documentada con un caso y con una corrida
-propia en **[13 · Degradación](doc/es/13-degradation.md)** — un paso de revisión que
-se ejecutó, reportó limpio y no aportó nada, mientras cada señal decía que el
-trabajo había salido bien. *La configuración es una hipótesis; la ejecución es la
-evidencia.*
+**Medir si un cambio en los agentes ayudó.** Mismos escenarios, dos arreglos,
+verdad de referencia computada y no recordada. El chequeo de margen corre primero y
+solo: si la línea base ya contesta todo, ningún arreglo puede mostrar nada, y el
+harness dice `NO-HEADROOM` en vez de dejar que un empate se lea como hallazgo
+([13 · Degradación](doc/es/13-degradation.md)).
+
+**Y medir si el revisor que agregaste está ayudando** — una tasa de acierto no
+puede, porque las reparaciones y los daños de un revisor se cancelan adentro. El
+estudio que sí puede es **[14 · Estudio de revisión](doc/es/14-review-study.md)**, y
+vale leerlo por una razón distinta de la prevista: reportó que un revisor había
+vuelto incorrecta una respuesta correcta, y **ese hallazgo era un artefacto de un
+carácter** — un check que rechazaba toda respuesta correcta terminada en punto. Está
+escrito completo en vez de borrado, porque se llevó otros cuatro números con él.
+
+*La configuración es una hipótesis; la ejecución es la evidencia.* Un árbol de
+agentes con un `ReviewAgent` adentro parece más seguro que uno sin él. Si **es** más
+seguro es una medición.
 
 ### Lo que no está construido
 
