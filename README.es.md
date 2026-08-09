@@ -33,6 +33,7 @@ cd ai-ui    && node scripts/serve.ts                         # escritorio  :8098
 | [**Manual**](doc/es/manual.md) | Cómo correrlo, gesto por gesto, con capturas de una instancia viva |
 | [**Especificaciones**](doc/es/) | Un documento por pilar y por problema. Son las specs que el código sigue |
 | [**Decisiones**](doc/adr/) | Un archivo por decisión de arquitectura, reemplazada y nunca editada |
+| [**Próximo**](NEXT.md) | Qué sigue, y cómo volver a levantar el stack |
 
 ## Estado
 

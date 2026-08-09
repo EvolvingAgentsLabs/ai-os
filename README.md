@@ -35,6 +35,7 @@ Español: [Correr ai-os](doc/es/manual.md).
 | [**Manual**](doc/manual.md) | Running it, gesture by gesture, with screenshots from a live instance · [es](doc/es/manual.md) |
 | [**Specifications**](doc/) | One document per pillar and per problem. These are the specs the code follows |
 | [**Decisions**](doc/adr/) | One file per architectural decision, superseded rather than edited |
+| [**Next**](NEXT.md) | What to pick up next, and how to get the stack back up |
 
 ## State
 
