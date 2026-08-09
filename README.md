@@ -15,188 +15,96 @@ organisation is frozen — see [`doc/07-freeze-policy.md`](doc/07-freeze-policy.
 **[Español](README.es.md)** · English is the canonical version of every document
 here; see [Languages](#languages).
 
-> **Status: two pillars run, two are design.** `ai-base/` is a vendored copy of QM
-> and runs. **`ai-flows/` runs** — 197 tests. `ai-ui/` and `ai-storage/` are
-> specified and **not implemented at all**; the page shown below is served by
-> `ai-flows`, not by `ai-ui`. Nothing in this README describes software that
-> exists unless it says so.
+> **`ai-base` and `ai-flows` run — 235 tests. `ai-ui` and `ai-storage` do not
+> exist.** Nothing here describes software that exists unless it says so, and
+> every screenshot is from a live instance.
 
-## What you can actually do with it today
+## What it does
 
-Every item here has been run, and the manual shows it with screenshots from a live
-instance: **[Running ai-os](doc/manual.md)** · **[Correr ai-os](doc/es/manual.md)**.
+<img src="doc/assets/manual/06-system-explorer.jpg" alt="" width="100%">
 
-**Organise people and agents by scope.** Organisation, projects, groups, teams and
-individuals are not a taxonomy ai-os invented — a project *is* upstream's group
-scope with a reserved prefix, and its roster comes from `ProjectStore`. One page
-shows every level, who is in it, and what each one defines. Membership is never
-read from a folder, and a folder that looks like membership is reported as a
-finding ([ADR-0008](doc/adr/0008-conformation-is-projected.md)).
+<sub>Every level of the OS, the people in each, and the agents they define — from a live instance.</sub>
 
-**Write agents and sub-agents as markdown.** An agent is `agents/<name>.md` —
-frontmatter for its description and tools, body for its instructions. A
-`subagents:` key declares what it composes. The same file stays a valid,
-delegatable agent, because upstream's parser ignores keys it does not know, so
-there is no second registry to keep in sync.
+**Organise people and agents by scope.** Organisation, projects, groups, teams,
+individuals. A project *is* upstream's group scope with a reserved prefix and its
+roster comes from `ProjectStore` — membership is never read from a folder, and a
+folder that looks like membership is reported as a finding.
+
+**Write agents and sub-agents as markdown.** `agents/<name>.md` — frontmatter for
+description and tools, body for instructions, a `subagents:` key for what it
+composes. The file stays a valid, delegatable agent, so there is no second
+registry to keep in sync.
 
 **Run a declared tree as real work.** `POST /flows/from-agent` turns
 `LedgerLead → SchemaAgent, MigrationAgent, ReviewAgent` into a flow and executes
-it, each step delegating to that agent's own file. `?dryRun=1` shows the plan
-first. Each step is handed what the steps before it produced.
+it, each step delegating to that agent's own file and receiving what the steps
+before it produced. `?dryRun=1` shows the plan first.
+
+<img src="doc/assets/manual/07-composed-flow.jpg" alt="" width="100%">
+
+<sub>A composed flow mid-run: each step is a real delegation.</sub>
 
 **Leave and come back.** A flow started by one process is finished by another,
-after a restart and after context compaction, without re-running work that was
-already in flight. That is the milestone the repository exists for
-([M2](doc/08-roadmap.md)).
-
-**See whether it is still moving.** Progress is judged against a *measured* noise
-floor rather than a guess — δ = 0% on normalized digests, 21.1% on raw
-([10](doc/10-observability.md)). A repeat is proof; a difference is a rumour.
+after a restart and after context compaction, without re-running work already in
+flight.
 
 **Know who did what.** Every flow records the person it acts for and runs as them,
-so the roster guard applies to a flow exactly as it applies to that person
-([ADR-0009](doc/adr/0009-a-flow-records-who-it-acts-for.md)).
+so the roster guard applies to a flow exactly as it applies to that person.
 
-### What it will tell you it cannot do
+## What it measures
 
-The unusual part, and the reason to trust the list above. The system reports the
-questions it could not answer instead of rendering a clean page: which scopes it
-cannot enumerate, which declared sub-agent has no file, which agents are inert on
-the harness you are running, which messages it cannot attribute.
+The part that makes the above worth trusting: **the system reports what it could
+not answer** — which scopes it cannot enumerate, which declared sub-agent has no
+file, which agents are inert on the harness you are running, which messages it
+cannot attribute.
 
-**Measure whether a change to the agents helped.** Same scenarios, two arrangements,
-ground truth computed rather than recalled. The headroom check runs first and alone:
-if the baseline already answers everything, no arrangement can show anything, and
-the harness says `NO-HEADROOM` rather than letting a tie read as a finding
-([13 · Degradation](doc/13-degradation.md)).
+And it can measure whether a change to the agents helped:
 
-**And measure whether the reviewer you added is helping** — a pass rate cannot,
-because a reviewer's repairs and its damage cancel inside it. The study that does
-is **[14 · Review study](doc/14-review-study.md)**, and it is the one worth reading
-for a different reason than intended: it reported that a reviewer had taken a
-correct answer and made it wrong, and **that finding was an artefact of one
-character** — a check that rejected every correct answer ending in a full stop. It
-is written up in full rather than deleted, because it invalidated four other
-numbers with it.
+- **Is a change an improvement?** Same scenarios, two arrangements, ground truth
+  computed rather than recalled. The headroom check runs first and alone: if the
+  baseline already answers everything, the harness says `NO-HEADROOM` rather than
+  letting a tie read as a finding.
+- **Is the reviewer you added helping?** A pass rate cannot tell you, because a
+  reviewer's repairs and its damage cancel inside it. So each scenario is scored
+  **twice** — before the reviewer and after — and the transition is classified
+  `improved`, `unchanged`, or **`reduced`**: a right answer the reviewer made
+  wrong. This is the shape of Google's
+  [g-AMIE study](https://arxiv.org/abs/2507.15743), where physician oversight of
+  an agent improved 6.7% of cases and **reduced quality in 21.7%**.
 
-*The configuration is a hypothesis; the execution is the evidence.* An agent tree
-with a `ReviewAgent` in it looks safer than one without. Whether it **is** safer is
-a measurement.
+**Run here, the answer was that our tasks were too easy to tell.** Four attempts
+— arithmetic, this codebase, a weaker prompt, a weaker model — and every one had
+the producer already correct, so a reviewer had nothing to add. Written up in
+[14 · Review study](doc/14-review-study.md), including a finding that was
+retracted: it reported a reviewer damaging an answer, and that was an artefact of
+a check that scored `"The answer is 24."` as wrong.
 
-### What is not built
+That is the point of the instrument. **It can tell you it has measured nothing.**
 
-No shape beyond `Open` — no `Sequence`, `Loop`, `Fan-out`, `Deliberation`,
-`Watch`, and no merge. No canvas. No scoped memory. An agent cannot delegate to its
-own sub-agent (that cap is upstream's, and deliberate). Full state, milestone by
-milestone: [08 · Roadmap](doc/08-roadmap.md).
+## Getting started
 
-## The problem: AI is still single-player
+Full instructions with screenshots: **[Running ai-os](doc/manual.md)** ·
+**[Correr ai-os](doc/es/manual.md)**.
 
-<table>
-<tr><td>
-
-> **The best work tools became more powerful when they became multiplayer. But AI
-> is still mostly trapped in private chats, with agents working in sessions that
-> teammates can’t join or influence.**
->
-> **The next generation of AI tools will let teams work with agents together in
-> real time: watching, redirecting, and handing off work across engineering,
-> sales, support, legal, finance, and more. AI’s multiplayer moment is coming.**
-
-<sub>— **Y Combinator**, [@ycombinator](https://x.com/ycombinator/status/2079963728439832823)
-· [video](https://x.com/ycombinator/status/2079963728439832823/video/1)</sub>
-
-</td></tr>
-</table>
-
-That is the problem ai-os exists to solve, and it names the gap more legibly than
-our own framing did.
-
-**Why a session cannot be multiplayer.** You cannot hand off a conversation. A
-handoff needs a *thing* — something with a declared goal, a current state and a
-history, that another person can open, read, redirect and take over. A session is
-none of those: it is an append-only transcript, private to its participants,
-summarised away by compaction, and forked without recording that it forked. The
-unit is wrong, so everything above it is single-player by construction.
-
-Each pillar is one half of that answer:
-
-| | The multiplayer problem it answers |
-|---|---|
-| [`ai-flows`](ai-flows/) | **The thing you hand off.** A flow is a persisted object with a goal, a state and a lineage — addressable by anyone with the scope, not owned by one conversation |
-| [`ai-ui`](ai-ui/) | **Watching and redirecting.** A canvas projects the *state* of the work, which a third party can read. A transcript is only legible to the people who were in it |
-| [`ai-storage`](ai-storage/) | **What the team knows.** Project- and system-level memory, so context is not stranded in one person's private chat |
-| [`ai-base`](ai-base/) | **Who is allowed.** QM's scopes, permissions and audit — already multiplayer, and the reason we did not start here |
-
-### One precision, stated up front
-
-The tweet says **"in real time"**. ai-os is making a narrower and, we think,
-more defensible claim: **asynchronous multiplayer** — a durable object several
-people act on across days, hand off, fork and rejoin. Not several cursors on one
-canvas at once; [`ai-ui`'s v1 explicitly excludes simultaneous editing](doc/04-ai-ui.md#scope-of-v1).
-
-Real-time co-presence is a legitimate goal and not the one we are building
-toward first. Handing off work that is still running, without losing what it
-learned, is the harder half and the part nobody has.
-
-## Before the interface: can a flow even be watched?
-
-Multiplayer means a second person opens running work and asks *is this fine?*
-That is an instrument question before it is an interface question — and every
-instrument has noise.
-
-A flow records a fingerprint of the state each attempt produced. Comparing two of
-them looks binary. The channel is not symmetric:
-
-```
-state unchanged ──(1−δ)──▶ same fingerprint
-                ──( δ )──▶ different          ← noise, not progress
-state changed   ──( 1 )──▶ different
+```bash
+cd ai-base && ALLOW_UNAUTHENTICATED_CORE=1 node src/index.ts   # the core, :8080
+cd ai-flows && node scripts/serve.ts                            # flows + the page above, :8097
+cd ai-flows && node scripts/seed-demo.ts                        # a project, a roster, an agent tree
 ```
 
-Only a real change can *break* a repeat, but non-determinism can invent a
-difference out of nothing. So:
+Postgres is required past the first turn — in-memory stores are per-process, so a
+flow cannot resume out of a process that exited.
 
-> **A repeat is proof. A difference is a rumour.**
+## What is not built
 
-**δ** is the rate at which *identical* work produces *different* fingerprints. It
-is not a constant of nature — it moves with the model, the harness, and what the
-fingerprint is taken over — so it has to be measured, not assumed. Two curves say
-why measuring it comes first.
+No flow shape beyond `Open` — no `Sequence`, `Loop`, `Fan-out`, `Deliberation`,
+`Watch`, and no merge. No canvas: the page above is served by `ai-flows`, and
+`ai-ui` does not exist. No scoped memory. An agent cannot delegate to its own
+sub-agent — that cap is upstream's, and deliberate; a declared tree is composition
+the *session* executes, flattened.
 
-**What one comparison can carry.** This is a Z-channel, and its capacity is
-
-$$C(\delta) = \log_2\left(1 + (1-\delta)\,\delta^{\frac{\delta}{1-\delta}}\right)$$
-
-<img src="doc/assets/noise-floor.svg" alt="Capacity and detection probability against the noise floor" width="100%">
-
-<sub>Computed, not drawn — straight from <code>channelCapacity</code> and <code>detectionProbability</code>. The right-hand curve is $(1-\delta)^w$: a stuck flow announces itself <b>only</b> by repeating, and noise breaks the repeat.</sub>
-
-| δ | 0.0 | 0.2 | 0.5 | 0.8 |
-|---|---|---|---|---|
-| bits per comparison | 1.000 | 0.618 | 0.322 | 0.114 |
-| stuck flows ever noticed | 100% | 51% | 13% | **0.8%** |
-
-At δ = 0.8 a flow can sit dead for a week while the system reports progress.
-Waiting longer does not help; waiting is precisely what the noise is destroying.
-
-**So the gate goes on the instrument, not on the flow.** Before drift detection,
-budgets or any convergence rule mean anything, δ has to be a number.
-[`observabilityOf`](ai-flows/src/observability.ts) refuses to call a flow
-*progressing* when δ says a stuck one would have gone unseen; it answers
-`unreadable`, which is a claim about the recording rather than about the work.
-
-That is the distinction flows actually need. **Drift** — visible and not moving —
-wants more steps. **Unreadable** — moving as far as anyone can tell — wants a
-better instrument, and no number of steps substitutes for one.
-
-> **Status: measured.** 22 turns on `pi` / `deepseek-v4-flash`, repeating identical
-> work. **δ = 21.1% over raw reply text, 0% once normalized** — and every divergence
-> was presentation, in the worst group literally backticks. Zero observed is not
-> zero: the 95% upper bound is 14.6%, so a stuck flow is still caught at least 62%
-> of the time. **The measurement changed the code** — `digestOf` normalizes now,
-> because it did not before. Full result, and the three things it does *not*
-> establish, in [doc/10-observability.md](doc/10-observability.md).
+Milestone by milestone: [08 · Roadmap](doc/08-roadmap.md). Design documents:
+[doc/](doc/).
 
 ## Why this exists
 

@@ -16,196 +16,96 @@ está congelado — ver [`doc/es/07-freeze-policy.md`](doc/es/07-freeze-policy.m
 **[English](README.md)** · El inglés es la versión canónica de todos los
 documentos; ver [Idiomas](#idiomas).
 
-> **Estado: dos pilares corren, dos son diseño.** `ai-base/` es una copia
-> vendorizada de QM y corre. **`ai-flows/` corre** — 197 tests. `ai-ui/` y
-> `ai-storage/` están especificados y **no implementados** en absoluto; la página
-> que se muestra abajo la sirve `ai-flows`, no `ai-ui`. Nada en este README
-> describe software que exista, salvo que lo diga explícitamente.
+> **`ai-base` y `ai-flows` corren — 235 tests. `ai-ui` y `ai-storage` no existen.**
+> Nada acá describe software que exista salvo que lo diga, y cada captura es de una
+> instancia viva.
 
-## Qué podés hacer con esto hoy
+## Qué hace
 
-Todo lo de acá se corrió, y el manual lo muestra con capturas de una instancia
-viva: **[Correr ai-os](doc/es/manual.md)** · **[Running ai-os](doc/manual.md)**.
+<img src="doc/assets/manual/06-system-explorer.jpg" alt="" width="100%">
 
-**Organizar gente y agentes por scope.** Organización, proyectos, grupos, equipos e
-individuos no son una taxonomía que ai-os inventó — un proyecto *es* el group scope
-de upstream con un prefijo reservado, y su roster viene de `ProjectStore`. Una
-página muestra cada nivel, quién está en él, y qué define cada uno. La membresía
-nunca se lee de una carpeta, y una carpeta que parece membresía se reporta como
-hallazgo ([ADR-0008](doc/es/adr/0008-conformation-is-projected.md)).
+<sub>Cada nivel del OS, la gente en cada uno, y los agentes que definen — de una instancia viva.</sub>
 
-**Escribir agentes y subagentes como markdown.** Un agente es `agents/<nombre>.md`
-— frontmatter para su descripción y tools, cuerpo para sus instrucciones. Una clave
-`subagents:` declara qué compone. El mismo archivo sigue siendo un agente válido y
-delegable, porque el parser de upstream ignora las claves que no conoce, así que no
-hay un segundo registro que mantener sincronizado.
+**Organiza gente y agentes por scope.** Organización, proyectos, grupos, equipos,
+individuos. Un proyecto *es* el group scope de upstream con un prefijo reservado y
+su roster viene de `ProjectStore` — la membresía nunca se lee de una carpeta, y una
+carpeta que parece membresía se reporta como hallazgo.
 
-**Ejecutar un árbol declarado como trabajo real.** `POST /flows/from-agent`
-convierte `LedgerLead → SchemaAgent, MigrationAgent, ReviewAgent` en un flow y lo
-ejecuta, delegando cada paso al archivo del agente. `?dryRun=1` muestra el plan
-primero. A cada paso se le entrega lo que produjeron los anteriores.
+**Los agentes y subagentes son markdown.** `agents/<nombre>.md` — frontmatter para
+descripción y tools, cuerpo para instrucciones, una clave `subagents:` para lo que
+compone. El archivo sigue siendo un agente válido y delegable, así que no hay un
+segundo registro que mantener sincronizado.
 
-**Irte y volver.** Un flow arrancado por un proceso lo termina otro, después de un
-reinicio y después de una compactación de contexto, sin re-ejecutar trabajo que ya
-estaba en vuelo. Ese es el milestone por el que existe el repositorio
-([M2](doc/es/08-roadmap.md)).
+**Ejecuta un árbol declarado como trabajo real.** `POST /flows/from-agent` convierte
+`LedgerLead → SchemaAgent, MigrationAgent, ReviewAgent` en un flow y lo ejecuta,
+delegando cada paso al archivo de ese agente y entregándole lo que produjeron los
+anteriores. `?dryRun=1` muestra el plan primero.
 
-**Ver si todavía se mueve.** El progreso se juzga contra un piso de ruido *medido*
-en vez de una suposición — δ = 0% en digests normalizados, 21,1% en crudo
-([10](doc/es/10-observability.md)). Una repetición es prueba; una diferencia es un
-rumor.
+<img src="doc/assets/manual/07-composed-flow.jpg" alt="" width="100%">
 
-**Saber quién hizo qué.** Cada flow registra la persona para la que actúa y corre
-como ella, así que el guard de roster se le aplica exactamente igual que a esa
-persona ([ADR-0009](doc/es/adr/0009-a-flow-records-who-it-acts-for.md)).
+<sub>Un flow compuesto a mitad de camino: cada paso es una delegación real.</sub>
 
-### Lo que te va a decir que no puede hacer
+**Te podés ir y volver.** Un flow arrancado por un proceso lo termina otro, después
+de un reinicio y de una compactación de contexto, sin repetir trabajo que ya estaba
+en vuelo.
 
-La parte inusual, y la razón para confiar en la lista de arriba. El sistema reporta
-las preguntas que no pudo contestar en vez de renderizar una página limpia: qué
-scopes no puede enumerar, qué subagente declarado no tiene archivo, qué agentes
-están inertes en el harness que estás corriendo, qué mensajes no puede atribuir.
+**Sabés quién hizo qué.** Cada flow registra la persona para la que actúa y corre
+como ella, así que el guard de roster se le aplica igual que a esa persona.
 
-**Medir si un cambio en los agentes ayudó.** Mismos escenarios, dos arreglos,
-verdad de referencia computada y no recordada. El chequeo de margen corre primero y
-solo: si la línea base ya contesta todo, ningún arreglo puede mostrar nada, y el
-harness dice `NO-HEADROOM` en vez de dejar que un empate se lea como hallazgo
-([13 · Degradación](doc/es/13-degradation.md)).
+## Qué mide
 
-**Y medir si el revisor que agregaste está ayudando** — una tasa de acierto no
-puede, porque las reparaciones y los daños de un revisor se cancelan adentro. El
-estudio que sí puede es **[14 · Estudio de revisión](doc/es/14-review-study.md)**, y
-vale leerlo por una razón distinta de la prevista: reportó que un revisor había
-vuelto incorrecta una respuesta correcta, y **ese hallazgo era un artefacto de un
-carácter** — un check que rechazaba toda respuesta correcta terminada en punto. Está
-escrito completo en vez de borrado, porque se llevó otros cuatro números con él.
+La parte que hace confiable lo de arriba: **el sistema reporta lo que no pudo
+contestar** — qué scopes no puede enumerar, qué subagente declarado no tiene
+archivo, qué agentes están inertes en el harness que corrés, qué mensajes no puede
+atribuir.
 
-*La configuración es una hipótesis; la ejecución es la evidencia.* Un árbol de
-agentes con un `ReviewAgent` adentro parece más seguro que uno sin él. Si **es** más
-seguro es una medición.
+Y puede medir si un cambio en los agentes ayudó:
 
-### Lo que no está construido
+- **¿Un cambio es una mejora?** Mismos escenarios, dos arreglos, verdad de
+  referencia computada y no recordada. El chequeo de margen corre primero y solo: si
+  la línea base ya contesta todo, el harness dice `NO-HEADROOM` en vez de dejar que
+  un empate se lea como hallazgo.
+- **¿El revisor que agregaste está ayudando?** Una tasa de acierto no te lo puede
+  decir, porque las reparaciones y los daños de un revisor se cancelan adentro. Así
+  que cada escenario se puntúa **dos veces** — antes y después del revisor — y la
+  transición se clasifica `improved`, `unchanged` o **`reduced`**: una respuesta
+  correcta que el revisor volvió incorrecta. Ésa es la forma del
+  [estudio g-AMIE](https://arxiv.org/abs/2507.15743) de Google, donde la supervisión
+  médica de un agente mejoró el 6,7% de los casos y **redujo la calidad en el 21,7%**.
 
-Ninguna forma más allá de `Open` — sin `Sequence`, `Loop`, `Fan-out`,
-`Deliberation`, `Watch`, y sin merge. Sin canvas. Sin memoria por scope. Un agente
-no puede delegar a su propio subagente (ese tope es de upstream, y es deliberado).
-Estado completo, milestone por milestone: [08 · Roadmap](doc/es/08-roadmap.md).
+**Corrido acá, la respuesta fue que nuestras tareas eran demasiado fáciles para
+distinguirlo.** Cuatro intentos — aritmética, este código, un prompt más débil, un
+modelo más débil — y en todos el productor ya acertaba, así que un revisor no tenía
+nada que agregar. Está escrito en [14 · Estudio de revisión](doc/es/14-review-study.md),
+incluido un hallazgo que se retiró: reportaba un revisor dañando una respuesta, y
+era un artefacto de un check que puntuaba `"The answer is 24."` como incorrecta.
 
+Ése es el punto del instrumento. **Puede decirte que no midió nada.**
 
-## El problema: la IA sigue siendo de un solo jugador
+## Cómo arrancar
 
-<table>
-<tr><td>
+Instrucciones completas con capturas: **[Correr ai-os](doc/es/manual.md)** ·
+**[Running ai-os](doc/manual.md)**.
 
-> **Las mejores herramientas de trabajo se volvieron más potentes cuando se
-> volvieron multijugador. Pero la IA sigue mayormente atrapada en chats privados,
-> con agentes trabajando en sesiones a las que los compañeros de equipo no pueden
-> sumarse ni influir.**
->
-> **La próxima generación de herramientas de IA va a permitir que los equipos
-> trabajen con agentes en conjunto y en tiempo real: mirando, redirigiendo y
-> delegando trabajo entre ingeniería, ventas, soporte, legales, finanzas y más.
-> El momento multijugador de la IA está llegando.**
-
-<sub>— **Y Combinator**, [@ycombinator](https://x.com/ycombinator/status/2079963728439832823)
-· [video](https://x.com/ycombinator/status/2079963728439832823/video/1)
-· <i>traducción; el original en inglés es el texto de referencia</i></sub>
-
-</td></tr>
-</table>
-
-Ese es el problema que ai-os existe para resolver, y nombra el hueco de forma más
-legible que nuestro propio encuadre.
-
-**Por qué una sesión no puede ser multijugador.** No se puede delegar una
-conversación. Un handoff necesita una *cosa* — algo con un objetivo declarado, un
-estado actual y una historia, que otra persona pueda abrir, leer, redirigir y
-tomar. Una sesión no es nada de eso: es una transcripción de sólo-agregado,
-privada a quienes participaron, resumida por la compactación, y bifurcada sin
-dejar registro de que se bifurcó. La unidad está mal, así que todo lo que se
-apoya encima es de un solo jugador por construcción.
-
-Cada pilar es una mitad de esa respuesta:
-
-| | El problema multijugador que resuelve |
-|---|---|
-| [`ai-flows`](ai-flows/) | **La cosa que se delega.** Un flow es un objeto persistido con objetivo, estado y linaje — direccionable por cualquiera con el scope, no propiedad de una conversación |
-| [`ai-ui`](ai-ui/) | **Mirar y redirigir.** Un canvas proyecta el *estado* del trabajo, que un tercero puede leer. Una transcripción sólo es legible para quienes estuvieron ahí |
-| [`ai-storage`](ai-storage/) | **Lo que sabe el equipo.** Memoria a nivel de proyecto y de sistema, para que el contexto no quede varado en el chat privado de una persona |
-| [`ai-base`](ai-base/) | **Quién tiene permiso.** Los scopes, permisos y auditoría de QM — ya multijugador, y la razón por la que no empezamos por acá |
-
-### Una precisión, dicha de entrada
-
-El tweet dice **"en tiempo real"**. ai-os hace una afirmación más angosta y, nos
-parece, más defendible: **multijugador asincrónico** — un objeto durable sobre el
-que varias personas actúan a lo largo de días, que se delega, se bifurca y se
-vuelve a unir. No varios cursores sobre un mismo canvas a la vez;
-[el v1 de `ai-ui` excluye explícitamente la edición simultánea](doc/es/04-ai-ui.md#alcance-del-v1).
-
-La co-presencia en tiempo real es un objetivo legítimo y no es hacia el que
-construimos primero. Delegar trabajo que *sigue corriendo*, sin perder lo que
-aprendió, es la mitad difícil y la parte que no tiene nadie.
-
-## Antes de la interfaz: ¿un flow se puede mirar siquiera?
-
-Multijugador significa que una segunda persona abre trabajo en curso y pregunta
-*¿esto está bien?* Eso es una pregunta de instrumento antes que de interfaz — y
-todo instrumento tiene ruido.
-
-Un flow registra una huella del estado que produjo cada intento. Comparar dos
-parece binario. El canal no es simétrico:
-
-```
-estado sin cambio ──(1−δ)──▶ huella igual
-                  ──( δ )──▶ distinta         ← ruido, no progreso
-estado cambiado   ──( 1 )──▶ distinta
+```bash
+cd ai-base && ALLOW_UNAUTHENTICATED_CORE=1 node src/index.ts   # el core, :8080
+cd ai-flows && node scripts/serve.ts                            # flows + la página de arriba, :8097
+cd ai-flows && node scripts/seed-demo.ts                        # un proyecto, un roster, un árbol de agentes
 ```
 
-Solo un cambio real puede *romper* una repetición, pero el no determinismo puede
-inventar una diferencia de la nada. Entonces:
+Postgres es obligatorio pasado el primer turno — los stores en memoria son por
+proceso, así que un flow no puede retomarse de un proceso que terminó.
 
-> **Una repetición es prueba. Una diferencia es un rumor.**
+## Lo que no está construido
 
-**δ** es la tasa a la que trabajo *idéntico* produce huellas *distintas*. No es
-una constante de la naturaleza — se mueve con el modelo, el harness y sobre qué
-se toma la huella — así que hay que medirla, no asumirla. Dos curvas explican por
-qué medirla va primero.
+Ninguna forma de flow más allá de `Open` — sin `Sequence`, `Loop`, `Fan-out`,
+`Deliberation`, `Watch`, y sin merge. Sin canvas: la página de arriba la sirve
+`ai-flows`, y `ai-ui` no existe. Sin memoria por scope. Un agente no puede delegar a
+su propio subagente — ese tope es de upstream y es deliberado; un árbol declarado es
+composición que ejecuta la *sesión*, aplanada.
 
-**Cuánto puede llevar una comparación.** Esto es un canal Z, y su capacidad es
-
-$$C(\delta) = \log_2\left(1 + (1-\delta)\,\delta^{\frac{\delta}{1-\delta}}\right)$$
-
-<img src="doc/assets/noise-floor.svg" alt="Capacidad y probabilidad de detección contra el piso de ruido" width="100%">
-
-<sub>Computadas, no dibujadas — directo de <code>channelCapacity</code> y <code>detectionProbability</code>. La curva de la derecha es $(1-\delta)^w$: un flow trabado se delata <b>solo</b> repitiendo, y el ruido rompe la repetición.</sub>
-
-| δ | 0.0 | 0.2 | 0.5 | 0.8 |
-|---|---|---|---|---|
-| bits por comparación | 1.000 | 0.618 | 0.322 | 0.114 |
-| flows trabados detectados | 100% | 51% | 13% | **0.8%** |
-
-Con δ = 0.8 un flow puede estar muerto una semana mientras el sistema informa
-progreso. Esperar más no ayuda; esperar es justo lo que el ruido está destruyendo.
-
-**Así que la compuerta va sobre el instrumento, no sobre el flow.** Antes de que
-la detección de deriva, los presupuestos o cualquier regla de convergencia
-signifiquen algo, δ tiene que ser un número.
-[`observabilityOf`](ai-flows/src/observability.ts) se niega a llamar
-*progressing* a un flow cuando δ dice que uno trabado habría pasado
-desapercibido; responde `unreadable`, que es una afirmación sobre el registro y
-no sobre el trabajo.
-
-Esa es la distinción que los flows realmente necesitan. **Deriva** — visible y
-detenido — quiere más pasos. **Ilegible** — moviéndose hasta donde se puede saber
-— quiere un instrumento mejor, y ninguna cantidad de pasos lo reemplaza.
-
-> **Estado: medido.** 22 turnos en `pi` / `deepseek-v4-flash`, repitiendo trabajo
-> idéntico. **δ = 21.1% sobre el texto crudo, 0% una vez normalizado** — y toda la
-> divergencia era presentación: en el peor grupo, literalmente backticks. Cero
-> observado no es cero: la cota al 95% es 14.6%, así que un flow trabado igual se
-> detecta al menos el 62% de las veces. **La medición cambió el código** —
-> `digestOf` ahora normaliza, porque antes no. Resultado completo, y las tres cosas
-> que *no* establece, en [doc/es/10-observability.md](doc/es/10-observability.md).
+Milestone por milestone: [08 · Roadmap](doc/es/08-roadmap.md). Documentos de
+diseño: [doc/es/](doc/es/).
 
 ## Por qué existe
 
