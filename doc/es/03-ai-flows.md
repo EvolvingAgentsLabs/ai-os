@@ -91,6 +91,10 @@ Conservar `attempts[]` en vez de sobrescribir es la lección directa de
 `skill-store.ts:142` (`version += 1`, sin historia): un contador que descarta su
 pasado no se puede diffear, ni revertir, ni explicar.
 
+<img src="../assets/manual/07-composed-flow.jpg" alt="" width="100%">
+
+<sub>El modelo de arriba, renderizado desde una instancia viva. Un flow, tres pasos, cada uno con su intención, estado, resultado e intentos — y cada intento con la huella de observación capturada al cerrarse. La tira debajo del objetivo es un cubito por paso, así que <strong>dónde se frenó</strong> se ve antes de leer nada. <strong>[ran]</strong> 2026-08-09.</sub>
+
 ## Formas de flow
 
 **Trabajos distintos tienen formas distintas, y el sistema debería saber en cuál

@@ -90,6 +90,11 @@ Keeping `attempts[]` rather than overwriting is the direct lesson from
 `skill-store.ts:142` (`version += 1`, no history): a counter that discards its
 past cannot be diffed, rolled back, or explained.
 
+<img src="assets/manual/07-composed-flow.jpg" alt="" width="100%">
+
+<sub>The model above, rendered from a live instance. One flow, three steps, each with its intent, state, result and attempts — and each attempt carrying the observation digest captured when it closed. The strip under the goal is one cube per step, so <strong>where it stopped</strong> is visible before anything is read. <strong>[ran]</strong> 2026-08-09.</sub>
+
+
 ## Flow shapes
 
 **Different work has different shapes, and the system should know which one it is
