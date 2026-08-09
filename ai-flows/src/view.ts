@@ -14,16 +14,38 @@
  * to need is evidence for the canvas, and it is only evidence if it was never
  * quietly added here.
  *
- * ## What it is arranged to show
+ * ## Why it looks like 1991
  *
- * A flow's transcript is not its state. The three things a person coming back
- * cold has to reconstruct are what the goal was, where it stopped, and **whether
- * it is still moving** — so the page leads with state, marks the current step,
- * and puts every attempt's observation digest next to it, because a repeat is
- * what tells drift from progress ([10-observability](../../doc/10-observability.md)).
+ * The first version was a dark flat document, and the complaint it drew was that
+ * it was **unclear** — everything the same weight, nothing telling you what kind
+ * of thing you were looking at. So the vocabulary here is borrowed wholesale from
+ * System 7 and Windows 3.1, for one reason: those interfaces made *kind* and
+ * *state* visible before you read a single word. A window has a title bar and a
+ * border, so you know where one thing ends. A beveled edge tells you what is a
+ * surface and what is a hole. And an object with a colour and a shape is a thing
+ * you can point at.
+ *
+ *   - **Cubes carry kind and state.** Every scope role, every agent, every step
+ *     state has one colour, used nowhere else, with a legend on the page. A flow's
+ *     progress is a strip of cubes you can count from across the room.
+ *   - **Documents are documents.** A flow is drawn as a page with a folded corner,
+ *     because that is what it is: a thing with a title that someone has to pick
+ *     back up.
+ *   - **Trays hold work.** In-tray for what is still moving, out-tray for what has
+ *     settled. The desk metaphor is not decoration — "where is this and is anyone
+ *     holding it" is exactly the question the page exists to answer.
+ *
+ * The chrome is period-accurate; the type inside it is not. Nine-point Geneva on
+ * a 640×480 screen was a constraint, not a goal, and reproducing it would trade
+ * the clarity this redesign is for.
+ *
+ * **Nothing here is clickable.** The menu bar carries facts rather than menus,
+ * for that reason: a fake File menu is an affordance that lies, and this page's
+ * whole value as M5's control arm depends on it not quietly growing interaction.
  *
  * Self-contained HTML with no external requests: it has to open from a file over
- * a coffee, days later, with no server running.
+ * a coffee, days later, with no server running. That rules out webfonts and
+ * images, so every icon below is drawn in CSS.
  */
 import type { AgentRecord, Conformation, ScopeNode, ScopeRole } from "./conformation.ts";
 import { contributionsOf } from "./contribution.ts";
@@ -65,6 +87,39 @@ function ago(from: number, to: number): string {
 }
 
 /**
+ * The colour vocabulary, defined once and rendered into the legend from the same
+ * table that styles the page.
+ *
+ * A legend maintained separately from the styles is a legend that goes wrong
+ * silently, and a wrong legend on a page whose entire premise is "colour tells
+ * you the kind" is worse than no colour at all.
+ */
+const SCOPE_COLORS: Record<ScopeRole, string> = {
+  system: "#6b4fa8",
+  project: "#2f6fb5",
+  collective: "#1f8a70",
+  team: "#c8781b",
+  individual: "#3f8f3f",
+  unknown: "#b03a2e",
+};
+
+const STATE_COLORS: Record<string, string> = {
+  done: "#3f8f3f",
+  running: "#e0a020",
+  pending: "#b9b4a8",
+  failed: "#b03a2e",
+  blocked: "#b03a2e",
+  waiting: "#b9b4a8",
+  abandoned: "#7a7469",
+  draft: "#b9b4a8",
+};
+
+/** A beveled square. The unit this whole page is built out of. */
+function cube(color: string, title: string, extra = ""): string {
+  return `<span class="cube${extra ? ` ${extra}` : ""}" style="--c:${color}" title="${esc(title)}"></span>`;
+}
+
+/**
  * Is this flow still moving, and can that even be told?
  *
  * Reuses the flow observability instrument rather than inventing a second
@@ -96,23 +151,39 @@ function movement(flow: FlowWithSteps): { label: string; tone: string; detail: s
 function stepRow(step: Step, isCurrent: boolean, now: number): string {
   const attempts = step.attempts
     .map((a) => {
-      const obs = a.observation ? `<code>${esc(a.observation.digest)}</code> <span class="dim">${esc(a.observation.source)}</span>` : `<span class="dim">no observation</span>`;
+      const obs = a.observation
+        ? `<code>${esc(a.observation.digest)}</code> <span class="dim">${esc(a.observation.source)}</span>`
+        : `<span class="dim">no observation</span>`;
       const run = a.runId ? `<code class="dim">${esc(a.runId.slice(0, 8))}</code>` : `<span class="dim">no run</span>`;
-      return `<li><span class="pill ${esc(a.state)}">${esc(a.state)}</span> attempt ${a.n} · ${run} · ${obs}${
+      return `<li>${cube(STATE_COLORS[a.state] ?? "#b9b4a8", a.state, "sm")} <span class="dim">attempt ${a.n}</span> · ${run} · ${obs}${
         a.error ? ` · <span class="err">${esc(a.error.slice(0, 200))}</span>` : ""
       }</li>`;
     })
     .join("");
   return `<div class="step${isCurrent ? " current" : ""}">
     <div class="step-head">
-      <span class="pill ${esc(step.state)}">${esc(step.state)}</span>
+      ${cube(STATE_COLORS[step.state] ?? "#b9b4a8", `step ${step.index}: ${step.state}`)}
       <span class="idx">${step.index}</span>
       <span class="intent">${esc(step.intent)}</span>
+      <span class="state-word ${esc(step.state)}">${esc(step.state)}</span>
       <span class="dim when">${esc(ago(step.updatedAt, now))}</span>
     </div>
     ${step.result ? `<div class="result">${esc(step.result.slice(0, 600))}</div>` : ""}
     ${attempts ? `<ul class="attempts">${attempts}</ul>` : `<div class="dim none">never attempted</div>`}
   </div>`;
+}
+
+/**
+ * The progress strip: one cube per step, in order, coloured by state.
+ *
+ * This is the single element the redesign was for. "5/8 steps done" is a fact you
+ * have to read; eight cubes with five green ones is a fact you see — and where
+ * the *unfinished* ones sit, which the fraction throws away.
+ */
+function stepStrip(flow: FlowWithSteps): string {
+  return `<span class="strip">${flow.steps
+    .map((s) => cube(STATE_COLORS[s.state] ?? "#b9b4a8", `step ${s.index}: ${s.state}`))
+    .join("")}</span>`;
 }
 
 function flowCard(flow: FlowWithSteps, now: number): string {
@@ -130,27 +201,30 @@ function flowCard(flow: FlowWithSteps, now: number): string {
   const current =
     flow.steps.find((s) => s.state === "running") ?? flow.steps.find((s) => s.state === "pending");
   const done = flow.steps.filter((s) => s.state === "done").length;
-  return `<article class="flow">
+  return `<article class="flow doc">
     <header>
-      <span class="pill flow-${esc(flow.state)}">${esc(flow.state)}</span>
+      <span class="doc-icon" aria-hidden="true"></span>
       <h2>${esc(flow.title)}</h2>
+      ${cube(STATE_COLORS[flow.state] ?? "#b9b4a8", `flow: ${flow.state}`)}
+      <span class="state-word ${esc(flow.state)}">${esc(flow.state)}</span>
       <span class="dim">${esc(flow.scopeId)} · ${esc(flow.shape)} · updated ${esc(ago(flow.updatedAt, now))}</span>
     </header>
     <p class="goal">${esc(flow.goal)}</p>
     <div class="meta">
+      ${stepStrip(flow)}
+      <span class="dim">${done}/${flow.steps.length} steps done</span>
       <span class="${esc(move.tone)}">${esc(move.label)}</span>
       <span class="dim">${esc(move.detail)}</span>
-      <span class="dim">${done}/${flow.steps.length} steps done</span>
       ${flow.forkedFrom ? `<span class="dim">forked from ${esc(flow.forkedFrom.flowId.slice(0, 8))} at step ${flow.forkedFrom.atStep}</span>` : ""}
     </div>
     ${
       ignored.length
-        ? `<div class="ignored"><strong>${ignored.length} step(s) used nothing they were given</strong>
+        ? `<div class="note alert"><strong>${ignored.length} step(s) used nothing they were given</strong>
              — step${ignored.length > 1 ? "s" : ""} ${ignored.map((c) => c.stepIndex).join(", ")}.
              <span class="dim">Each ran, settled and reported. None carried a single distinctive word out of its predecessor's output.</span></div>`
         : ""
     }
-    ${current ? `<div class="next">Next: <strong>${esc(current.intent)}</strong></div>` : `<div class="next dim">Nothing left to do</div>`}
+    ${current ? `<div class="note next">Next: <strong>${esc(current.intent)}</strong></div>` : `<div class="note dim">Nothing left to do</div>`}
     <div class="steps">${flow.steps.map((s) => stepRow(s, s.id === current?.id, now)).join("")}</div>
   </article>`;
 }
@@ -169,8 +243,11 @@ const LEVELS: Array<{ role: ScopeRole; label: string; note: string }> = [
   { role: "unknown", label: "Unrecognised", note: "the scope id did not parse — never assumed benign" },
 ];
 
+const AGENT_COLOR = "#e0a020";
+const SUBAGENT_COLOR = "#c98f2e";
+
 function agentTree(a: AgentRecord, all: Map<string, AgentRecord>, depth = 0, seen = new Set<string>()): string {
-  const pad = depth * 18;
+  const pad = depth * 20;
   const flags = [
     a.ok ? null : `<span class="err">BROKEN: ${esc(a.error)}</span>`,
     a.inert ? `<span class="warn" title="workspace agents are read only by pi-tools.ts">inert on this harness</span>` : null,
@@ -178,13 +255,14 @@ function agentTree(a: AgentRecord, all: Map<string, AgentRecord>, depth = 0, see
     .filter(Boolean)
     .join(" ");
   const rows = [
-    `<li style="margin-left:${pad}px"><code class="agent">${esc(a.name)}</code>` +
+    `<li style="margin-left:${pad}px">${cube(depth ? SUBAGENT_COLOR : AGENT_COLOR, depth ? "subagent" : "agent")}` +
+      `<code class="agent">${esc(a.name)}</code>` +
       `<span class="dim tools">[${esc(a.tools.join(" "))}]</span> ${esc(a.description)} ${flags}</li>`,
   ];
   // Cycles are possible the moment composition is declared by hand, and an
   // unguarded render of one is a hung page rather than an error message.
   if (seen.has(a.name)) {
-    rows.push(`<li style="margin-left:${pad + 18}px" class="err">cycle — ${esc(a.name)} already appears above</li>`);
+    rows.push(`<li style="margin-left:${pad + 20}px" class="err">cycle — ${esc(a.name)} already appears above</li>`);
     return rows.join("");
   }
   const next = new Set(seen).add(a.name);
@@ -193,7 +271,7 @@ function agentTree(a: AgentRecord, all: Map<string, AgentRecord>, depth = 0, see
     if (child) rows.push(agentTree(child, all, depth + 1, next));
     else
       rows.push(
-        `<li style="margin-left:${pad + 18}px"><code class="agent missing">${esc(name)}</code> <span class="err">declared, no file</span></li>`,
+        `<li style="margin-left:${pad + 20}px">${cube("#b03a2e", "declared, no file")}<code class="agent missing">${esc(name)}</code> <span class="err">declared, no file</span></li>`,
       );
   }
   return rows.join("");
@@ -210,16 +288,18 @@ function scopeCard(s: ScopeNode, systemAgents: Map<string, AgentRecord>): string
   const people = s.roster
     ? `<div class="people"><strong>${s.roster.members.length} member${s.roster.members.length === 1 ? "" : "s"}</strong>
         <span class="dim">roster v${esc(s.roster.version)} — from ProjectStore, never from a folder</span>
-        <ul>${s.roster.members.map((m) => `<li><code>${esc(m)}</code></li>`).join("")}</ul></div>`
+        <ul class="folks">${s.roster.members.map((m) => `<li>${cube("#5a5f66", "member")}<code>${esc(m)}</code></li>`).join("")}</ul></div>`
     : s.role === "individual"
-      ? `<div class="people dim">One person: <code>${esc(s.ref)}</code></div>`
+      ? `<div class="people">${cube("#5a5f66", "member")}<span class="dim">One person: <code>${esc(s.ref)}</code></span></div>`
       : `<div class="people dim">No roster — membership for this scope kind is not a list ai-os can read.</div>`;
 
-  return `<article class="scope-card">
-    <header><code class="scopeid">${esc(s.scopeId)}</code>
-      ${s.hasMemory ? `<span class="pill">memory</span>` : ""}
-      ${s.skills.length ? `<span class="pill">${s.skills.length} skill${s.skills.length === 1 ? "" : "s"}</span>` : ""}
-      <span class="pill">${s.agents.length} agent${s.agents.length === 1 ? "" : "s"}</span>
+  return `<article class="scope-card" style="--role:${SCOPE_COLORS[s.role]}">
+    <header>
+      ${cube(SCOPE_COLORS[s.role], s.role, "lg")}
+      <code class="scopeid">${esc(s.scopeId)}</code>
+      ${s.hasMemory ? `<span class="tag">memory</span>` : ""}
+      ${s.skills.length ? `<span class="tag">${s.skills.length} skill${s.skills.length === 1 ? "" : "s"}</span>` : ""}
+      <span class="tag">${s.agents.length} agent${s.agents.length === 1 ? "" : "s"}</span>
     </header>
     ${people}
     ${
@@ -228,63 +308,183 @@ function scopeCard(s: ScopeNode, systemAgents: Map<string, AgentRecord>): string
              <ul class="tree">${roots.map((a) => agentTree(a, all)).join("")}</ul></div>`
         : `<div class="agents dim">No agents defined in this scope.</div>`
     }
-    ${s.membershipInFolders.length ? `<div class="err">membership-shaped path found and NOT read as membership: ${esc(s.membershipInFolders.join(", "))}</div>` : ""}
+    ${s.membershipInFolders.length ? `<div class="note alert">membership-shaped path found and NOT read as membership: ${esc(s.membershipInFolders.join(", "))}</div>` : ""}
   </article>`;
 }
 
+/**
+ * The legend, generated from the same tables that colour the page.
+ *
+ * On a page whose premise is that colour carries meaning, a legend is not a nice
+ * touch — it is the thing that makes the colour readable rather than decorative.
+ */
+function legend(): string {
+  const swatch = (color: string, label: string) => `<li>${cube(color, label)}<span>${esc(label)}</span></li>`;
+  return `<div class="key">
+    <div><strong>Scopes</strong><ul>${LEVELS.map((l) => swatch(SCOPE_COLORS[l.role], l.role)).join("")}</ul></div>
+    <div><strong>Agents</strong><ul>${swatch(AGENT_COLOR, "agent")}${swatch(SUBAGENT_COLOR, "subagent")}${swatch("#b03a2e", "declared, no file")}${swatch("#5a5f66", "person")}</ul></div>
+    <div><strong>Steps &amp; flows</strong><ul>${(() => {
+      // Grouped by colour, not by name: several states share one swatch, and a
+      // legend that lists them separately claims a distinction the page cannot
+      // draw. Built from STATE_COLORS so a new state cannot appear unexplained.
+      const byColor = new Map<string, string[]>();
+      for (const [name, color] of Object.entries(STATE_COLORS)) {
+        byColor.set(color, [...(byColor.get(color) ?? []), name]);
+      }
+      return [...byColor].map(([color, names]) => swatch(color, names.join(" / "))).join("");
+    })()}</ul></div>
+  </div>`;
+}
+
+/** A window: title bar, border, hard shadow. The unit of "one thing ends here". */
+function win(title: string, count: string, body: string, tone = ""): string {
+  return `<section class="win${tone ? ` ${tone}` : ""}">
+    <div class="bar"><span class="box" aria-hidden="true"></span><h1>${esc(title)}${
+      count ? ` <span class="count">${esc(count)}</span>` : ""
+    }</h1><span class="box zoom" aria-hidden="true"></span></div>
+    <div class="win-body">${body}</div>
+  </section>`;
+}
+
 const CSS = `
-:root{--bg:#0B0D0F;--fg:#F2EFE9;--amber:#E8A33D;--teal:#4A7C7E;--dim:#8b9095;}
+:root{
+  --desk:#8f8f93; --face:#d8d4cc; --paper:#fbfaf7; --ink:#16181a; --dim:#5f646b;
+  --lite:rgba(255,255,255,.75); --dark:rgba(0,0,0,.38);
+  --sans:"Geneva","Verdana","DejaVu Sans",system-ui,sans-serif;
+  --mono:"Monaco","Menlo",ui-monospace,"Courier New",monospace;
+}
 *{box-sizing:border-box}
-body{margin:0;background:#0B0D0F;color:#F2EFE9;font:14px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-main{max-width:1000px;margin:0 auto;padding:32px 20px 80px}
-h1{font-size:20px;margin:0 0 4px}
-h2{font-size:16px;margin:0;display:inline}
-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
-.dim,.muted{color:#8b9095}
-.warn{color:#E8A33D}
-.err{color:#e06c5a}
-.ok{color:#7fb069}
-.pill{display:inline-block;padding:1px 7px;border-radius:99px;font-size:11px;border:1px solid #2a2f34;color:#8b9095;vertical-align:middle}
-.pill.running,.pill.flow-running{border-color:#E8A33D;color:#E8A33D}
-.pill.done,.pill.flow-done{border-color:#4A7C7E;color:#7fb69f}
-.pill.failed,.pill.flow-blocked{border-color:#e06c5a;color:#e06c5a}
-.pill.flow-waiting,.pill.pending{border-color:#3a4046}
-.pill.role{border-color:#4A7C7E;color:#4A7C7E}
-section{margin:28px 0}
-.flow{border:1px solid #1e2226;border-radius:10px;padding:16px;margin:14px 0;background:#0e1114}
-.flow header{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-.goal{margin:8px 0;color:#c9c4bb}
-.meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin-bottom:10px}
-.next{margin:10px 0;padding:8px 10px;border-left:2px solid #E8A33D;background:#141719}
-.step{border-top:1px solid #1e2226;padding:10px 0}
-.step.current{background:#12161a;margin:0 -8px;padding:10px 8px;border-radius:6px}
-.step-head{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
-.idx{color:#8b9095;font-size:12px}
+body{margin:0;color:var(--ink);font:14px/1.55 var(--sans);
+  background:var(--desk);
+  /* The 50% dither the desktop was in 1991, drawn as a 2px checkerboard. */
+  background-image:
+    linear-gradient(45deg,rgba(0,0,0,.07) 25%,transparent 25%,transparent 75%,rgba(0,0,0,.07) 75%),
+    linear-gradient(45deg,rgba(0,0,0,.07) 25%,transparent 25%,transparent 75%,rgba(0,0,0,.07) 75%);
+  background-size:4px 4px; background-position:0 0,2px 2px;
+}
+code{font-family:var(--mono);font-size:12px}
+.dim,.muted{color:var(--dim)}
+.warn{color:#8a5a00}
+.err{color:#94271b}
+.ok{color:#2c6b2c}
+
+/* ---- menu bar: facts, not menus. Nothing here is clickable, on purpose. ---- */
+.menubar{position:sticky;top:0;z-index:9;background:var(--paper);border-bottom:1px solid #000;
+  padding:5px 14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset}
+.menubar .apple{font-weight:700;letter-spacing:.04em}
+.menubar .sep{color:#a9a49a}
+.menubar .right{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim)}
+
+.desk{max-width:1060px;margin:0 auto;padding:22px 18px 90px}
+
+/* ---- windows ---- */
+.win{background:var(--face);border:1px solid #000;box-shadow:3px 3px 0 rgba(0,0,0,.4);margin:0 0 26px}
+.win .bar{display:flex;align-items:center;gap:8px;padding:4px 7px;border-bottom:1px solid #000;
+  background:var(--face);
+  /* System 7 pinstripes, behind a title that punches a hole in them. */
+  background-image:repeating-linear-gradient(180deg,rgba(0,0,0,.42) 0 1px,transparent 1px 3px);}
+.win .bar h1{font-size:13px;margin:0;font-weight:700;letter-spacing:.02em;background:var(--face);
+  padding:1px 12px;white-space:nowrap}
+.win .bar .count{font-weight:400;color:var(--dim)}
+.win .box{width:11px;height:11px;flex:0 0 11px;background:var(--face);border:1px solid #000;
+  box-shadow:inset 1px 1px 0 var(--lite),inset -1px -1px 0 var(--dark)}
+.win .box.zoom{margin-left:auto}
+.win-body{padding:14px 16px 16px;background:var(--paper)}
+.win.tray .win-body{background:#cfcbc2;
+  box-shadow:inset 2px 2px 0 var(--dark),inset -2px -2px 0 var(--lite);padding:12px}
+
+/* ---- the cube: the unit of kind and state ---- */
+.cube{display:inline-block;width:13px;height:13px;flex:0 0 13px;background:var(--c);
+  border:1px solid rgba(0,0,0,.55);
+  box-shadow:inset 1.5px 1.5px 0 rgba(255,255,255,.5),inset -1.5px -1.5px 0 rgba(0,0,0,.3);
+  vertical-align:-2px;margin-right:6px}
+.cube.sm{width:9px;height:9px;flex-basis:9px;vertical-align:0;margin-right:5px}
+.cube.lg{width:17px;height:17px;flex-basis:17px;vertical-align:-3px}
+.strip .cube{margin-right:3px}
+.strip{display:inline-flex;align-items:center}
+
+/* ---- legend ---- */
+.key{display:flex;gap:34px;flex-wrap:wrap;font-size:12px}
+.key ul{list-style:none;margin:6px 0 0;padding:0}
+.key li{display:flex;align-items:center;padding:1px 0}
+.key strong{font-size:12px}
+
+/* ---- scopes ---- */
+.level{margin:0 0 20px}
+.level-h{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);font-weight:700;
+  margin:0 0 8px;display:block;border-bottom:1px solid #c6c1b7;padding-bottom:4px}
+.level-h .dim{text-transform:none;letter-spacing:0;font-weight:400;font-size:12px;margin-left:8px}
+.scope-card{background:var(--paper);border:1px solid #000;margin:0 0 12px;padding:0 0 12px;
+  box-shadow:2px 2px 0 rgba(0,0,0,.18)}
+.scope-card header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;
+  border-bottom:1px solid #ded9d0;
+  /* The scope's own colour, as a band, so the card is identifiable before reading. */
+  border-left:6px solid var(--role)}
+.scope-card>*:not(header){margin-left:12px;margin-right:12px}
+.scopeid{font-size:13px;font-weight:700}
+.tag{font-size:11px;border:1px solid #b3ada2;background:#eae6de;padding:0 6px;color:var(--dim)}
+.people{margin-top:10px;font-size:13px}
+.folks{list-style:none;margin:5px 0 0;padding:0}
+.folks li{display:flex;align-items:center;padding:1px 0}
+.agents{margin-top:12px}
+.tree{list-style:none;margin:6px 0 0;padding:0;font-size:13px}
+/* Hanging indent, not flex. A flex row wraps the description back to the left
+   margin, which puts a child's text under its parent's cube and destroys the
+   one thing the tree is drawn to show. */
+.tree li{padding:2px 0;padding-left:19px;text-indent:-19px}
+.tree li>*{text-indent:0}
+.agent{font-weight:700}
+.agent.missing{color:#94271b;text-decoration:line-through}
+.tools{margin:0 6px;font-size:11px}
+
+/* ---- flows as documents on the desk ---- */
+.doc{background:var(--paper);border:1px solid #000;box-shadow:2px 2px 0 rgba(0,0,0,.22);
+  padding:12px 14px 14px;margin:0 0 12px}
+.doc header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.doc h2{font-size:15px;margin:0;font-weight:700}
+/* A page with a folded corner, in two boxes and a triangle. */
+.doc-icon{position:relative;width:16px;height:20px;flex:0 0 16px;background:#fff;border:1px solid #000;
+  box-shadow:1px 1px 0 rgba(0,0,0,.2)}
+.doc-icon::before{content:"";position:absolute;right:-1px;top:-1px;border-width:0 7px 7px 0;
+  border-style:solid;border-color:transparent #b9b4a8 transparent transparent}
+.doc-icon::after{content:"";position:absolute;left:3px;top:8px;width:9px;height:1px;color:#b9b4a8;
+  box-shadow:0 0 0 0 currentColor,0 3px 0 currentColor,0 6px 0 currentColor;background:currentColor}
+.state-word{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--dim)}
+.state-word.done{color:#2c6b2c}.state-word.running{color:#8a5a00}
+.state-word.failed,.state-word.blocked{color:#94271b}
+.goal{margin:8px 0;color:#3b3f44}
+.meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;align-items:center;margin-bottom:8px}
+.note{margin:8px 0;padding:7px 10px;font-size:13px;border:1px solid #c6c1b7;background:#f0ece4}
+.note.next{border-left:5px solid #e0a020}
+.note.alert{border-left:5px solid #b03a2e;background:#f7ebe8;color:#7d2419}
+.step{border-top:1px solid #e4dfd6;padding:9px 0}
+.step.current{background:#f4efe3;margin:0 -8px;padding:9px 8px}
+.step-head{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.idx{color:var(--dim);font-size:12px;font-family:var(--mono)}
 .intent{flex:1;min-width:200px}
 .when{font-size:12px}
-.result{margin:6px 0 0 34px;padding:6px 9px;background:#141719;border-radius:5px;white-space:pre-wrap;color:#c9c4bb}
-.attempts{margin:6px 0 0 34px;padding:0;list-style:none;font-size:12px}
+.result{margin:6px 0 0 21px;padding:6px 9px;background:#f0ece4;border:1px solid #ded9d0;
+  white-space:pre-wrap;color:#3b3f44}
+.attempts{margin:6px 0 0 21px;padding:0;list-style:none;font-size:12px}
 .attempts li{padding:2px 0}
-.none{margin-left:34px;font-size:12px}
-.scope{border-top:1px solid #1e2226;padding:9px 0}
-.scope ul{margin:5px 0 0 18px;padding:0;font-size:13px}
-.holes li{margin:6px 0}
-.ignored{margin:8px 0;padding:8px 10px;border-left:2px solid #e06c5a;background:#17110f;font-size:13px;color:#e0a89a}
-.level{margin:22px 0}
-.level-h{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#8b9095;font-weight:600;margin:0 0 8px;display:block}
-.level-h .dim{text-transform:none;letter-spacing:0;font-weight:400;font-size:12px;margin-left:8px}
-.scope-card{border:1px solid #1e2226;border-radius:10px;padding:14px 16px;margin:10px 0;background:#0e1114}
-.scope-card header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-.scopeid{font-size:13px;color:#F2EFE9}
-.people{margin:8px 0;font-size:13px}
-.people ul{margin:4px 0 0 16px;padding:0}
-.agents{margin:10px 0 0}
-.tree{list-style:none;margin:6px 0 0;padding:0;font-size:13px}
-.tree li{padding:2px 0;border-left:1px solid #23282d;padding-left:10px}
-.agent{color:#E8A33D}
-.agent.missing{color:#e06c5a;text-decoration:line-through}
-.tools{margin:0 6px}
-.holes q{display:block;color:#8b9095;font-size:13px}
+.none{margin-left:21px;font-size:12px}
+
+/* ---- holes and edges ---- */
+.holes{list-style:none;margin:0;padding:0}
+.holes li{margin:0 0 10px;padding-left:22px;position:relative}
+/* A dashed outline: the shape of a thing that is not there. */
+.holes li::before{content:"?";position:absolute;left:0;top:1px;width:14px;height:14px;
+  border:1px dashed #94271b;color:#94271b;font-size:10px;font-weight:700;text-align:center;line-height:12px}
+.holes q{display:block;color:var(--dim);font-size:13px;quotes:none}
+.edges{list-style:none;margin:0;padding:0;font-size:13px}
+.edges li{padding:2px 0}
+.empty{color:var(--dim);margin:0}
+
+@media(max-width:640px){
+  .desk{padding:14px 10px 60px}
+  .key{gap:18px}
+}
 `;
 
 export function renderViewHtml(input: ViewInput): string {
@@ -294,21 +494,8 @@ export function renderViewHtml(input: ViewInput): string {
   const live = flows.filter((f) => f.state !== "done" && f.state !== "abandoned");
   const rest = flows.filter((f) => f.state === "done" || f.state === "abandoned");
 
-  return `<!doctype html><html lang="en"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ai-os — flows and conformation</title>
-<style>${CSS}</style>
-<main>
-<h1>ai-os</h1>
-<div class="dim">rendered ${esc(new Date(now).toISOString())}${input.source ? ` · ${esc(input.source)}` : ""}${
-    c ? ` · conformation digest <code>${esc(c.digest)}</code> · harness ${esc(c.harness)}` : ""
-  }</div>
-
-${
-  c
-    ? `<section>
-  <h1>The system <span class="dim">(${c.scopes.length} scopes)</span></h1>
-  <p class="dim">Every level of the OS, the people in it, and the agents each scope defines. Membership comes from <code>ProjectStore</code> and the directory; it is never read from a folder.</p>
+  const systemBody = c
+    ? `<p class="dim">Every level of the OS, the people in it, and the agents each scope defines. Membership comes from <code>ProjectStore</code> and the directory; it is never read from a folder.</p>
   ${(() => {
     const systemAgents = new Map(
       (c.scopes.find((s) => s.role === "system")?.agents ?? []).map((a) => [a.name, a] as const),
@@ -319,37 +506,67 @@ ${
       return `<div class="level"><h2 class="level-h">${esc(level.label)} <span class="dim">${esc(level.note)}</span></h2>
         ${inLevel.map((s) => scopeCard(s, systemAgents)).join("")}</div>`;
     }).join("");
-  })()}
-</section>`
-    : `<section><p class="dim">No conformation was projected for this render.</p></section>`
-}
+  })()}`
+    : `<p class="empty">No conformation was projected for this render.</p>`;
 
-<section>
-  <h1>Flows in progress <span class="dim">(${live.length})</span></h1>
-  ${live.length ? live.map((f) => flowCard(f, now)).join("") : `<p class="dim">Nothing in progress.</p>`}
-</section>
+  return `<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ai-os — flows and conformation</title>
+<style>${CSS}</style>
+<div class="menubar">
+  <span class="apple">ai-os</span>
+  <span class="sep">|</span>
+  <span>rendered ${esc(new Date(now).toISOString())}</span>
+  ${input.source ? `<span class="sep">|</span><span>${esc(input.source)}</span>` : ""}
+  ${c ? `<span class="right">digest ${esc(c.digest)} · harness ${esc(c.harness)}</span>` : ""}
+</div>
+<div class="desk">
 
-${rest.length ? `<section><h1 class="dim">Settled <span class="dim">(${rest.length})</span></h1>${rest.map((f) => flowCard(f, now)).join("")}</section>` : ""}
+${win("Key", "", legend())}
+
+${win("The System", c ? `(${c.scopes.length} scopes)` : "", systemBody)}
+
+${win(
+  "In tray — still moving",
+  `(${live.length})`,
+  live.length ? live.map((f) => flowCard(f, now)).join("") : `<p class="empty">Nothing in progress.</p>`,
+  "tray",
+)}
 
 ${
-  c
-    ? `<section>
-  <h1>Holes <span class="dim">(${c.holes.length})</span></h1>
-  <p class="dim">Questions asked of this system that no store could answer. They are shown, not omitted: a view that renders cleanly because it did not ask is worse than no view.</p>
-  <ul class="holes">${c.holes
-    .map((h) => `<li>${esc(h.question)}${h.scopeId ? ` <code class="dim">${esc(h.scopeId)}</code>` : ""}<q>${esc(h.why)}</q></li>`)
-    .join("")}</ul>
-</section>`
-    : `<section><p class="dim">No conformation was projected for this render.</p></section>`
+  rest.length
+    ? win("Out tray — settled", `(${rest.length})`, rest.map((f) => flowCard(f, now)).join(""), "tray")
+    : ""
 }
+
+${win(
+  "Holes",
+  c ? `(${c.holes.length})` : "",
+  c
+    ? `<p class="dim">Questions asked of this system that no store could answer. They are shown, not omitted: a view that renders cleanly because it did not ask is worse than no view.</p>
+  ${
+    c.holes.length
+      ? `<ul class="holes">${c.holes
+          .map((h) => `<li>${esc(h.question)}${h.scopeId ? ` <code class="dim">${esc(h.scopeId)}</code>` : ""}<q>${esc(h.why)}</q></li>`)
+          .join("")}</ul>`
+      : `<p class="empty">Every question this render asked was answered.</p>`
+  }`
+    : `<p class="empty">No conformation was projected for this render.</p>`,
+)}
 
 ${
   c && c.edges.length
-    ? `<section><h1>Who talked to whom <span class="dim">(${c.edges.length})</span></h1>
-  <ul class="holes">${c.edges
-    .map((e) => `<li><code>${esc(e.from)}</code> → <code>${esc(e.to)}</code> <span class="dim">${e.messages} msg · via ${esc(e.via)} · ${esc(e.scopeId)}</span></li>`)
-    .join("")}</ul></section>`
+    ? win(
+        "Who talked to whom",
+        `(${c.edges.length})`,
+        `<ul class="edges">${c.edges
+          .map(
+            (e) =>
+              `<li><code>${esc(e.from)}</code> → <code>${esc(e.to)}</code> <span class="dim">${e.messages} msg · via ${esc(e.via)} · ${esc(e.scopeId)}</span></li>`,
+          )
+          .join("")}</ul>`,
+      )
     : ""
 }
-</main></html>`;
+</div></html>`;
 }

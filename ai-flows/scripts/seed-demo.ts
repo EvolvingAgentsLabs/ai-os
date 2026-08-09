@@ -68,9 +68,26 @@ const MEMBERS = (process.env.SEED_MEMBERS ?? "ada,priya").split(",").map((s) => 
 
 type Conv = { kind: "dm" | "group"; threadRef: string; channelRef?: string };
 
-/** Write one file into a scope's live workspace, by asking a turn to do it. */
-async function writeInScope(conversation: Conv, actor: string, path: string, content: string) {
-  const r = await core.turn({
+/**
+ * Write one file into a scope's live workspace, by asking a turn to do it —
+ * and then **read it back**, because the reply is not evidence.
+ *
+ * The first version scored the write by testing whether the model's reply
+ * mentioned the filename. That is the failure this repository has a rule
+ * against — a check that measures phrasing rather than the mechanism — and it
+ * failed in the direction that costs the most: it reports `ok` for a write that
+ * never happened, because a model that says "I created LedgerLead.md" passes
+ * whether or not it did. **Measured 2026-08-09: five files reported `ok`, two
+ * existed on disk.** The demo it produced looked seeded and was half empty, and
+ * the conformation view rendered it without complaint.
+ *
+ * So the check is now the file. `scopeFor` is not reachable from here, but the
+ * WorkspaceStore is the same store the view reads, which makes it the right
+ * question to ask: not "did the turn claim success" but "can the thing that
+ * renders the demo see the file".
+ */
+async function writeInScope(conversation: Conv, actor: string, scopeId: string, path: string, content: string) {
+  await core.turn({
     surface: "seed-demo",
     actor: { externalId: actor, displayName: actor },
     conversation,
@@ -78,8 +95,9 @@ async function writeInScope(conversation: Conv, actor: string, path: string, con
       `Use your write tool to create the file at exactly \`${path}\` with exactly this content ` +
       `and nothing else, then reply with just the path you wrote:\n\n${content}`,
   });
-  const ok = (r.reply ?? "").includes(path.split("/").pop() ?? path);
-  console.log(`  ${ok ? "ok  " : "??  "} ${path}`);
+  const written = await workspace.read(scopeId, path);
+  const ok = written !== null;
+  console.log(`  ${ok ? "ok     " : "MISSING"} ${path}${ok ? "" : "  — the turn replied, the file is not there"}`);
   return ok;
 }
 
@@ -172,8 +190,23 @@ for (const [path, content] of SYSTEM) {
   console.log(`  ok   ${path}`);
 }
 console.log(`\nproject ${groupRef} — roster ${OWNER} + ${MEMBERS.join(", ")}`);
-for (const [path, content] of PROJECT_AGENTS) await writeInScope(projConv, OWNER, path, content);
+const projectScope = `group:${groupRef}`;
+const missing: string[] = [];
+for (const [path, content] of PROJECT_AGENTS) {
+  // One retry, because the observed failure is a turn that answers without
+  // writing rather than a turn that errors — and a second ask usually lands.
+  let ok = await writeInScope(projConv, OWNER, projectScope, path, content);
+  if (!ok) ok = await writeInScope(projConv, OWNER, projectScope, path, content);
+  if (!ok) missing.push(path);
+}
 
 console.log(`\nseeded. LedgerLead -> SchemaAgent, MigrationAgent, ReviewAgent`);
 console.log(`        DataQualityAgent -> AnomalyScanner (deliberately missing)`);
+if (missing.length) {
+  // Exit non-zero. A seed that half-worked and returned success is how the demo
+  // came to show two agents where five were reported written.
+  console.error(`\n${missing.length} project agent file(s) never landed: ${missing.join(", ")}`);
+  console.error(`The system is under-seeded. Rerun — this script is idempotent.`);
+  process.exit(1);
+}
 process.exit(0);

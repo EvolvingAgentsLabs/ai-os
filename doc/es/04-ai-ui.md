@@ -61,6 +61,48 @@ El modo de falla contra el que hay que diseñar: un layout generado que se
 reacomoda bajo las manos del usuario. **Regla: el sistema propone cuando cambia el
 estado; nunca reacomoda lo que el usuario tocó.**
 
+## La metáfora: un escritorio, no un dashboard — decidido 2026-08-09
+
+Las cuatro palabras de arriba dicen qué *hace* el canvas. No dicen nada de cómo
+tiene que verse, y lo primero que se construyó a partir de ellas — un documento
+plano y oscuro — se ganó exactamente una queja: **era poco claro.** Todo pesaba
+lo mismo, así que nada te decía qué clase de cosa estabas mirando.
+
+La respuesta es una metáfora lo bastante vieja como para haber sido probada con
+gente que nunca había usado una computadora: **el escritorio de System 7 y
+Windows 3.1.**
+
+- **Una ventana es un borde.** Una barra de título y un marco te dicen dónde
+  termina una cosa y empieza la siguiente, antes de leer ninguna de las dos.
+- **Un biselado es una superficie.** Levantado es una cosa; hundido es un
+  recipiente que contiene cosas. Es una pista de profundidad que no necesita
+  leyenda.
+- **Un bloque de color es un tipo.** Un color por rol de scope, por agente y por
+  estado de paso, que no se usa para nada más — el progreso de un flow pasa a ser
+  una tira de cubitos que se cuenta desde el otro lado de la sala, y *dónde* se
+  frenó se ve sin leer.
+- **Un documento es un documento.** Un flow es una hoja con la esquina doblada,
+  porque eso es lo que es: una cosa con título que alguien tiene que retomar.
+- **Las bandejas sostienen trabajo.** Bandeja de entrada para lo que se sigue
+  moviendo, de salida para lo que ya se asentó. No es decoración — "dónde está
+  esto y hay alguien sosteniéndolo" es la pregunta para la que existe el canvas,
+  así que debería ser la primera que contesta el layout.
+
+Esto ya está **[ran]**: el explorador sólo-lectura de `ai-flows/src/view.ts` se
+reconstruyó así, y sus capturas están en [el manual](manual.md). El canvas hereda
+el vocabulario en lugar de inventar un segundo.
+
+Lo que el canvas agrega encima es exactamente las cuatro propiedades de arriba:
+posición que persiste, estado que se actualiza en su lugar, disposición compuesta
+a partir de la forma del flow, y manipulación directa como entrada. El explorador
+no tiene ninguna **a propósito**, que es lo que lo vuelve el brazo de control: ver
+§ Cómo se falsifica esto.
+
+Una cosa sobre la que la época *no* vota. Geneva de nueve puntos en una pantalla
+de 640×480 era una restricción, no un objetivo, y reproducirla sería resignar
+justo la claridad por la que se adoptó la metáfora. **Cromo de época, tipografía
+de hoy.**
+
 ## Por qué una proyección y no un transcripto — la razón de muestreo
 
 La afirmación de arriba se lee como gusto personal. No lo es, y vale la pena
