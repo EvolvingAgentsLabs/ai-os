@@ -190,6 +190,29 @@ describe("what the desk shows before anything is read", () => {
   });
 });
 
+describe("the simulated page", () => {
+  it("ships a parseable shim, and says on its chrome that it is simulated", () => {
+    // Same trap as the client: SIMULATION_JS is a template literal, and one
+    // backtick in it ends the string early. It happened here too, on the first
+    // write of this module.
+    const html = renderDeskHtml({ ...view(), simulate: true });
+    const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+      (m) => m[1]!,
+    );
+    assert.equal(scripts.length, 3, "state, shim, client");
+    assert.doesNotThrow(() => new Function(scripts[1]!), "the shim must parse");
+    assert.match(html, /Simulated — no core, no model, nothing stored/);
+  });
+
+  it("ships no shim when it is not simulated", () => {
+    // The banner is the whole protection against a demo being mistaken for the
+    // product; a real desk must never carry it, and never carry the shim.
+    const html = renderDeskHtml(view());
+    assert.equal([...html.matchAll(/<script>/g)].length, 2);
+    assert.ok(!html.includes("Simulated —"));
+  });
+});
+
 describe("the script the page actually ships", () => {
   it("parses as JavaScript", () => {
     // The client is a template literal, so one stray backtick in a comment ends

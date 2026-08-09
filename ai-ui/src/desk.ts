@@ -39,6 +39,7 @@ import {
   statesByColor,
 } from "../../ai-flows/src/vocabulary.ts";
 import { AGENT_COLOR, SUBAGENT_COLOR } from "../../ai-flows/src/vocabulary.ts";
+import { SIMULATION_JS } from "./simulate.ts";
 
 export interface DeskDoc {
   id: string;
@@ -69,6 +70,15 @@ export interface DeskAgent {
 }
 
 export interface DeskView {
+  /**
+   * Render with an in-page fake backend instead of a real one.
+   *
+   * The demo is the real client with `window.fetch` replaced, never a second
+   * implementation ([simulate.ts](simulate.ts)). It also puts a banner on the
+   * chrome, because a page that behaves like the product and is not the product
+   * has to say so somewhere a reader cannot miss.
+   */
+  simulate?: boolean;
   scopeId: string;
   scopeLabel: string;
   harness: string;
@@ -205,6 +215,8 @@ button[disabled]{opacity:.5;cursor:default}
 .levels{display:flex;gap:10px;font-size:10px;margin-left:auto;align-items:flex-start;flex:0 0 auto}
 .levels div{display:flex;align-items:center;gap:4px}
 select{font:inherit;font-size:11px}
+.sim{background:#7d2419;color:#fbfaf7;padding:1px 8px;font-size:10px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:300;
   background:var(--paper);border:1px solid #000;box-shadow:3px 3px 0 rgba(0,0,0,.4);
   padding:7px 14px;font-size:12px;display:none}
@@ -583,6 +595,7 @@ export function renderDeskHtml(view: DeskView): string {
 <style>${CHROME_CSS}${DESK_CSS}</style>
 <div class="menubar">
   <span class="apple">ai-os</span>
+  ${view.simulate ? `<span class="sim">Simulated — no core, no model, nothing stored</span><span class="dim">reloading starts over</span>` : ""}
   <span class="sep">|</span>
   <label>Scope <select id="scope">${view.scopes
     .map(
@@ -614,6 +627,7 @@ export function renderDeskHtml(view: DeskView): string {
 </div>
 <div class="toast" id="toast"></div>
 <script>window.__DESK__ = ${jsonForScript(client)};</script>
+${view.simulate ? `<script>${SIMULATION_JS}</script>` : ""}
 <script>${DESK_JS}</script>
 </html>`;
 }
