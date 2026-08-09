@@ -283,6 +283,54 @@ for (const backend of backends) {
       );
       assert.equal((await store.listFlows(`personal:${randomUUID()}`)).length, 0, "and never across scopes");
     });
+
+    describe("removing a step that has not started", () => {
+      it("removes a pending step with no attempts", async () => {
+        const flow = await newFlow();
+        await store.appendStep({ flowId: flow.id, intent: "one" });
+        const two = await store.appendStep({ flowId: flow.id, intent: "two" });
+        assert.ok(await store.removeStep(two!.id));
+        const after = await store.getFlow(flow.id);
+        assert.deepEqual(
+          after!.steps.map((s) => s.intent),
+          ["one"],
+        );
+      });
+
+      it("refuses a step that has an attempt, because an attempt is history", async () => {
+        // `attempts[]` exists so failure can be diffed and explained. Deleting a
+        // step that ran erases an attempt and the observation captured when it
+        // closed — the same mistake the array was built to prevent.
+        const flow = await newFlow();
+        const step = await store.appendStep({ flowId: flow.id, intent: "one" });
+        await store.startAttempt({ stepId: step!.id, runId: "r1", sessionId: null });
+        assert.equal(await store.removeStep(step!.id), null);
+        assert.equal((await store.getFlow(flow.id))!.steps.length, 1);
+      });
+
+      it("does not renumber, and the next step still gets a fresh index", async () => {
+        // Renumbering would rewrite the meaning of every index already recorded
+        // in a result or a log, so the gap is the honest record. `length` as the
+        // next index would then hand out one that already exists.
+        const flow = await newFlow();
+        await store.appendStep({ flowId: flow.id, intent: "zero" });
+        const one = await store.appendStep({ flowId: flow.id, intent: "one" });
+        await store.appendStep({ flowId: flow.id, intent: "two" });
+        await store.removeStep(one!.id);
+        const added = await store.appendStep({ flowId: flow.id, intent: "three" });
+        const after = await store.getFlow(flow.id);
+        assert.deepEqual(
+          after!.steps.map((s) => s.index),
+          [0, 2, 3],
+        );
+        assert.equal(added!.index, 3, "a gap must not hand out an index that already exists");
+      });
+
+      it("returns null for a step that is not there", async () => {
+        assert.equal(await store.removeStep("00000000-0000-4000-8000-000000000000"), null);
+      });
+    });
+
   });
 }
 

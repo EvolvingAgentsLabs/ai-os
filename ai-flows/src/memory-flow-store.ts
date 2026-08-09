@@ -90,7 +90,9 @@ export function createMemoryFlowStore(opts: { now?: () => number; id?: () => str
       const step: Step = {
         id: nextId(),
         flowId: row.flow.id,
-        index: row.steps.length,
+        // MAX+1, not length: once a step can be removed there are gaps, and
+        // `length` would hand the new step an index that already exists.
+        index: row.steps.reduce((m, x) => Math.max(m, x.index + 1), 0),
         intent: input.intent,
         state: "pending",
         result: null,
@@ -101,6 +103,19 @@ export function createMemoryFlowStore(opts: { now?: () => number; id?: () => str
       row.steps.push(step);
       row.flow.updatedAt = at;
       return cloneStep(step);
+    },
+
+    async removeStep(stepId: string): Promise<Step | null> {
+      for (const row of rows.values()) {
+        const i = row.steps.findIndex((s) => s.id === stepId);
+        if (i < 0) continue;
+        const step = row.steps[i]!;
+        if (step.state !== "pending" || step.attempts.length) return null;
+        row.steps.splice(i, 1);
+        row.flow.updatedAt = now();
+        return step;
+      }
+      return null;
     },
 
     async transitionStep(id: string, expected: StepState, next: StepState): Promise<Step | null> {

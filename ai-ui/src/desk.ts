@@ -147,7 +147,14 @@ body{overflow:hidden}
 .shelf h3{position:absolute;top:6px;left:8px;margin:0;font-size:10px;letter-spacing:.1em;
   text-transform:uppercase;color:#3b3f44}
 
-.panel{position:fixed;right:14px;top:44px;width:290px;max-height:calc(100vh - 70px);overflow:auto;z-index:200}
+/* One column on the right, so the panel and the key stack instead of landing on
+   top of each other. They were separately fixed -- panel to the top, key to the
+   bottom -- which is fine on a tall window and overlaps on a short one. */
+.rail{position:fixed;right:14px;top:44px;bottom:14px;width:290px;z-index:200;
+  display:flex;flex-direction:column;gap:12px;overflow:auto;pointer-events:none}
+.rail>*{pointer-events:auto;flex:0 0 auto}
+.rail .spacer{flex:1 1 auto;min-height:0}
+.panel{width:100%}
 .panel .win-body{padding:10px 12px;font-size:12px}
 .panel h4{margin:0 0 4px;font-size:12px}
 .panel .act{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
@@ -258,9 +265,31 @@ const DESK_JS = String.raw`
     }
     const onto = docUnder(ev.clientX, ev.clientY);
     if (!onto) {
-      const was = layout.cubes[d.id] || { slot: 0 };
+      const was = layout.cubes[d.id] || { slot: 0, onDoc: null };
+      const cameFrom = was.onDoc;
       layout.cubes[d.id] = { x, y, pinned: true, onDoc: null, slot: was.slot };
       saveLayout(); render();
+      if (!cameFrom) return;
+      // Taking a cube off a document is the inverse of dropping one on, so it
+      // has to undo the same thing. Leaving the step queued would show the agent
+      // as idle while its work sat ready to run.
+      try {
+        const res = await post('/unassign', { scopeId: S.scopeId, flowId: cameFrom, agent: d.id });
+        if (res.kept && res.kept.length) {
+          // Something already started. The cube goes back, because the picture
+          // must not claim an agent was taken off work it is doing.
+          layout.cubes[d.id] = { x, y, pinned: true, onDoc: cameFrom, slot: was.slot };
+          saveLayout();
+          say(res.note, 6000);
+        } else if (res.removed) {
+          say('Removed ' + res.removed + ' queued step(s) for ' + d.id + '.', 4000);
+        }
+        await refresh();
+      } catch (e) {
+        layout.cubes[d.id] = { x, y, pinned: true, onDoc: cameFrom, slot: was.slot };
+        saveLayout(); render();
+        say('Could not remove the step: ' + e.message, 5000);
+      }
       return;
     }
     const flowId = onto.dataset.id;
@@ -303,13 +332,23 @@ const DESK_JS = String.raw`
         (next
           ? '<div class="note warn">Next: <strong>' + escape_(next.agent || 'step ' + next.index) + '</strong>. ' +
             'Advancing spends a model call.</div><div class="act"><button id="adv">Advance one step</button></div>'
-          : '<div class="note">Nothing left to do.</div>');
+          // Every step is settled but the flow has not been told. Without this
+          // the desk can run a flow to its last step and never close it: it sits
+          // at waiting, 3/3 done, with no control that would finish it.
+          : doc.state !== 'done' && doc.state !== 'abandoned'
+            ? '<div class="note">Every step is settled. The flow is still <strong>' + escape_(doc.state) +
+              '</strong> because nothing has closed it. This spends nothing — there is no step left to run.</div>' +
+              '<div class="act"><button id="adv">Mark the flow finished</button></div>'
+            : '<div class="note">Nothing left to do.</div>');
       const b = p.querySelector('#adv');
-      if (b) b.onclick = async () => {
-        b.disabled = true; b.textContent = 'Running…';
-        try { const r = await post('/advance', { flowId: doc.id }); say('Step ' + r.outcome + '.'); await refresh(); }
-        catch (e) { say('Advance failed: ' + e.message, 5000); b.disabled = false; b.textContent = 'Advance one step'; }
-      };
+      if (b) {
+        const label = b.textContent;
+        b.onclick = async () => {
+          b.disabled = true; b.textContent = 'Working…';
+          try { const r = await post('/advance', { flowId: doc.id }); say('Step ' + r.outcome + '.'); await refresh(); }
+          catch (e) { say('Advance failed: ' + e.message, 5000); b.disabled = false; b.textContent = label; }
+        };
+      }
     } else {
       const a = S.agents.find((x) => x.name === selected.id);
       if (!a) { selected = null; p.style.display = 'none'; return; }
@@ -382,6 +421,11 @@ const DESK_JS = String.raw`
   document.getElementById('reload').addEventListener('click', () => refresh());
 
   render();
+  // A document can be addressed directly: ?select=<flowId>. Sharing "look at
+  // this one" should be a link rather than an instruction to find it, and it is
+  // the only way a screenshot can show the panel.
+  const wanted = new URLSearchParams(location.search).get('select');
+  if (wanted && S.docs.some((d) => d.id === wanted)) select('doc', wanted);
   // Live, but on a leash: a desk that re-fetches every second spends nothing on
   // the model and everything on the reader's attention. Five seconds is slower
   // than a step and faster than a person wondering.
@@ -441,13 +485,16 @@ export function renderDeskHtml(view: DeskView): string {
     <div class="shelf"><h3>Agents</h3></div>
   </div>
 </div>
-<div class="win panel" id="panel" style="display:none">
-  <div class="bar"><span class="box"></span><h2>Selected</h2><span class="box zoom"></span></div>
-  <div class="win-body"></div>
-</div>
-<div class="win panel" id="key" style="right:14px;bottom:14px;top:auto;width:250px">
-  <div class="bar"><span class="box"></span><h2>Key</h2><span class="box zoom"></span></div>
-  <div class="win-body">${legend()}</div>
+<div class="rail">
+  <div class="win panel" id="panel" style="display:none">
+    <div class="bar"><span class="box"></span><h2>Selected</h2><span class="box zoom"></span></div>
+    <div class="win-body"></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="win panel" id="key">
+    <div class="bar"><span class="box"></span><h2>Key</h2><span class="box zoom"></span></div>
+    <div class="win-body">${legend()}</div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 <script>window.__DESK__ = ${jsonForScript(client)};</script>

@@ -67,6 +67,27 @@ export interface FlowsClient {
     }>
   >;
   appendStep(flowId: string, intent: string): Promise<{ index: number }>;
+  /**
+   * Remove a step that has not started.
+   *
+   * `ok: false` carries why. The only reason that matters is that the step has
+   * begun, and the desk has to be able to say so rather than silently leaving a
+   * cube where the user did not put it.
+   */
+  removeStep(
+    flowId: string,
+    index: number,
+  ): Promise<{ ok: true } | { ok: false; reason: string; state?: string }>;
+  /**
+   * Settle an attempt whose run has already finished.
+   *
+   * This launches nothing. `advance` starts a step and returns `in_flight` when
+   * the run has not come back yet, and something has to collect it — every other
+   * caller in this repository pairs the two. The desk did not, and a step
+   * started from it stayed `running` for as long as anyone watched: the cube
+   * pulsed forever over a run that had finished minutes earlier.
+   */
+  resume(flowId: string): Promise<{ resumed: number }>;
   advance(flowId: string): Promise<{ kind: string }>;
 }
 
@@ -114,6 +135,37 @@ async function readBody(req: IncomingMessage): Promise<string> {
 
 export function createDeskServer(opts: DeskServerOptions): Server {
   const now = opts.now ?? Date.now;
+  /**
+   * Flows with a resume already in the air.
+   *
+   * The desk polls every few seconds and a resume can outlive one poll, so
+   * without this a slow run accumulates overlapping collectors racing to settle
+   * the same attempt.
+   */
+  const resuming = new Set<string>();
+
+  /**
+   * Collect finished runs without making the caller wait for them.
+   *
+   * Deliberately not awaited: reading the desk must stay fast, and the result of
+   * a settle shows up on the next poll a few seconds later. Errors are dropped
+   * on purpose — a failed collection is retried by the next poll, and a desk
+   * that 500s because a background settle failed is worse than one that is five
+   * seconds stale.
+   */
+  function collectInBackground(
+    flows: Array<{ id: string; steps: Array<{ state: string }> }>,
+  ): void {
+    for (const f of flows) {
+      if (!f.steps.some((s) => s.state === "running")) continue;
+      if (resuming.has(f.id)) continue;
+      resuming.add(f.id);
+      void opts.flows
+        .resume(f.id)
+        .catch(() => {})
+        .finally(() => resuming.delete(f.id));
+    }
+  }
 
   async function viewFor(scopeId: string | null): Promise<DeskView> {
     const c = await opts.flows.conformation();
@@ -138,6 +190,7 @@ export function createDeskServer(opts: DeskServerOptions): Server {
     }
 
     const flows = await opts.flows.flows(chosen.scopeId);
+    collectInBackground(flows);
     const docs: DeskDoc[] = flows.map((f) => ({
       id: f.id,
       title: f.title,
@@ -279,9 +332,59 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         return send(200, { ok: true, stepIndex: index, flowTitle: flow.title });
       }
 
+      if (req.method === "POST" && url.pathname === "/unassign") {
+        // The inverse of /assign, and it has to exist. Dropping a cube on a
+        // document creates work; if dragging it off did nothing, the desk would
+        // show an agent as idle while its step sat queued and ready to run --
+        // a picture that renders cleanly and is wrong, which is the failure this
+        // whole system is built to refuse.
+        const body = JSON.parse((await readBody(req)) || "{}");
+        const { scopeId, flowId, agent } = body ?? {};
+        if (!scopeId || !flowId || !agent) {
+          return send(400, { error: "scopeId, flowId and agent are required" });
+        }
+        const flow = (await opts.flows.flows(scopeId)).find(
+          (f) => f.id === flowId,
+        );
+        if (!flow) return send(404, { error: "no such flow in this scope" });
+        const steps = flow.steps.filter(
+          (s) => agentOfIntent(s.intent) === agent,
+        );
+        if (!steps.length) {
+          // Nothing queued for this agent: the cube was only ever a placement,
+          // so taking it off is a layout change and nothing more.
+          return send(200, {
+            ok: true,
+            removed: 0,
+            note: "no step was queued for this agent",
+          });
+        }
+        let removed = 0;
+        const kept: string[] = [];
+        for (const step of steps) {
+          const r = await opts.flows.removeStep(flowId, step.index);
+          if (r.ok) removed += 1;
+          else kept.push(`step ${step.index} (${r.state ?? r.reason})`);
+        }
+        return send(200, {
+          ok: true,
+          removed,
+          kept,
+          ...(kept.length
+            ? {
+                note: `${kept.join(", ")} already started and cannot be removed — an attempt is history`,
+              }
+            : {}),
+        });
+      }
+
       if (req.method === "POST" && url.pathname === "/advance") {
         const body = JSON.parse((await readBody(req)) || "{}");
         if (!body?.flowId) return send(400, { error: "flowId is required" });
+        // Collect anything already in flight before starting more. Without this
+        // a second click launches a step while the previous one is still open,
+        // and the flow ends up with two running attempts nobody asked for.
+        await opts.flows.resume(body.flowId);
         const outcome = await opts.flows.advance(body.flowId);
         return send(200, { ok: true, outcome: outcome.kind });
       }

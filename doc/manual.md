@@ -354,17 +354,78 @@ measured pair, with the principal id rather than the display name
 
 ---
 
+## Part 6 · The desk — flows as documents, agents as cubes
+
+`ai-ui` is a third process. It reads the system from `ai-flows` and owns nothing
+but the arrangement.
+
+```bash
+cd ai-os/ai-ui
+DATABASE_URL=<same as the flow API> FLOWS_API_URL=http://localhost:8097 \
+  node scripts/serve.ts
+# → http://localhost:8098
+```
+
+<img src="assets/manual/09-desk.jpg" alt="" width="100%">
+
+<sub>Two flows, one finished and one not started. The cubes on each document are the agents with work in it; <code>LedgerLead</code> sits on bare desk because it has none. <code>AnomalyScanner</code> is on the shelf, struck through: declared in <code>DataQualityAgent.md</code> with no file behind it, so it cannot be dragged anywhere.</sub>
+
+**A document is a flow. A cube is an agent.** A cube resting on a document means
+that agent has work in that flow, and the strip under the goal is one cube per
+step, so where a flow stopped is visible before you read anything.
+
+### The four gestures, and what each costs
+
+| Gesture | What happens | Cost |
+|---|---|---|
+| Drag a document | It stays there, for that scope, across reloads | nothing |
+| Drop a cube on a document | That agent gets a **real step** — the same instruction composing a tree writes | nothing to add it |
+| Drag a cube off | That agent's **queued steps are removed** | nothing |
+| Click a document → **Advance** | Runs one step | **one model call** |
+
+Dragging a cube off is the part worth explaining. Dropping one creates work, so
+taking it off has to undo the same work — otherwise the desk would show an agent
+as idle while its step sat queued and ready to run. **A step that has already
+started is not removed**: an attempt is history, and the desk says so and puts
+the cube back rather than drawing a picture that is wrong.
+
+<img src="assets/manual/10-desk-panel.jpg" alt="" width="100%">
+
+<sub>Selecting a document opens its panel: every step by agent, and the one control that spends money — with the cost stated before it is pressed. A document is addressable: <code>?select=&lt;flowId&gt;</code>.</sub>
+
+### Reading the desk never starts work
+
+The page re-reads state every five seconds. Nothing about that can launch a step:
+`/assign` writes one and `/advance` runs one, and both are gestures you make.
+
+It *does* collect. A step whose run has finished has to be settled by something,
+and if the desk only ever advanced, a step it started would sit at `running`
+forever. **Measured, by pressing the button:** the first version left a step
+running for over ten minutes with its run long finished, and the agent's cube
+pulsing over it. Collecting launches nothing and spends nothing — it settles a
+run already paid for.
+
+### When every step is done but the flow is not
+
+A flow whose steps have all settled stays `waiting` until something closes it.
+The panel offers **Mark the flow finished** in that case, and says plainly that
+it spends nothing, because there is no step left to run.
+
+---
+
 ## What you cannot run
 
 Stated plainly, because a manual that omits this is a brochure:
 
-- **There is no canvas, and the flow engine is now built.** M2 was delivered on
+- **The flow engine is built; the shapes above it are not.** M2 was delivered on
   2026-08-06 — a flow started by one process and finished by another, 6/6 on both
   `pi` and `mock` ([08-roadmap § M2](08-roadmap.md)). What is still absent is
   everything above one shape: no `Sequence`, `Loop`, `Fan-out`, `Deliberation` or
   `Watch`, and no merge.
-- **There is no canvas.** `ai-ui` is [04](04-ai-ui.md) and nothing else. The UI in
-  this manual is upstream's.
+- **The canvas is built but unproven.** Part 6 is real and runs. What has *not*
+  happened is its own falsification: the stopwatch, a three-day-old flow somebody
+  else ran, desk against transcript ([04](04-ai-ui.md)). Until that is run, the
+  honest claim is that it works, not that it helps.
 - **There is no scoped memory.** `ai-storage` is [05](05-ai-storage.md) and
   nothing else. The `Memory` tab you see is QM's flat `MEMORY.md`.
 - **Orchestrator agents still cannot have their own sub-agents.** Delegation is

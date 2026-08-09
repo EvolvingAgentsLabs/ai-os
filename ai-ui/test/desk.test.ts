@@ -163,3 +163,40 @@ describe("what the desk shows before anything is read", () => {
     assert.ok(!/@import/.test(html));
   });
 });
+
+describe("the script the page actually ships", () => {
+  it("parses as JavaScript", () => {
+    // The client is a template literal, so one stray backtick in a comment ends
+    // the string early and ships a broken page. That happened: a comment written
+    // as `waiting` closed the template. Nothing about the page's shape catches
+    // it, and the failure is total — no drag, no poll, no panel.
+    const html = renderDeskHtml(view());
+    const script = html.slice(
+      html.lastIndexOf("<script>") + 8,
+      html.lastIndexOf("</script>"),
+    );
+    assert.ok(
+      script.length > 1000,
+      "the client script should be shipped whole",
+    );
+    assert.doesNotThrow(
+      () => new Function(script),
+      "the shipped client must parse",
+    );
+  });
+
+  it("carries no unresolved template interpolation", () => {
+    // `${...}` inside the client would be evaluated at build time by the outer
+    // template, not at run time by the browser — silently producing a different
+    // program from the one written.
+    const html = renderDeskHtml(view());
+    const script = html.slice(
+      html.lastIndexOf("<script>") + 8,
+      html.lastIndexOf("</script>"),
+    );
+    assert.ok(
+      !script.includes("${"),
+      "the client must not contain template interpolation",
+    );
+  });
+});

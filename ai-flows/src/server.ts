@@ -165,6 +165,30 @@ export function createFlowServer(opts: FlowServerOptions) {
       return step ? { status: 201, body: step } : { status: 404, body: { error: "not_found" } };
     }),
 
+    route("DELETE", "/flows/:id/steps/:index", async ({ params }) => {
+      // Addressed by index, not by the internal step id: the index is what every
+      // surface displays, and asking a caller to look up an id it never sees is
+      // an invitation to delete the wrong thing.
+      const flow = await store.getFlow(params.id!);
+      if (!flow) return { status: 404, body: { error: "not_found" } };
+      const step = flow.steps.find((s) => s.index === Number(params.index));
+      if (!step) return { status: 404, body: { error: "no step with that index" } };
+      const removed = await store.removeStep(step.id);
+      if (!removed) {
+        // 409 rather than 404: the step is there, and the reason it survives is
+        // a fact about it worth reporting.
+        return {
+          status: 409,
+          body: {
+            error: "step has started",
+            state: step.state,
+            detail: "only a pending step with no attempts can be removed; an attempt is history",
+          },
+        };
+      }
+      return { status: 200, body: { removed, flow: await store.getFlow(params.id!) } };
+    }),
+
     route("POST", "/flows/:id/advance", async ({ params }) => {
       const outcome = await engine.advance(params.id!);
       // `in_flight` is 202: accepted, still running, come back. Answering 200

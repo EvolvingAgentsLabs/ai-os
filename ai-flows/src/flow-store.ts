@@ -62,6 +62,23 @@ export interface FlowStore {
 
   appendStep(input: AppendStepInput): Promise<Step | null>;
 
+  /**
+   * Remove a step that has not started.
+   *
+   * Refuses anything that is not `pending` with zero attempts, and that refusal
+   * is the point rather than caution. `attempts[]` exists because a counter that
+   * discards its past cannot be diffed, rolled back or explained; deleting a step
+   * that ran would erase an attempt and the observation captured when it closed,
+   * which is the same mistake with an extra step.
+   *
+   * Indices are **not** renumbered. A gap is honest — step 3 was removed — and
+   * renumbering would silently rewrite the meaning of every index already
+   * recorded in a result, a log or somebody's screenshot.
+   *
+   * Returns the removed step, or null when it is absent or has started.
+   */
+  removeStep(stepId: string): Promise<Step | null>;
+
   /** Compare-and-swap, as above. */
   transitionStep(id: string, expected: StepState, next: StepState): Promise<Step | null>;
 

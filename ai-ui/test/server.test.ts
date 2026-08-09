@@ -20,6 +20,8 @@ import { createMemoryLayoutStore } from "../src/layout-store.ts";
 function fakeFlows(over: Partial<FlowsClient> = {}) {
   const appended: Array<{ flowId: string; intent: string }> = [];
   const advanced: string[] = [];
+  const removed: Array<{ flowId: string; index: number }> = [];
+  const resumed: string[] = [];
   const client: FlowsClient = {
     async conformation() {
       return {
@@ -86,13 +88,29 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
       appended.push({ flowId, intent });
       return { index: 1 };
     },
+    async removeStep(flowId, index) {
+      removed.push({ flowId, index });
+      // Step 0 has run in the fixture, so it stands in for the case the desk has
+      // to explain rather than obey.
+      if (index === 0)
+        return {
+          ok: false as const,
+          reason: "step has started",
+          state: "done",
+        };
+      return { ok: true as const };
+    },
+    async resume(flowId) {
+      resumed.push(flowId);
+      return { resumed: 0 };
+    },
     async advance(flowId) {
       advanced.push(flowId);
       return { kind: "advanced" };
     },
     ...over,
   };
-  return { client, appended, advanced };
+  return { client, appended, advanced, removed, resumed };
 }
 
 async function serve(flows: FlowsClient) {
@@ -235,6 +253,96 @@ describe("dropping a cube on a document", () => {
   });
 });
 
+describe("collecting work the desk started", () => {
+  it("collects a finished run before starting another step", async () => {
+    // Found by pressing the button. `advance` returns `in_flight` when the run
+    // has not come back, and something has to settle it — every other caller in
+    // this repository pairs resume with advance. The desk did not, and a step
+    // started from it stayed `running` for over ten minutes while its run had
+    // finished: the cube pulsed forever.
+    const { client, resumed, advanced } = fakeFlows();
+    const s = await serve(client);
+    after(() => s.close());
+    await s.send("POST", "/advance", { flowId: "f1" });
+    assert.deepEqual(
+      resumed,
+      ["f1"],
+      "advance must collect before it launches",
+    );
+    assert.deepEqual(advanced, ["f1"]);
+  });
+
+  it("collects in the background while the desk is merely being read", async () => {
+    // Otherwise a flow started from the desk sits at `running` until somebody
+    // clicks again. Resuming launches nothing: it settles a run already paid for.
+    const { client, resumed, advanced } = fakeFlows({
+      async flows(scopeId) {
+        if (scopeId !== "group:web-project-1") return [];
+        return [
+          {
+            id: "f1",
+            title: "ledger rewrite",
+            goal: "g",
+            state: "running",
+            updatedAt: 1,
+            steps: [
+              { index: 0, state: "running", intent: 'agent="SchemaAgent"' },
+            ],
+          },
+        ];
+      },
+    });
+    const s = await serve(client);
+    after(() => s.close());
+    await s.state();
+    await new Promise((r) => setTimeout(r, 20));
+    assert.deepEqual(resumed, ["f1"]);
+    assert.deepEqual(
+      advanced,
+      [],
+      "reading must never LAUNCH work, only collect it",
+    );
+  });
+
+  it("does not stack overlapping collectors on one flow", async () => {
+    let open = 0;
+    let maxOpen = 0;
+    const { client } = fakeFlows({
+      async flows(scopeId) {
+        if (scopeId !== "group:web-project-1") return [];
+        return [
+          {
+            id: "f1",
+            title: "t",
+            goal: "g",
+            state: "running",
+            updatedAt: 1,
+            steps: [
+              { index: 0, state: "running", intent: 'agent="SchemaAgent"' },
+            ],
+          },
+        ];
+      },
+      async resume() {
+        open += 1;
+        maxOpen = Math.max(maxOpen, open);
+        await new Promise((r) => setTimeout(r, 40));
+        open -= 1;
+        return { resumed: 1 };
+      },
+    });
+    const s = await serve(client);
+    after(() => s.close());
+    await Promise.all([s.state(), s.state(), s.state()]);
+    await new Promise((r) => setTimeout(r, 80));
+    assert.equal(
+      maxOpen,
+      1,
+      "a slow run must not accumulate collectors racing to settle it",
+    );
+  });
+});
+
 describe("advancing", () => {
   it("runs exactly one step, and only when asked", async () => {
     const { client, advanced } = fakeFlows();
@@ -302,5 +410,74 @@ describe("reading an agent back out of a step", () => {
     // the desk's whole claim is that you can see who is working on what.
     assert.equal(agentOfIntent("do the thing"), null);
     assert.equal(agentOfIntent(""), null);
+  });
+});
+
+describe("taking a cube off a document", () => {
+  it("removes the step it queued, so the picture and the flow agree", async () => {
+    // The bug this closes: drop a cube (a step is created), drag it off (nothing
+    // happens), and the desk now shows the agent as idle while its step sits
+    // queued and ready to run. A view that renders cleanly and is wrong.
+    const { client, removed } = fakeFlows();
+    const s = await serve(client);
+    after(() => s.close());
+    const r = await s.send("POST", "/unassign", {
+      scopeId: "group:web-project-1",
+      flowId: "f1",
+      agent: "SchemaAgent",
+    });
+    assert.equal(r.status, 200);
+    assert.deepEqual(removed, [{ flowId: "f1", index: 0 }]);
+  });
+
+  it("reports the steps it could not remove instead of pretending", async () => {
+    // Step 0 in the fixture has run. An attempt is history, so it stays — and
+    // the desk has to be told, because it puts the cube back on that word.
+    const { client } = fakeFlows();
+    const s = await serve(client);
+    after(() => s.close());
+    const body = (await (
+      await s.send("POST", "/unassign", {
+        scopeId: "group:web-project-1",
+        flowId: "f1",
+        agent: "SchemaAgent",
+      })
+    ).json()) as { removed: number; kept: string[]; note?: string };
+    assert.equal(body.removed, 0);
+    assert.deepEqual(body.kept, ["step 0 (done)"]);
+    assert.match(body.note!, /an attempt is history/);
+  });
+
+  it("says nothing was queued when the cube was only ever a placement", async () => {
+    const { client, removed } = fakeFlows();
+    const s = await serve(client);
+    after(() => s.close());
+    const body = (await (
+      await s.send("POST", "/unassign", {
+        scopeId: "group:web-project-1",
+        flowId: "f1",
+        agent: "LedgerLead",
+      })
+    ).json()) as { removed: number; note?: string };
+    assert.equal(body.removed, 0);
+    assert.deepEqual(
+      removed,
+      [],
+      "no step should be touched for an agent with none",
+    );
+    assert.match(body.note!, /no step was queued/);
+  });
+
+  it("refuses a flow that is not in that scope", async () => {
+    const { client, removed } = fakeFlows();
+    const s = await serve(client);
+    after(() => s.close());
+    const r = await s.send("POST", "/unassign", {
+      scopeId: "group:web-project-1",
+      flowId: "nope",
+      agent: "SchemaAgent",
+    });
+    assert.equal(r.status, 404);
+    assert.deepEqual(removed, []);
   });
 });
