@@ -88,7 +88,7 @@ Sorted by what is actually in the way:
 |---|---|---|
 | Durable stores | **prerequisite, undeclared until now** | nothing — it is configuration |
 | Flow engine (M2) | **unblocked** | the signed HTTP client, which nobody has written |
-| The canvas (M5) | **blocked on M2** | there is no flow state to render |
+| The canvas (M5) | **built 2026-08-09, unproven** | the stopwatch — a person, a three-day-old flow they did not run, canvas against transcript. Building it did not answer it |
 | Scoped memory (M4) | **gate passed 2026-08-06** | nothing — baseline 3.0 on a long-horizon fixture, so the axis has room. Building it is a milestone |
 | Depth-2 delegation | **deferred, and un-instrumentable** | delegation leaves no trace on `pi` — no `tasks` rows, no tool-call entries — so the planned instrument cannot be built |
 | Agent principals | **deferred, condition sharpened** | the 2026-08-07 refusal was a service account, not an agent needing rights — [ADR-0009](adr/0009-a-flow-records-who-it-acts-for.md) |

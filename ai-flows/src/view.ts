@@ -48,6 +48,16 @@
  * images, so every icon below is drawn in CSS.
  */
 import type { AgentRecord, Conformation, ScopeNode, ScopeRole } from "./conformation.ts";
+import {
+  AGENT_COLOR,
+  CHROME_CSS,
+  MISSING_COLOR,
+  PERSON_COLOR,
+  SCOPE_COLORS,
+  STATE_COLORS,
+  SUBAGENT_COLOR,
+  statesByColor,
+} from "./vocabulary.ts";
 import { contributionsOf } from "./contribution.ts";
 import { observabilityOf } from "./observability.ts";
 import type { FlowWithSteps, Step } from "./types.ts";
@@ -86,33 +96,6 @@ function ago(from: number, to: number): string {
   return `${Math.round(h / 24)}d ago`;
 }
 
-/**
- * The colour vocabulary, defined once and rendered into the legend from the same
- * table that styles the page.
- *
- * A legend maintained separately from the styles is a legend that goes wrong
- * silently, and a wrong legend on a page whose entire premise is "colour tells
- * you the kind" is worse than no colour at all.
- */
-const SCOPE_COLORS: Record<ScopeRole, string> = {
-  system: "#6b4fa8",
-  project: "#2f6fb5",
-  collective: "#1f8a70",
-  team: "#c8781b",
-  individual: "#3f8f3f",
-  unknown: "#b03a2e",
-};
-
-const STATE_COLORS: Record<string, string> = {
-  done: "#3f8f3f",
-  running: "#e0a020",
-  pending: "#b9b4a8",
-  failed: "#b03a2e",
-  blocked: "#b03a2e",
-  waiting: "#b9b4a8",
-  abandoned: "#7a7469",
-  draft: "#b9b4a8",
-};
 
 /** A beveled square. The unit this whole page is built out of. */
 function cube(color: string, title: string, extra = ""): string {
@@ -243,8 +226,6 @@ const LEVELS: Array<{ role: ScopeRole; label: string; note: string }> = [
   { role: "unknown", label: "Unrecognised", note: "the scope id did not parse — never assumed benign" },
 ];
 
-const AGENT_COLOR = "#e0a020";
-const SUBAGENT_COLOR = "#c98f2e";
 
 function agentTree(a: AgentRecord, all: Map<string, AgentRecord>, depth = 0, seen = new Set<string>()): string {
   const pad = depth * 20;
@@ -271,7 +252,7 @@ function agentTree(a: AgentRecord, all: Map<string, AgentRecord>, depth = 0, see
     if (child) rows.push(agentTree(child, all, depth + 1, next));
     else
       rows.push(
-        `<li style="margin-left:${pad + 20}px">${cube("#b03a2e", "declared, no file")}<code class="agent missing">${esc(name)}</code> <span class="err">declared, no file</span></li>`,
+        `<li style="margin-left:${pad + 20}px">${cube(MISSING_COLOR, "declared, no file")}<code class="agent missing">${esc(name)}</code> <span class="err">declared, no file</span></li>`,
       );
   }
   return rows.join("");
@@ -288,9 +269,9 @@ function scopeCard(s: ScopeNode, systemAgents: Map<string, AgentRecord>): string
   const people = s.roster
     ? `<div class="people"><strong>${s.roster.members.length} member${s.roster.members.length === 1 ? "" : "s"}</strong>
         <span class="dim">roster v${esc(s.roster.version)} — from ProjectStore, never from a folder</span>
-        <ul class="folks">${s.roster.members.map((m) => `<li>${cube("#5a5f66", "member")}<code>${esc(m)}</code></li>`).join("")}</ul></div>`
+        <ul class="folks">${s.roster.members.map((m) => `<li>${cube(PERSON_COLOR, "member")}<code>${esc(m)}</code></li>`).join("")}</ul></div>`
     : s.role === "individual"
-      ? `<div class="people">${cube("#5a5f66", "member")}<span class="dim">One person: <code>${esc(s.ref)}</code></span></div>`
+      ? `<div class="people">${cube(PERSON_COLOR, "member")}<span class="dim">One person: <code>${esc(s.ref)}</code></span></div>`
       : `<div class="people dim">No roster — membership for this scope kind is not a list ai-os can read.</div>`;
 
   return `<article class="scope-card" style="--role:${SCOPE_COLORS[s.role]}">
@@ -322,17 +303,10 @@ function legend(): string {
   const swatch = (color: string, label: string) => `<li>${cube(color, label)}<span>${esc(label)}</span></li>`;
   return `<div class="key">
     <div><strong>Scopes</strong><ul>${LEVELS.map((l) => swatch(SCOPE_COLORS[l.role], l.role)).join("")}</ul></div>
-    <div><strong>Agents</strong><ul>${swatch(AGENT_COLOR, "agent")}${swatch(SUBAGENT_COLOR, "subagent")}${swatch("#b03a2e", "declared, no file")}${swatch("#5a5f66", "person")}</ul></div>
-    <div><strong>Steps &amp; flows</strong><ul>${(() => {
-      // Grouped by colour, not by name: several states share one swatch, and a
-      // legend that lists them separately claims a distinction the page cannot
-      // draw. Built from STATE_COLORS so a new state cannot appear unexplained.
-      const byColor = new Map<string, string[]>();
-      for (const [name, color] of Object.entries(STATE_COLORS)) {
-        byColor.set(color, [...(byColor.get(color) ?? []), name]);
-      }
-      return [...byColor].map(([color, names]) => swatch(color, names.join(" / "))).join("");
-    })()}</ul></div>
+    <div><strong>Agents</strong><ul>${swatch(AGENT_COLOR, "agent")}${swatch(SUBAGENT_COLOR, "subagent")}${swatch(MISSING_COLOR, "declared, no file")}${swatch(PERSON_COLOR, "person")}</ul></div>
+    <div><strong>Steps &amp; flows</strong><ul>${statesByColor()
+      .map(([color, names]) => swatch(color, names.join(" / ")))
+      .join("")}</ul></div>
   </div>`;
 }
 
@@ -346,69 +320,17 @@ function win(title: string, count: string, body: string, tone = ""): string {
   </section>`;
 }
 
-const CSS = `
-:root{
-  --desk:#8f8f93; --face:#d8d4cc; --paper:#fbfaf7; --ink:#16181a; --dim:#5f646b;
-  --lite:rgba(255,255,255,.75); --dark:rgba(0,0,0,.38);
-  --sans:"Geneva","Verdana","DejaVu Sans",system-ui,sans-serif;
-  --mono:"Monaco","Menlo",ui-monospace,"Courier New",monospace;
-}
-*{box-sizing:border-box}
-body{margin:0;color:var(--ink);font:14px/1.55 var(--sans);
-  background:var(--desk);
-  /* The 50% dither the desktop was in 1991, drawn as a 2px checkerboard. */
-  background-image:
-    linear-gradient(45deg,rgba(0,0,0,.07) 25%,transparent 25%,transparent 75%,rgba(0,0,0,.07) 75%),
-    linear-gradient(45deg,rgba(0,0,0,.07) 25%,transparent 25%,transparent 75%,rgba(0,0,0,.07) 75%);
-  background-size:4px 4px; background-position:0 0,2px 2px;
-}
-code{font-family:var(--mono);font-size:12px}
-.dim,.muted{color:var(--dim)}
-.warn{color:#8a5a00}
-.err{color:#94271b}
-.ok{color:#2c6b2c}
+const PAGE_CSS = `
 
 /* ---- menu bar: facts, not menus. Nothing here is clickable, on purpose. ---- */
-.menubar{position:sticky;top:0;z-index:9;background:var(--paper);border-bottom:1px solid #000;
-  padding:5px 14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;
-  box-shadow:0 1px 0 rgba(255,255,255,.6) inset}
-.menubar .apple{font-weight:700;letter-spacing:.04em}
-.menubar .sep{color:#a9a49a}
-.menubar .right{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim)}
 
 .desk{max-width:1060px;margin:0 auto;padding:22px 18px 90px}
 
 /* ---- windows ---- */
-.win{background:var(--face);border:1px solid #000;box-shadow:3px 3px 0 rgba(0,0,0,.4);margin:0 0 26px}
-.win .bar{display:flex;align-items:center;gap:8px;padding:4px 7px;border-bottom:1px solid #000;
-  background:var(--face);
-  /* System 7 pinstripes, behind a title that punches a hole in them. */
-  background-image:repeating-linear-gradient(180deg,rgba(0,0,0,.42) 0 1px,transparent 1px 3px);}
-.win .bar h1{font-size:13px;margin:0;font-weight:700;letter-spacing:.02em;background:var(--face);
-  padding:1px 12px;white-space:nowrap}
-.win .bar .count{font-weight:400;color:var(--dim)}
-.win .box{width:11px;height:11px;flex:0 0 11px;background:var(--face);border:1px solid #000;
-  box-shadow:inset 1px 1px 0 var(--lite),inset -1px -1px 0 var(--dark)}
-.win .box.zoom{margin-left:auto}
-.win-body{padding:14px 16px 16px;background:var(--paper)}
-.win.tray .win-body{background:#cfcbc2;
-  box-shadow:inset 2px 2px 0 var(--dark),inset -2px -2px 0 var(--lite);padding:12px}
 
 /* ---- the cube: the unit of kind and state ---- */
-.cube{display:inline-block;width:13px;height:13px;flex:0 0 13px;background:var(--c);
-  border:1px solid rgba(0,0,0,.55);
-  box-shadow:inset 1.5px 1.5px 0 rgba(255,255,255,.5),inset -1.5px -1.5px 0 rgba(0,0,0,.3);
-  vertical-align:-2px;margin-right:6px}
-.cube.sm{width:9px;height:9px;flex-basis:9px;vertical-align:0;margin-right:5px}
-.cube.lg{width:17px;height:17px;flex-basis:17px;vertical-align:-3px}
-.strip .cube{margin-right:3px}
-.strip{display:inline-flex;align-items:center}
 
 /* ---- legend ---- */
-.key{display:flex;gap:34px;flex-wrap:wrap;font-size:12px}
-.key ul{list-style:none;margin:6px 0 0;padding:0}
-.key li{display:flex;align-items:center;padding:1px 0}
-.key strong{font-size:12px}
 
 /* ---- scopes ---- */
 .level{margin:0 0 20px}
@@ -444,12 +366,6 @@ code{font-family:var(--mono);font-size:12px}
 .doc header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .doc h2{font-size:15px;margin:0;font-weight:700}
 /* A page with a folded corner, in two boxes and a triangle. */
-.doc-icon{position:relative;width:16px;height:20px;flex:0 0 16px;background:#fff;border:1px solid #000;
-  box-shadow:1px 1px 0 rgba(0,0,0,.2)}
-.doc-icon::before{content:"";position:absolute;right:-1px;top:-1px;border-width:0 7px 7px 0;
-  border-style:solid;border-color:transparent #b9b4a8 transparent transparent}
-.doc-icon::after{content:"";position:absolute;left:3px;top:8px;width:9px;height:1px;color:#b9b4a8;
-  box-shadow:0 0 0 0 currentColor,0 3px 0 currentColor,0 6px 0 currentColor;background:currentColor}
 .state-word{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--dim)}
 .state-word.done{color:#2c6b2c}.state-word.running{color:#8a5a00}
 .state-word.failed,.state-word.blocked{color:#94271b}
@@ -509,10 +425,10 @@ export function renderViewHtml(input: ViewInput): string {
   })()}`
     : `<p class="empty">No conformation was projected for this render.</p>`;
 
-  return `<!doctype html><html lang="en"><meta charset="utf-8">
+  return `<!doctype html><html lang="en" class="deskbg"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ai-os — flows and conformation</title>
-<style>${CSS}</style>
+<style>${CHROME_CSS}${PAGE_CSS}</style>
 <div class="menubar">
   <span class="apple">ai-os</span>
   <span class="sep">|</span>

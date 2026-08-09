@@ -200,6 +200,10 @@ const server = createFlowServer({
   store,
   engine,
   scopeAgents,
+  // The canvas reads the shape of the system from here rather than projecting
+  // its own. Two projections would be two answers to "what does this system
+  // look like", and the desk would draw cubes the explorer does not have.
+  conformation,
   ...(process.env.FLOWS_SIGNING_SECRET
     ? { signingSecret: process.env.FLOWS_SIGNING_SECRET }
     : { allowUnauthenticated: process.env.FLOWS_ALLOW_UNAUTHENTICATED === "1" }),

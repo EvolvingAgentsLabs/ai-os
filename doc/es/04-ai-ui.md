@@ -202,6 +202,53 @@ de diagramación general.
 > afirmación más angosta, y hay que sostenerla en vez de dejar que se lea como la
 > otra.
 
+## Construido, y qué quiere decir acá "construido" — 2026-08-09 [ran]
+
+<img src="../assets/manual/09-desk.jpg" alt="" width="100%">
+
+<sub>Dos flows como documentos, cada uno con sus cubitos de agentes apilados encima, el estante a la izquierda con los agentes sin trabajo, y la leyenda. De una instancia viva. <code>AnomalyScanner</code> está tachado y no se puede arrastrar: está declarado en <code>DataQualityAgent.md</code> sin archivo detrás.</sub>
+
+`ai-ui` existe. Es un paquete — modelo de disposición, store, render y servidor —
+que le habla a `ai-flows` por la costura firmada y no es dueño de nada salvo la
+disposición.
+
+Las cuatro propiedades, y cómo se salda cada una:
+
+| | |
+|---|---|
+| **Espacial** | Arrastrás un documento; sigue ahí después de recargar, desde `ui_desk_layout` con clave por scope. **[ran]** |
+| **Vivo** | El escritorio relee el estado cada cinco segundos, y el agente de un paso corriendo es lo único que se anima |
+| **Generado** | `propose()` acomoda los documentos en grilla y apila el cubito de cada agente sobre el flow cuyos pasos lo nombran |
+| **Dirigible** | Soltar un cubito sobre un documento agrega un paso de delegación — la misma instrucción que escribe `compose.ts`, verificada byte a byte por un test |
+
+**La parte que sostiene todo no es el dibujo.** Es `layout.ts`, y puntualmente qué
+le pasa a la disposición que armó una persona cuando el sistema quiere proponer
+otra. Cada ubicación lleva un bit `pinned` que se prende en el momento en que un
+humano la arrastra, y `propose()` esquiva lo fijado en vez de pisarlo. Un canvas
+que se equivoca acá tira el trabajo del usuario cada vez que termina un paso —
+que es justo cuando lo está mirando. Esa regla es una propiedad de una función
+pura acá, y ocho tests la sostienen contra los eventos que la romperían: un flow
+que termina, uno que aparece, uno que se borra.
+
+Un caso vale nombrarlo porque es el que muerde. Soltás `ReviewAgent` sobre un
+documento; el escritorio re-propone desde el estado del flow; `ReviewAgent`
+*todavía* no está en los pasos, porque el paso que acaba de crear no corrió. Re-
+derivar haría volver el cubito de un salto y desharía la asignación delante de
+quien la hizo. Así que un cubito fijado se queda en su documento.
+
+### Lo que a propósito NO hace
+
+**Leer el escritorio nunca gasta una llamada al modelo.** `POST /assign` escribe
+un paso y `POST /advance` corre uno; todo lo demás es lectura. El escritorio se
+consulta solo, así que un canvas donde dibujar pudiera disparar trabajo gastaría
+plata porque alguien dejó una pestaña abierta. Avanzar es un click, con el costo
+dicho en el panel antes de apretarlo.
+
+**Sin build.** El cliente es un string de JS plano. Este pilar es el que más
+riesgo tiene de costar un trimestre de infraestructura antes de haberlo ganado, y
+un bundler es la primera cuota de esa cuenta. Si el cronómetro de abajo dice que
+el canvas gana, agregar un build es barato y va a estar pagado.
+
 ## Cómo se falsifica
 
 **La medición:** una persona, y un flow que no corrió ella, de tres días atrás.

@@ -181,6 +181,53 @@ system-proposed arrangement per flow shape, overridable and sticky.
 **Out:** replacing `web-ui`; Slack (that surface stays as upstream ships it);
 multi-user simultaneous canvas editing; a general diagramming tool.
 
+## Built, and what "built" means here — 2026-08-09 [ran]
+
+<img src="assets/manual/09-desk.jpg" alt="" width="100%">
+
+<sub>Two flows as documents, each with its agent cubes stacked on it, the shelf on the left holding agents with no work, and the key. From a live instance. <code>AnomalyScanner</code> is struck through and cannot be dragged: it is declared in <code>DataQualityAgent.md</code> with no file behind it.</sub>
+
+`ai-ui` exists. It is one package — a layout model, a layout store, a render and a
+server — talking to `ai-flows` over the signed seam and owning nothing but the
+arrangement.
+
+The four properties, and how each is discharged:
+
+| | |
+|---|---|
+| **Spatial** | Drag a document; it is still there after a reload, from `ui_desk_layout` keyed by scope. **[ran]** |
+| **Live** | The desk re-reads state every five seconds, and the agent of a running step is the one thing on the desk that animates |
+| **Generated** | `propose()` lays documents into a grid and stacks each agent's cube on the flow whose steps name it |
+| **Steerable** | Dropping a cube on a document appends a delegation step — the same instruction `compose.ts` writes, asserted byte-for-byte by a test |
+
+**The load-bearing part is not the rendering.** It is `layout.ts`, and specifically
+what happens to the arrangement a person made when the system wants to propose a
+new one. Every placement carries a `pinned` bit set the moment a human drags it,
+and `propose()` routes around pinned things rather than overwriting them. A canvas
+that gets this wrong throws away the user's work every time a step finishes —
+which is exactly when they are looking at it. That rule is a property of a pure
+function here, and eight tests hold it against the events that would break it: a
+flow finishing, a flow appearing, a flow being deleted.
+
+One case is worth naming because it is the one that bites. Drop `ReviewAgent` on a
+document; the desk re-proposes from flow state; `ReviewAgent` is not in that
+flow's steps *yet*, because the step it just created has not run. Re-deriving
+would snap the cube back and undo the assignment in front of the person who made
+it. So a pinned cube keeps its document.
+
+### What it deliberately does not do
+
+**Reading the desk never spends a model call.** `POST /assign` writes a step and
+`POST /advance` runs one; everything else is a read. The desk polls itself, so a
+canvas where rendering could trigger work would spend money because somebody left
+a tab open. Advancing is a click, with the cost stated on the button's own panel
+before it is pressed.
+
+**No build step.** The client is one string of plain JS. This pillar is the one
+most at risk of costing a quarter of infrastructure before it has earned one, and
+a bundler is the first instalment of that bill. If the stopwatch below says the
+canvas wins, a build step is cheap to add and will have been paid for.
+
 ## How this gets falsified
 
 **The measurement:** a user, and a flow they did not run themselves, three days
