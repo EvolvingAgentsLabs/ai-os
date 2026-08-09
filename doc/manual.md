@@ -393,6 +393,68 @@ the cube back rather than drawing a picture that is wrong.
 
 <sub>Selecting a document opens its panel: every step by agent, and the one control that spends money — with the cost stated before it is pressed. A document is addressable: <code>?select=&lt;flowId&gt;</code>.</sub>
 
+### The trace: what actually happened
+
+A document's panel has two faces. **State** answers *where is this*. **Trace**
+answers *what happened*, and it is the face this whole system exists for.
+
+<img src="assets/manual/11-trace-memory.jpg" alt="" width="100%">
+
+<sub>The Trace face of a document, from a live instance, and the memory drawer below it. Every step with its result, its attempt, its run and the observation digest captured when that attempt closed — plus the movement verdict, quoted with the bound it is read under.</sub>
+
+Everything on that face is **measured**, not summarised:
+
+- **`progressing` · `3 observations · δ ≤ 14.6%`** — the movement verdict from
+  [10-observability](10-observability.md), computed by the same
+  `observabilityOf` the explorer uses. Below two observations it says *not enough
+  to say* rather than rounding to "fine", because a repeat is proof and a
+  difference is a rumour.
+- **The digest under each attempt** is what that verdict is made of. It is
+  captured when the attempt closes and never inferred
+  ([ADR-0007](adr/0007-observation-captured-not-derived.md)).
+- **A step that used nothing it was given** is flagged in red with the numbers
+  behind the flag — how much of the input it carried, and how many distinctive
+  tokens there were to carry. That is [13-degradation](13-degradation.md)'s
+  headline, and every other signal on the card says the flow is fine.
+
+The screenshot has one of its own. Step 2's `ReviewAgent` reports that it
+*"couldn't access the files due to sandbox isolation, but I have both files in
+context so I'll do the review directly."* It reviewed from memory. Nothing about
+the flow's state says so — the step is green, the flow is `done`, the strip is
+full. **It is legible only in the trace**, which is the argument for the trace
+being on the canvas rather than one page away.
+
+### Memory: a drawing of software that does not exist
+
+<sub><strong>NOT BUILT — THIS IS THE SPEC.</strong> The drawer along the bottom is hatched and every card is dashed, and it says so on the object rather than in a footnote.</sub>
+
+`ai-storage` is [05](05-ai-storage.md) and nothing else. There is no store, no
+promotion, no consolidation. What the drawer shows is a note **recomputed from
+the traces on every read** — a memory that vanishes when you stop looking is not
+one, and that is exactly why it is drawn as a sketch.
+
+It is here because a picture is a cheaper specification than a document, and an
+interactive one is cheaper still: you find out what "promote a flow's notes into
+the project" needs by trying to press the button.
+
+The shape it commits to:
+
+| | |
+|---|---|
+| **Four levels** | `system` · `user` · `project` · `flow`, longest-lived first, from doc/05 |
+| **Promotion is one rung** | flow → project → user → system, explicit and reversible |
+| **Provenance is required** | every note names the flows it came from; a note nobody can trace back is indistinguishable from one somebody typed |
+| **Consolidation keeps what carried** | the steps that moved something forward survive; the ones flagged as carrying nothing are dropped |
+
+That last row is the cheap insight and the reason this is not a port. The hard
+part of consolidation — *which steps of a trace mattered* — is the question
+`contribution.ts` already answers. `evolving-memory` calls it `TraceCurator`;
+here it already runs on every flow.
+
+**What the sketch does not answer**, and the real one must: when two notes say
+the same thing, which survives? That is why consolidation cannot simply be a loop
+over finished flows.
+
 ### Reading the desk never starts work
 
 The page re-reads state every five seconds. Nothing about that can launch a step:

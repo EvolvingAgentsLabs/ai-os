@@ -15,7 +15,7 @@ organisation is frozen — see [`doc/07-freeze-policy.md`](doc/07-freeze-policy.
 **[Español](README.es.md)** · English is the canonical version of every document
 here; see [Languages](#languages).
 
-> **`ai-base`, `ai-flows` and `ai-ui` run — 315 tests of our own, on top of the 3,768
+> **`ai-base`, `ai-flows` and `ai-ui` run — 331 tests of our own, on top of the 3,768
 > `ai-base` carries from upstream. `ai-storage` does not exist.** Nothing here describes software that exists unless it says so, and
 > every screenshot is from a live instance.
 

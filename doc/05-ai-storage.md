@@ -10,6 +10,39 @@
 > related claim from this organisation measured _no better than the naive
 > approach_, and that result shapes this document more than any other input.
 
+
+## The shape, drawn before it is built — 2026-08-09
+
+<img src="assets/manual/11-trace-memory.jpg" alt="" width="100%">
+
+<sub>The memory drawer on the desk, stamped <strong>NOT BUILT — THIS IS THE SPEC</strong>. Nothing in it is stored: the notes are recomputed from the flow traces on every read, which is what makes it a sketch rather than memory.</sub>
+
+This document is a specification, and a picture is a cheaper one — an interactive
+picture cheaper still, because you find out what a promotion needs by trying to
+press the button. `ai-ui/src/memory.ts` draws it, and the module exists to be
+argued with and then thrown away.
+
+What the drawing commits this document to:
+
+- **Four levels, longest-lived first**, and one rung per promotion:
+  flow → project → user → system.
+- **Provenance is not optional.** Every note names the flows it came from. A note
+  nobody can trace back to the work that produced it is indistinguishable from a
+  note somebody typed, and cannot be revisited when that work turns out to have
+  been wrong.
+- **Consolidation keeps what carried forward.** The steps that moved something on
+  survive; the ones `contribution.ts` flagged as carrying nothing are dropped.
+
+That last one is the cheap insight, and it is why this is not a port of
+[evolving-memory](https://github.com/EvolvingAgentsLabs/evolving-memory). The
+hard part of consolidating a trace — *which steps mattered* — is the question
+`contribution.ts` already answers on every flow. That project calls the same job
+`TraceCurator`.
+
+**What the sketch does not answer, and this document must:** when two notes say
+the same thing, which survives? Consolidation cannot be a loop over finished
+flows, and that is the reason.
+
 ## Prior result, stated first
 
 The previous flagship (`evolving-agents`) indexed every component twice — once

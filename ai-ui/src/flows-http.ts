@@ -115,7 +115,22 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
             goal: string;
             state: string;
             updatedAt: number;
-            steps: Array<{ index: number; state: string; intent: string }>;
+            // `GET /flows/:id` already returns attempts and results. Declaring
+            // only index/state/intent is what made the desk able to draw a
+            // skeleton and nothing else — the data was on the wire the whole time.
+            steps: Array<{
+              index: number;
+              state: string;
+              intent: string;
+              result: string | null;
+              attempts: Array<{
+                n: number;
+                state: string;
+                runId: string | null;
+                error: string | null;
+                observation: { digest: string; source: string } | null;
+              }>;
+            }>;
           }>("GET", `/flows/${encodeURIComponent(f.id)}`),
         ),
       );

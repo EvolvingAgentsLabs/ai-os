@@ -26,6 +26,30 @@ const view = (over: Partial<DeskView> = {}): DeskView => {
         { index: 1, state: "running", agent: "MigrationAgent", intent: "…" },
         { index: 2, state: "pending", agent: "ReviewAgent", intent: "…" },
       ],
+      trace: {
+        movement: "not enough to say",
+        movementTone: "muted" as const,
+        detail: "1 observation(s)",
+        ignoredCount: 0,
+        steps: [
+          {
+            index: 0,
+            state: "done",
+            agent: "SchemaAgent",
+            result: "a currency column, decimal 12,2",
+            attempts: [
+              {
+                n: 1,
+                state: "done",
+                runId: "run-abc",
+                digest: "cafebabe",
+                source: "run.reply",
+                error: null,
+              },
+            ],
+          },
+        ],
+      },
     },
   ];
   const agents = over.agents ?? [
@@ -66,6 +90,8 @@ const view = (over: Partial<DeskView> = {}): DeskView => {
     docs,
     agents,
     people: ["matias"],
+    notes: [],
+    memoryLevels: [],
     scopes: [{ scopeId: "group:web-project-1", label: "group:web-project-1" }],
     layout: propose(
       {

@@ -481,3 +481,36 @@ describe("taking a cube off a document", () => {
     assert.deepEqual(removed, []);
   });
 });
+
+describe("what /state carries", () => {
+  it("carries every field the first render did", async () => {
+    // The polled endpoint and the initial page must not drift. They did: a
+    // reformat moved the /state literal out from under a textual edit, so the
+    // page shipped memory and the poll silently dropped it — the drawer
+    // rendered once and emptied five seconds later.
+    const { client } = fakeFlows();
+    const s = await serve(client);
+    after(() => s.close());
+    const body = (await (await s.get("/state")).json()) as Record<
+      string,
+      unknown
+    >;
+    for (const key of ["at", "docs", "agents", "layout", "notes", "busy"]) {
+      assert.ok(key in body, `/state is missing "${key}"`);
+    }
+  });
+
+  it("carries the trace on every document", async () => {
+    const { client } = fakeFlows();
+    const s = await serve(client);
+    after(() => s.close());
+    const body = (await (await s.get("/state")).json()) as {
+      docs: Array<{ trace?: { steps: unknown[]; movement: string } }>;
+    };
+    assert.ok(body.docs.length > 0);
+    for (const d of body.docs) {
+      assert.ok(d.trace, "a document without its trace is a skeleton");
+      assert.ok(typeof d.trace.movement === "string");
+    }
+  });
+});
