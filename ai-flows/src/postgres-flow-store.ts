@@ -216,6 +216,27 @@ export function createPostgresFlowStore(
       });
     },
 
+    async removeStep(stepId: string): Promise<Step | null> {
+      const at = now();
+      return tx(async (c) => {
+        // The guard is in the WHERE clause rather than in a read-then-write, so a
+        // step that starts running between the check and the delete is not
+        // removed out from under the attempt that just opened it.
+        const { rows } = await c.query(
+          `DELETE FROM flow_steps s
+            WHERE s.id = $1
+              AND s.state = 'pending'
+              AND NOT EXISTS (SELECT 1 FROM flow_attempts a WHERE a.step_id = s.id)
+            RETURNING *`,
+          [stepId],
+        );
+        const row = rows[0] as Row | undefined;
+        if (!row) return null;
+        await touchFlow(c, String(row.flow_id), at);
+        return toStep(row);
+      });
+    },
+
     async transitionStep(id: string, expected: StepState, next: StepState): Promise<Step | null> {
       const at = now();
       const rows = await q("UPDATE flow_steps SET state=$3, updated_at=$4 WHERE id=$1 AND state=$2 RETURNING *", [

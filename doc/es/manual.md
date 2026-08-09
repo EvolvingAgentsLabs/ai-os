@@ -361,17 +361,80 @@ participante: 4 de 4 en el par medido, con el principal id en vez del display na
 
 ---
 
+## Parte 6 · El escritorio — flows como documentos, agentes como cubitos
+
+`ai-ui` es un tercer proceso. Lee el sistema desde `ai-flows` y no es dueño de
+nada salvo la disposición.
+
+```bash
+cd ai-os/ai-ui
+DATABASE_URL=<el mismo del API de flows> FLOWS_API_URL=http://localhost:8097 \
+  node scripts/serve.ts
+# → http://localhost:8098
+```
+
+<img src="../assets/manual/09-desk.jpg" alt="" width="100%">
+
+<sub>Dos flows, uno terminado y otro sin arrancar. Los cubitos sobre cada documento son los agentes con trabajo ahí; <code>LedgerLead</code> está sobre el escritorio pelado porque no tiene ninguno. <code>AnomalyScanner</code> está en el estante, tachado: declarado en <code>DataQualityAgent.md</code> sin archivo detrás, así que no se puede arrastrar a ningún lado.</sub>
+
+**Un documento es un flow. Un cubito es un agente.** Un cubito apoyado sobre un
+documento significa que ese agente tiene trabajo en ese flow, y la tira debajo
+del objetivo es un cubito por paso, así que dónde se frenó se ve antes de leer
+nada.
+
+### Los cuatro gestos, y qué cuesta cada uno
+
+| Gesto | Qué pasa | Costo |
+|---|---|---|
+| Arrastrar un documento | Se queda ahí, para ese scope, aunque recargues | nada |
+| Soltar un cubito sobre un documento | Ese agente recibe un **paso real** — la misma instrucción que escribe componer un árbol | nada agregarlo |
+| Sacar un cubito | Se **eliminan los pasos encolados** de ese agente | nada |
+| Click en un documento → **Advance** | Corre un paso | **una llamada al modelo** |
+
+Sacar un cubito es la parte que vale explicar. Soltarlo crea trabajo, así que
+sacarlo tiene que deshacer ese mismo trabajo — si no, el escritorio mostraría al
+agente libre mientras su paso sigue encolado y listo para correr. **Un paso que
+ya arrancó no se elimina**: un intento es historia, y el escritorio lo dice y
+devuelve el cubito en vez de dibujar algo falso.
+
+<img src="../assets/manual/10-desk-panel.jpg" alt="" width="100%">
+
+<sub>Seleccionar un documento abre su panel: cada paso por agente, y el único control que gasta plata — con el costo dicho antes de apretarlo. Un documento es direccionable: <code>?select=&lt;flowId&gt;</code>.</sub>
+
+### Leer el escritorio nunca arranca trabajo
+
+La página relee el estado cada cinco segundos. Nada de eso puede lanzar un paso:
+`/assign` escribe uno y `/advance` corre uno, y los dos son gestos que hacés vos.
+
+Lo que sí hace es **cobrar**. Un paso cuyo run terminó lo tiene que asentar
+alguien, y si el escritorio sólo avanzara, un paso que él mismo arrancó quedaría
+en `running` para siempre. **Medido, apretando el botón:** la primera versión
+dejó un paso corriendo más de diez minutos con su run terminado hacía rato, y el
+cubito del agente latiendo encima. Cobrar no lanza nada ni gasta nada — asienta
+un run ya pagado.
+
+### Cuando todos los pasos están hechos pero el flow no
+
+Un flow con todos los pasos asentados queda en `waiting` hasta que algo lo
+cierre. El panel ofrece **Mark the flow finished** en ese caso, y dice claramente
+que no gasta nada, porque no queda ningún paso por correr.
+
+---
+
 ## Lo que no podés correr
 
 Dicho sin vueltas, porque un manual que omite esto es un folleto:
 
-- **No hay canvas, y el motor de flows ya está construido.** M2 se entregó el
+- **El motor de flows está construido; las formas encima, no.** M2 se entregó el
   2026-08-06 — un flow arrancado por un proceso y terminado por otro, 6/6 en `pi` y
   en `mock` ([08-roadmap § M2](08-roadmap.md)). Lo que sigue faltando es todo lo
   que va más allá de una forma: sin `Sequence`, `Loop`, `Fan-out`, `Deliberation`
   ni `Watch`, y sin merge.
-- **No hay canvas.** `ai-ui` es [04](04-ai-ui.md) y nada más. La UI de este manual
-  es la de upstream.
+- **El canvas está construido pero sin probar.** La Parte 6 es real y corre. Lo
+  que *no* pasó es su propia falsificación: el cronómetro, un flow de tres días
+  que corrió otra persona, escritorio contra transcripción
+  ([04](04-ai-ui.md)). Hasta que eso se corra, lo honesto es decir que funciona,
+  no que ayuda.
 - **No hay memoria por scope.** `ai-storage` es [05](05-ai-storage.md) y nada más.
   La pestaña `Memory` que ves es el `MEMORY.md` plano de QM.
 - **Los agentes orquestadores siguen sin poder tener subagentes propios.** La

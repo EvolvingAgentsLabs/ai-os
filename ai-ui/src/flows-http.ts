@@ -29,22 +29,31 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
   const now = opts.now ?? Date.now;
   const base = opts.baseUrl.replace(/\/$/, "");
 
+  /** Extracted so `DELETE`, which reads its own response codes, can sign too. */
+  function signed(
+    method: string,
+    path: string,
+    raw: string,
+  ): Record<string, string> {
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+    };
+    if (!opts.signingSecret) return headers;
+    const unix = Math.floor(now() / 1000);
+    headers["x-timestamp"] = String(unix);
+    headers["x-signature"] = createHmac("sha256", opts.signingSecret)
+      .update(canonical(unix, method, path, raw))
+      .digest("hex");
+    return headers;
+  }
+
   async function call<T>(
     method: string,
     path: string,
     body?: unknown,
   ): Promise<T> {
     const raw = body === undefined ? "" : JSON.stringify(body);
-    const headers: Record<string, string> = {
-      "content-type": "application/json",
-    };
-    if (opts.signingSecret) {
-      const unix = Math.floor(now() / 1000);
-      headers["x-timestamp"] = String(unix);
-      headers["x-signature"] = createHmac("sha256", opts.signingSecret)
-        .update(canonical(unix, method, path, raw))
-        .digest("hex");
-    }
+    const headers = signed(method, path, raw);
     const res = await fetch(base + path, {
       method,
       headers,
@@ -119,6 +128,40 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
         { intent },
       );
       return { index: step.index };
+    },
+
+    async removeStep(flowId: string, index: number) {
+      const res = await fetch(
+        `${base}/flows/${encodeURIComponent(flowId)}/steps/${index}`,
+        {
+          method: "DELETE",
+          headers: signed(
+            "DELETE",
+            `/flows/${encodeURIComponent(flowId)}/steps/${index}`,
+            "",
+          ),
+        },
+      );
+      if (res.status === 200) return { ok: true } as const;
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        state?: string;
+      };
+      // 409 is "the step has started" — a fact about the step, not a failure of
+      // the call, and the desk needs it to explain why the cube came back.
+      return {
+        ok: false as const,
+        reason: body.error ?? `HTTP ${res.status}`,
+        ...(body.state ? { state: body.state } : {}),
+      };
+    },
+
+    async resume(flowId: string) {
+      const r = await call<{ resumed?: number }>(
+        "POST",
+        `/flows/${encodeURIComponent(flowId)}/resume`,
+      );
+      return { resumed: r.resumed ?? 0 };
     },
 
     async advance(flowId: string) {
