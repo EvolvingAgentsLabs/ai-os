@@ -303,7 +303,7 @@ for (const backend of backends) {
         // closed — the same mistake the array was built to prevent.
         const flow = await newFlow();
         const step = await store.appendStep({ flowId: flow.id, intent: "one" });
-        await store.startAttempt({ stepId: step!.id, runId: "r1", sessionId: null });
+        await store.startAttempt({ stepId: step!.id, runId: "r1" });
         assert.equal(await store.removeStep(step!.id), null);
         assert.equal((await store.getFlow(flow.id))!.steps.length, 1);
       });
