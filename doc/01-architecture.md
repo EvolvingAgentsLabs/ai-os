@@ -4,6 +4,8 @@
 
 <sub>Four layers, joined at a few precise points.</sub>
 
+> **Reference.** The system as it runs, and where the parts that do not run attach.
+
 
 ## The stack
 

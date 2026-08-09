@@ -1,31 +1,58 @@
-# ai-os — design documents
+# ai-os — documentation
 
-These documents are the project. Code follows them, not the other way round.
+Two kinds of document live here, and the difference is the most useful thing on
+this page.
 
-Read in order the first time:
+**Reference** describes software that runs. Every claim in it is either citable
+to a file and line or marked as observed.
 
-| # | Document | Answers |
-|---|---|---|
-| 00 | [Vision](00-vision.md) | What is an agent operating system, and what makes this one different from a chat app with plugins |
-| 01 | [Architecture](01-architecture.md) | How the four pillars fit together and where each one attaches to the base |
-| 02 | [ai-base](02-ai-base.md) | What QM actually gives us — verified against the source, not the README — and the seams we build on |
-| 03 | [ai-flows](03-ai-flows.md) | The flow model: declarative, resumable, inspectable units of work above the turn. **`Open` runs; the other five shapes do not** |
-| 04 | [ai-ui](04-ai-ui.md) | The intelligent canvas: a spatial, live interface at OS level |
-| 05 | [ai-storage](05-ai-storage.md) | Memory at four levels — system, user, project, flow |
-| 06 | [Licensing](06-licensing.md) | Apache 2.0 over MIT: what is permitted, what is required, what is forbidden |
-| 07 | [Freeze policy](07-freeze-policy.md) | What "frozen" means for the other repositories, operationally |
-| 08 | [Roadmap](08-roadmap.md) | Milestones, in dependency order, with the honest blockers |
-| 09 | [Scales](09-scales.md) | Individual, collective, project, system — one axis for flows and memory, and it is `scopeId` |
-| 10 | [Observability](10-observability.md) | Can a flow's progress be read at all? Drift versus unreadable, and the noise floor that separates them |
-| 11 | [Choosing a model](11-choosing-a-model.md) | Small model plus harness against frontier plus harness — the interaction term, and where its sign flips |
-| 12 | [Conformation](12-conformation.md) | Projects, agents and folders: what the layered workspace already is, why membership never lives in it, and who can see the shape of the system at all |
-| 13 | [Degradation](13-degradation.md) | Once it is running, how would anyone find out it had stopped being good — a documented case where oversight subtracted, and one of our own |
-| 14 | [Review study](14-review-study.md) | **Does adding a reviewer help?** The study ran and found nothing — and the finding the first draft reported was an artefact of one full stop, which voided four other numbers with it |
+**Specification** describes software that does not exist yet. It is written to be
+built from — and to be argued with before anything is built, which is cheaper.
+
+Each document says which it is, in a banner under its title. A document that
+changes kind gets its banner rewritten the same day.
+
+## Manuals
+
+| | |
+|---|---|
+| [**Running ai-os**](manual.md) | The whole system, process by process and gesture by gesture, with screenshots from a live instance and an explicit list of what does not exist · [es](es/manual.md) |
+
+## Reference — the OS as it runs
+
+| | |
+|---|---|
+| [01 · Architecture](01-architecture.md) | The four pillars, how they fit, and where each attaches to the base |
+| [02 · ai-base](02-ai-base.md) | What QM actually provides — verified against the source, not its README — and the seams built on |
+| [03 · ai-flows](03-ai-flows.md) | The flow model: goal, steps, attempts, observations. **`Open` runs; the other five shapes are specification** |
+| [04 · ai-ui](04-ai-ui.md) | The desk: documents, agent cubes, the trace face. Built; its own falsification has not been run |
+| [09 · Scales](09-scales.md) | Individual, collective, project, system — one axis for flows and memory, and it is `scopeId` |
+| [10 · Observability](10-observability.md) | Whether a flow's progress can be read at all. Drift versus unreadable, and the measured noise floor between them |
+| [12 · Conformation](12-conformation.md) | Projects, agents and folders: what the layered workspace is, and why membership never lives in it |
+
+## Specification — not built
+
+| | |
+|---|---|
+| [05 · ai-storage](05-ai-storage.md) | Memory at four levels — system, user, project, flow — with explicit, reversible promotion. **Drawn on the desk before being built**, and the drawing is part of the spec |
+| [03 § Flow shapes](03-ai-flows.md#flow-shapes) | `Sequence`, `Loop`, `Fan-out`, `Deliberation`, `Watch`, and merge |
+
+## Findings — what the measurements said
+
+These exist because a design that claims an advantage has to name what would
+falsify it. Two of the four came back against us, and are kept in full.
+
+| | |
+|---|---|
+| [11 · Choosing a model](11-choosing-a-model.md) | Small model plus harness against frontier plus harness — the interaction term, and where its sign flips |
+| [13 · Degradation](13-degradation.md) | How anyone would find out a well-configured system had stopped being good. A documented case where oversight *subtracted*, and one of our own |
+| [14 · Review study](14-review-study.md) | **Does adding a reviewer help?** The study ran and found nothing — and the finding its first draft reported was an artefact of one full stop, which voided four other numbers with it |
 
 ## Decisions
 
-Architecture decisions live in [`adr/`](adr/). One file per decision, written
-when the decision is made, never edited afterwards — superseded instead.
+One file per architectural decision, written when it is made and **superseded
+rather than edited**. A decision that turned out to rest on a false premise is
+the most useful record this organisation can keep.
 
 | ADR | Decision | Status |
 |---|---|---|
@@ -39,38 +66,33 @@ when the decision is made, never edited afterwards — superseded instead.
 | [0008](adr/0008-conformation-is-projected.md) | The system's conformation is projected from existing stores; folders never hold membership | Accepted |
 | [0009](adr/0009-a-flow-records-who-it-acts-for.md) | A flow records the principal it acts for; no new `PrincipalType` | Accepted |
 
-## Running it
+## Project
 
-[**Running ai-os**](manual.md) — a manual for what actually starts, with
-screenshots taken from a live instance, and an explicit list of what does not
-exist. Spanish: [Correr ai-os](es/manual.md).
+Documents about the work rather than the system.
 
-## Drafts for upstream
+| | |
+|---|---|
+| [00 · Vision](00-vision.md) | What an agent operating system is, and what makes this one different from a chat app with plugins |
+| [06 · Licensing](06-licensing.md) | Apache 2.0 over MIT: what is permitted, required, forbidden |
+| [07 · Freeze policy](07-freeze-policy.md) | What "frozen" means for the organisation's other repositories, operationally |
+| [08 · Roadmap](08-roadmap.md) | Milestones in dependency order, with the honest blockers |
+| [`upstream/`](upstream/) | Proposals aimed at `yc-software/qm`, kept here until sent. Their `CONTRIBUTING.md` asks for **human-written, informal** text and says *"do not have AI artificially expand what you'd like to do into a formal proposal"* — so these are checklists of evidence to be rewritten in the sender's own voice, never pasted |
 
-[`upstream/`](upstream/) holds proposals aimed at `yc-software/qm`, kept here
-until they are sent. Their `CONTRIBUTING.md` asks for **human-written, informal**
-text and says in as many words: *"Please do not have AI artificially expand what
-you'd like to do into a formal proposal."* So a file in this folder is a
-checklist of evidence and asks, to be rewritten in the sender's own voice — never
-pasted. See [attribution-draft](upstream/attribution-draft.md).
+## House rules
 
-## House rules for these documents
-
-1. **Every claim about QM cites a file and line.** The upstream moves daily; a
-   claim without a citation is a claim that has already rotted. Line numbers here
-   were read at `ai-base` commit `7f2c916`.
-2. **Reading is not running — say which.** Claims are marked **[read]** (from the
+1. **Every claim about QM cites a file and line.** Upstream moves daily; a claim
+   without a citation has already rotted. Line numbers here were read at
+   `ai-base` commit `7f2c916`.
+2. **Reading is not running — say which.** Claims are marked **[read]** (from
    source) or **[ran]** (observed executing). Added 2026-08-01, after the first
-   pass of these documents was written from reading alone and turned out to
-   contain seven material errors, two of which had already hardened into an ADR.
-   The full correction is in
-   [02-ai-base § What running it changed](02-ai-base.md#what-running-it-changed).
-3. **A gap is stated as a gap.** If something is not built, the document says so
-   in the present tense. No aspirational voice.
-4. **Measured beats argued.** Where a design claims an advantage, it names the
-   measurement that would falsify it — and prefers an *existing* measurement to
-   a new one, because a fresh scale is how a benchmark ends up flattering its
-   author.
-5. **Superseded, never quietly rewritten.** A decision that turned out to rest on
-   a false premise is the most useful record this organisation can keep. See
-   [ADR-0002](adr/0002-flow-as-first-class-object.md), left intact and marked.
+   pass of these documents was written from reading alone and turned out to hold
+   seven material errors, two already hardened into an ADR. The correction is in
+   [02 § What running it changed](02-ai-base.md#what-running-it-changed).
+3. **A gap is stated as a gap**, in the present tense. No aspirational voice.
+4. **Measured beats argued.** A design that claims an advantage names the
+   measurement that would falsify it, and prefers an *existing* instrument to a
+   new one — a fresh scale is how a benchmark ends up flattering its author.
+5. **A sketch is marked as a sketch.** Where a specification is drawn rather than
+   described — `ai-storage` on the desk — the drawing says so on its own face,
+   not in a caption. A surface that renders a sketch like measured state teaches
+   its reader to trust both equally.

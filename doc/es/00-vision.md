@@ -4,6 +4,8 @@
 
 <sub>Conversación dispersa convertida en un objeto durable.</sub>
 
+> **Proyecto.** Por qué existe esto. Nada acá afirma nada sobre software que corra.
+
 
 > **El inglés es canónico.** Traducción de [`doc/00-vision.md`](../00-vision.md).
 

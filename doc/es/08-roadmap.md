@@ -4,6 +4,8 @@
 
 <sub>Dos milestones sólidos, el resto todavía contornos.</sub>
 
+> **Proyecto.** Milestones y bloqueos. Lo construido se dice en el documento de cada pilar.
+
 
 > **El inglés es canónico.** Traducción de [`doc/08-roadmap.md`](../08-roadmap.md).
 

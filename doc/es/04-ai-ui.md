@@ -7,7 +7,13 @@
 
 > **El inglés es canónico.** Traducción de [`doc/04-ai-ui.md`](../04-ai-ui.md).
 >
-> **Estado: especificado, no implementado.**
+> **Estado: construido y corriendo — `ai-ui/`, 61 tests. Sin probar.**
+>
+> El escritorio existe: documentos, cubitos de agentes, la cara de traza,
+> disposición que persiste por scope. Lo que *no* pasó es la falsificación al pie
+> de este documento — el cronómetro, un flow de tres días que corrió otra
+> persona, escritorio contra transcripción. Hasta que eso corra, lo honesto es
+> decir que funciona, no que ayuda. Ver [el manual, Parte 6](manual.md).
 
 ## El problema
 

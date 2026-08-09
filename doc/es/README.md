@@ -1,69 +1,92 @@
-# ai-os — documentos de diseño
+# ai-os — documentación
 
 > **El inglés es canónico.** Esta es la traducción de [`doc/`](../). Si los dos
 > difieren, el correcto es el inglés. Ver [Idiomas](../../README.es.md#idiomas).
 
-Estos documentos son el proyecto. El código los sigue, no al revés.
+Acá viven dos clases de documento, y la diferencia es lo más útil de esta página.
 
-Leer en orden la primera vez:
+**Referencia** describe software que corre. Toda afirmación es citable a un
+archivo y una línea, o está marcada como observada.
 
-| # | Documento | Responde |
-|---|---|---|
-| 00 | [Visión](00-vision.md) | Qué es un sistema operativo de agentes, y qué lo distingue de una app de chat con plugins |
-| 01 | [Arquitectura](01-architecture.md) | Cómo encajan los cuatro pilares y dónde se engancha cada uno a la base |
-| 02 | [ai-base](02-ai-base.md) | Qué da QM realmente — verificado contra el código, no contra el README — y los seams sobre los que construimos |
-| 03 | [ai-flows](03-ai-flows.md) | El modelo de flow: unidades de trabajo declarativas, reanudables e inspeccionables por encima del turno. **`Open` corre; las otras cinco formas no** |
-| 04 | [ai-ui](04-ai-ui.md) | El canvas inteligente: una interfaz espacial y viva a nivel de SO |
-| 05 | [ai-storage](05-ai-storage.md) | Memoria en cuatro niveles — sistema, usuario, proyecto, flow |
-| 06 | [Licenciamiento](06-licensing.md) | Apache 2.0 sobre MIT: qué se permite, qué se exige, qué se prohíbe |
-| 07 | [Política de congelado](07-freeze-policy.md) | Qué significa "congelado", operativamente |
-| 08 | [Roadmap](08-roadmap.md) | Milestones, en orden de dependencia, con los bloqueos dichos con honestidad |
-| 09 | [Escalas](09-scales.md) | Individual, colectivo, proyecto, sistema — un solo eje para flows y memoria, y es el `scopeId` |
-| 10 | [Observabilidad](10-observability.md) | ¿Se puede leer el progreso de un flow? Deriva contra ilegible, y el piso de ruido que las separa |
-| 11 | [Elegir un modelo](11-choosing-a-model.md) | Modelo chico + harness contra frontier + harness — el término de interacción, y dónde cambia de signo |
-| 12 | [Conformación](12-conformation.md) | Proyectos, agentes y carpetas: qué es ya el workspace por capas, por qué la membresía nunca vive ahí, y quién puede ver la forma del sistema |
-| 13 | [Degradación](13-degradation.md) | Una vez corriendo, cómo se enteraría alguien de que dejó de ser bueno — un caso documentado donde la supervisión restó, y uno propio |
-| 14 | [Estudio de revisión](14-review-study.md) | **¿Agregar un revisor ayuda?** El estudio corrió y no encontró nada — y el hallazgo que reportó el primer borrador era un artefacto de un punto final, que se llevó otros cuatro números |
+**Especificación** describe software que todavía no existe. Está escrita para
+construir a partir de ella — y para que se discuta antes de construir nada, que
+es más barato.
 
-## Correrlo
+Cada documento dice cuál de las dos es, en un cartel debajo del título. El
+documento que cambia de clase se reescribe el cartel el mismo día.
 
-[**Correr ai-os**](manual.md) — un manual de lo que arranca de verdad, con
-capturas de una instancia viva y una lista explícita de lo que no existe.
+## Manuales
+
+| | |
+|---|---|
+| [**Correr ai-os**](manual.md) | El sistema entero, proceso por proceso y gesto por gesto, con capturas de una instancia viva y una lista explícita de lo que no existe |
+
+## Referencia — el SO tal como corre
+
+| | |
+|---|---|
+| [01 · Arquitectura](01-architecture.md) | Los cuatro pilares, cómo encajan y dónde se engancha cada uno a la base |
+| [02 · ai-base](02-ai-base.md) | Qué da QM realmente — verificado contra el código, no contra su README — y los seams sobre los que se construye |
+| [03 · ai-flows](03-ai-flows.md) | El modelo de flow: objetivo, pasos, intentos, observaciones. **`Open` corre; las otras cinco formas son especificación** |
+| [04 · ai-ui](04-ai-ui.md) | El escritorio: documentos, cubitos de agentes, la cara de traza. Construido; su propia falsificación no se corrió |
+| [09 · Escalas](09-scales.md) | Individual, colectiva, proyecto, sistema — un solo eje para flows y memoria, y es `scopeId` |
+| [10 · Observabilidad](10-observability.md) | Si el progreso de un flow se puede leer siquiera. Deriva contra ilegible, y el piso de ruido medido entre las dos |
+| [12 · Conformación](12-conformation.md) | Proyectos, agentes y carpetas: qué es el workspace en capas, y por qué la membresía nunca vive ahí |
+
+## Especificación — no construido
+
+| | |
+|---|---|
+| [05 · ai-storage](05-ai-storage.md) | Memoria en cuatro niveles — sistema, usuario, proyecto, flow — con promoción explícita y reversible. **Dibujada en el escritorio antes de construirla**, y el dibujo es parte de la spec |
+| [03 § Formas de flow](03-ai-flows.md#formas-de-flow) | `Sequence`, `Loop`, `Fan-out`, `Deliberation`, `Watch`, y el merge |
+
+## Hallazgos — qué dijeron las mediciones
+
+Existen porque un diseño que reclama una ventaja tiene que nombrar qué la
+falsificaría. Dos de los tres volvieron en contra nuestro, y se conservan enteros.
+
+| | |
+|---|---|
+| [11 · Elegir un modelo](11-choosing-a-model.md) | Modelo chico más harness contra frontera más harness — el término de interacción, y dónde cambia de signo |
+| [13 · Degradación](13-degradation.md) | Cómo se enteraría alguien de que un sistema bien configurado dejó de estar bien. Un caso documentado donde la supervisión *restó*, y uno propio |
+| [14 · Estudio de revisión](14-review-study.md) | **¿Agregar un revisor ayuda?** El estudio corrió y no encontró nada — y el hallazgo del primer borrador era un artefacto de un punto final, que se llevó puestos otros cuatro números |
 
 ## Decisiones
 
-Las decisiones de arquitectura viven en [`adr/`](adr/). Un archivo por decisión,
-escrito cuando se toma, **nunca editado después** — se reemplaza (*superseded*).
+Un archivo por decisión de arquitectura, escrita cuando se toma y **reemplazada,
+nunca editada**. Una decisión que resultó apoyarse en una premisa falsa es el
+registro más útil que esta organización puede guardar.
 
-| ADR | Decisión | Estado |
-|---|---|---|
-| [0001](adr/0001-fork-vs-dependency.md) | Vendorizar QM como subtree en vez de depender de `@yc-software/qm` | Aceptada |
-| [0002](adr/0002-flow-as-first-class-object.md) | El flow es un objeto persistido de primera clase, no un patrón de prompt | **Reemplazada por 0004** |
-| [0003](adr/0003-storage-scope-axis.md) | Agregar `flow` y `system` como scope kinds, extendiendo la unión cerrada de QM | Aceptada |
-| [0004](adr/0004-flows-and-the-subagent-record.md) | Un flow lee el registro de subagentes (`tasks`) pero no lo posee | Aceptada |
-| [0005](adr/0005-scale-is-scope.md) | La escala del trabajo es su scope; un proyecto es el grupo de upstream, no `team` | Aceptada |
-| [0006](adr/0006-ai-flows-lives-outside-core.md) | `ai-flows` se construye contra el seam HTTP firmado, no adentro del core | Aceptada |
-| [0007](adr/0007-observation-captured-not-derived.md) | La observación de un intento se captura al cerrarlo, nunca se deriva después | Aceptada |
-| [0008](adr/0008-conformation-is-projected.md) | La conformación del sistema se proyecta desde stores existentes; las carpetas nunca contienen membresía | Aceptada |
-| [0009](adr/0009-a-flow-records-who-it-acts-for.md) | Un flow registra el principal para el que actúa; sin `PrincipalType` nuevo | Aceptada |
+Ver [`adr/`](../adr/) — el índice completo está en la
+[versión en inglés](../README.md#decisions).
 
-## Reglas de la casa para estos documentos
+## Proyecto
 
-1. **Toda afirmación sobre QM cita archivo y línea.** El upstream se mueve a
-   diario; una afirmación sin cita ya se pudrió. Los números de línea acá fueron
-   leídos en el commit `7f2c916` de `ai-base`.
-2. **Leer no es correr — decir cuál.** Las afirmaciones se marcan **[read]**
-   (desde el código) o **[ran]** (observado en ejecución). Agregado el
-   2026-08-01, después de que la primera pasada de estos documentos, escrita sólo
-   leyendo, resultara tener siete errores materiales, dos de los cuales ya se
-   habían endurecido en un ADR. La corrección completa está en
-   [02-ai-base § Qué cambió al correrlo](02-ai-base.md#qué-cambió-al-correrlo).
-3. **Un hueco se dice como hueco.** Si algo no está construido, el documento lo
-   dice en presente. Nada de voz aspiracional.
-4. **Medido le gana a argumentado.** Cuando un diseño afirma una ventaja, nombra
-   la medición que lo falsaría — y prefiere una medición *existente* a una nueva,
-   porque una escala inventada es cómo un benchmark termina halagando a su autor.
-5. **Reemplazado, nunca reescrito en silencio.** Una decisión que resultó
-   apoyarse en una premisa falsa es el registro más útil que puede guardar esta
-   organización. Ver [ADR-0002](adr/0002-flow-as-first-class-object.md), intacto y
-   marcado.
+Documentos sobre el trabajo, no sobre el sistema.
+
+| | |
+|---|---|
+| [00 · Visión](00-vision.md) | Qué es un sistema operativo de agentes, y qué lo distingue de una app de chat con plugins |
+| [06 · Licenciamiento](06-licensing.md) | Apache 2.0 sobre MIT: qué se permite, qué se exige, qué se prohíbe |
+| [07 · Política de congelado](07-freeze-policy.md) | Qué significa "congelado" para los otros repos de la organización, operativamente |
+| [08 · Roadmap](08-roadmap.md) | Milestones en orden de dependencia, con los bloqueos dichos con honestidad |
+
+## Reglas de la casa
+
+1. **Toda afirmación sobre QM cita archivo y línea.** Upstream se mueve todos los
+   días; una afirmación sin cita ya se pudrió. Los números de línea de acá se
+   leyeron en el commit `7f2c916` de `ai-base`.
+2. **Leer no es correr — decí cuál.** Las afirmaciones van marcadas **[read]**
+   (del código) o **[ran]** (observadas ejecutando). Agregado el 2026-08-01,
+   después de que la primera pasada de estos documentos se escribiera sólo
+   leyendo y resultara tener siete errores materiales, dos ya endurecidos en un
+   ADR.
+3. **Un hueco se dice como hueco**, en presente. Sin voz aspiracional.
+4. **Medido le gana a argumentado.** Un diseño que reclama una ventaja nombra la
+   medición que la falsificaría, y prefiere un instrumento *existente* a uno
+   nuevo — una escala fresca es la forma en que un benchmark termina halagando a
+   su autor.
+5. **Un boceto se marca como boceto.** Donde una especificación está dibujada en
+   vez de descrita — `ai-storage` en el escritorio — el dibujo lo dice en su
+   propia cara, no en un epígrafe. Una superficie que dibuja un boceto igual que
+   el estado medido le enseña a quien la lee a confiar en los dos por igual.

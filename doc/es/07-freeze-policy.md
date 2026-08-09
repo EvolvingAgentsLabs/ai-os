@@ -4,6 +4,8 @@
 
 <sub>Veintiuno archivados. Uno sigue tibio.</sub>
 
+> **Proyecto.** Qué significa "congelado" para los otros repositorios de la organización.
+
 
 > **El inglés es canónico.** Traducción de [`doc/07-freeze-policy.md`](../07-freeze-policy.md).
 

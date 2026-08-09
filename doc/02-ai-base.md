@@ -4,6 +4,8 @@
 
 <sub>One foundation, split by a seam that still holds.</sub>
 
+> **Reference.** QM as it is, read from the source rather than its README.
+
 
 > Everything here was read at `ai-base` commit `7f2c916`
 > (upstream `yc-software/qm@main`, 2026-07-31). QM pushes daily. **Re-verify

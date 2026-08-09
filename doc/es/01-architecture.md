@@ -4,6 +4,8 @@
 
 <sub>Cuatro capas, unidas en unos pocos puntos precisos.</sub>
 
+> **Referencia.** El sistema tal como corre, y dónde se enganchan las partes que no.
+
 
 > **El inglés es canónico.** Traducción de [`doc/01-architecture.md`](../01-architecture.md).
 
