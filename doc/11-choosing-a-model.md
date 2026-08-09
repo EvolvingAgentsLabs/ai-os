@@ -4,8 +4,8 @@
 
 <sub>Two lifts that each look like a result. The gap between their tops is the only number that decides — and it swaps sign.</sub>
 
-> **Status: estimators implemented and tested. One harness comparison run; no
-> model comparison yet.** `stats.ts`, `conformance.ts`, `tasks/physics.ts` and
+> **Finding.** Estimators implemented and tested. One harness comparison run; no
+> model comparison yet. `stats.ts`, `conformance.ts`, `tasks/physics.ts` and
 > `tasks/handoff.ts` — 112 tests **[ran]** across `ai-flows`. The suite has now been
 > scored bare against with-tools on one model
 > ([below](#scored-at-last-the-harness-lift-at-l2-is-total-ran)), which measures the
@@ -124,7 +124,7 @@ carried by a number above:
 
 > **A small-model fleet is viable for short, verifiable, decomposable hops behind
 > a validating orchestrator. It is not viable as a long, autonomous, sequential
-> chain.**
+> chain.
 
 Short: frontier models succeed on <10% of tasks taking a human over four hours
 ([METR](https://metr.org/blog/2026-1-29-time-horizon-1-1/)). Verifiable:

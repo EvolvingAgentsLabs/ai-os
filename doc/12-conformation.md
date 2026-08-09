@@ -5,10 +5,9 @@
 <sub>Scopes, the agents inside them, and the threads between — two of which end nowhere.</sub>
 
 
-**Status: the projector is built, tested and run. 18 tests **[ran]**, 131 across
-`ai-flows`. It returned five holes against a real base, listed in § What the
-projector found. No new folder exists, and none may exist until a hole names
-it.**
+> **Reference.** The projector is built, tested and run **[ran]**. It returned
+> five holes against a real base, listed in § What the projector found. No new
+> folder exists, and none may exist until a hole names it.
 
 An operating system lets you see its own shape. You can open the process list,
 walk the filesystem, ask who is logged in. ai-os today cannot answer any of those

@@ -6,8 +6,8 @@
 
 > **El inglés es canónico.** Traducción de [`doc/13-degradation.md`](../13-degradation.md).
 >
-> **Estado: un modo de falla documentado, una medición propia, y una señal
-> candidata construida y falsificada.** ai-os sigue sin poder notar un paso que no
+> **Hallazgo.** Un modo de falla documentado, una medición propia, y una señal
+> candidata construida y falsificada. ai-os sigue sin poder notar un paso que no
 > contribuyó. Este documento nombra ese hueco y registra lo ya intentado — ver
 > § Se construyó, se corrió, y no funciona.
 
@@ -231,7 +231,7 @@ reparaciones y daños se cancelan, así que la clasificación antes/después de
 que medir en esta suite. Y:
 
 > **Un check que puede fallar mientras la capacidad funciona no sólo pierde señal —
-> la fabrica.**
+> la fabrica.
 
 La versión de esa regla que este repositorio ya tenía era sobre perder señal. Ésta
 es la mitad cara.

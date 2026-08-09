@@ -5,7 +5,7 @@
 <sub>A repeat standing out from noise. Until the noise wins.</sub>
 
 
-> **Status: implemented, tested, and δ measured once.** `ai-flows/src/observability.ts`
+> **Reference.** Implemented, tested, and δ measured once. `ai-flows/src/observability.ts`
 > — 23 tests **[ran]**; 39 across `ai-flows`. The measurement is below and it
 > changed the code.
 

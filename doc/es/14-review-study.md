@@ -6,9 +6,9 @@
 
 > **El inglés es canónico.** Traducción de [`doc/14-review-study.md`](../14-review-study.md).
 >
-> **Estado: el estudio corrió y no produjo nada, y la primera versión de este
+> **Hallazgo.** El estudio corrió y no produjo nada, y la primera versión de este
 > documento reportó un hallazgo que era un artefacto de un carácter. [ran]
-> 2026-08-08.** Se conserva completo, porque el artefacto es más instructivo de lo
+> 2026-08-08. Se conserva completo, porque el artefacto es más instructivo de lo
 > que habría sido el hallazgo.
 
 [13-degradation](13-degradation.md) documentó el resultado de g-AMIE — la

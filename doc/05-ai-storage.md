@@ -4,7 +4,7 @@
 
 <sub>Four levels. Only one promotion arrow is built.</sub>
 
-> **Status: specified, not implemented.**
+> **Specification.** Specified, not implemented.
 >
 > **Read the "Prior result" section before designing anything here.** A closely
 > related claim from this organisation measured _no better than the naive
@@ -70,7 +70,7 @@ The result above is not a war story about one experiment. It is the rule for
 every axis proposed after it:
 
 > **No new memory axis ships without a benchmark the baseline could lose, named
-> before the axis is built.**
+> before the axis is built.
 
 Memory design attracts structural proposals with a great deal of prior appeal —
 episodic versus semantic, short- versus long-term, consolidation passes, decay

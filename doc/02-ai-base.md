@@ -9,7 +9,7 @@
 
 > Everything here was read at `ai-base` commit `7f2c916`
 > (upstream `yc-software/qm@main`, 2026-07-31). QM pushes daily. **Re-verify
-> before relying on any line number in this document.**
+> before relying on any line number in this document.
 >
 > **Revised 2026-08-01 after actually running it.** The first version of this
 > document was written from reading alone and contained seven material errors,

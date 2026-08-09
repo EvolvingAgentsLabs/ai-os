@@ -5,7 +5,7 @@
 <sub>Six shapes. The last one never finishes, on purpose.</sub>
 
 
-> **Status: the `Open` shape runs; every other shape is still specification.**
+> **Reference.** The `Open` shape runs; every other shape is still specification.
 >
 > Built and proven live on 2026-08-06/07 **[ran]**: the flow store, the engine
 > (a flow started by one process and finished by another — 6/6 on `pi` and on

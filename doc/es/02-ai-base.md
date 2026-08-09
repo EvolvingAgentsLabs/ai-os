@@ -11,7 +11,7 @@
 >
 > Todo acá fue leído en el commit `7f2c916` de `ai-base` (upstream
 > `yc-software/qm@main`, 2026-07-31). QM publica a diario. **Reverificar antes de
-> apoyarse en cualquier número de línea de este documento.**
+> apoyarse en cualquier número de línea de este documento.
 >
 > **Revisado el 2026-08-01 después de correrlo de verdad.** La primera versión de
 > este documento se escribió sólo leyendo y contenía siete errores materiales, dos

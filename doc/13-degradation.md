@@ -4,8 +4,8 @@
 
 <sub>A review step that runs, reports, and adds nothing.</sub>
 
-> **Status: a documented failure mode, one measurement of our own, and one
-> candidate signal built and falsified.** ai-os still cannot notice a step that
+> **Finding.** A documented failure mode, one measurement of our own, and one
+> candidate signal built and falsified. ai-os still cannot notice a step that
 > contributed nothing. This document names that gap and records what has already
 > been tried — see § It was built, it was run, and it does not work.
 
@@ -229,7 +229,7 @@ repairs and damage cancel, so the before/after classification in
 on this suite. And:
 
 > **A check that can fail while the capability works does not only lose signal —
-> it manufactures one.**
+> it manufactures one.
 
 The version of that rule this repository already had was about losing signal. This
 is the expensive half.

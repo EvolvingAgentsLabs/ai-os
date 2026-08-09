@@ -7,7 +7,7 @@
 
 > **El inglés es canónico.** Traducción de [`doc/03-ai-flows.md`](../03-ai-flows.md).
 >
-> **Estado: la forma `Open` corre; toda otra forma sigue siendo especificación.**
+> **Referencia.** La forma `Open` corre; toda otra forma sigue siendo especificación.
 >
 > Construido y probado en vivo el 2026-08-06/07 **[ran]**: el flow store, el motor
 > (un flow arrancado por un proceso y terminado por otro — 6/6 en `pi` y en
