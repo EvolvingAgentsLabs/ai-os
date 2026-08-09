@@ -16,7 +16,8 @@ está congelado — ver [`doc/es/07-freeze-policy.md`](doc/es/07-freeze-policy.m
 **[English](README.md)** · El inglés es la versión canónica de todos los
 documentos; ver [Idiomas](#idiomas).
 
-> **`ai-base` y `ai-flows` corren — 235 tests. `ai-ui` y `ai-storage` no existen.**
+> **`ai-base` y `ai-flows` corren — 247 tests propios, arriba de los 3.768 que
+> `ai-base` trae de upstream. `ai-ui` y `ai-storage` no existen.**
 > Nada acá describe software que exista salvo que lo diga, y cada captura es de una
 > instancia viva.
 
