@@ -5,7 +5,7 @@
 <sub>Individual to system — one axis, and it is the scope.</sub>
 
 
-> **Status: the axis is specified. Only the individual scale is in M2 scope.**
+> **Reference.** The axis is specified. Only the individual scale is in M2 scope.
 >
 > This document exists because the same question was about to be answered twice —
 > once for flows, once for memory — with two different vocabularies. It is

@@ -7,7 +7,7 @@
 
 > **El inglés es canónico.** Traducción de [`doc/05-ai-storage.md`](../05-ai-storage.md).
 >
-> **Estado: especificado, no implementado.**
+> **Especificación.** Especificado, no implementado.
 >
 > **Leer la sección "Resultado previo" antes de diseñar nada acá.** Una
 > afirmación muy cercana de esta organización midió *igual que el enfoque
@@ -75,7 +75,7 @@ El resultado de arriba no es una anécdota sobre un experimento. Es la regla par
 todo eje propuesto después de él:
 
 > **Ningún eje nuevo de memoria entra sin un benchmark que el baseline pudiera
-> perder, nombrado antes de construir el eje.**
+> perder, nombrado antes de construir el eje.
 
 El diseño de memoria atrae propuestas estructurales con muchísimo atractivo
 previo — episódica contra semántica, corto contra largo plazo, pasadas de

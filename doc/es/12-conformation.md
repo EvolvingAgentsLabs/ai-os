@@ -5,10 +5,10 @@
 <sub>Scopes, los agentes que contienen, y los hilos entre ellos — dos de los cuales no terminan en ningún lado.</sub>
 
 
-**Estado: el proyector está construido, testeado y corrido. 18 tests **[ran]**,
-131 en todo `ai-flows`. Devolvió cinco agujeros contra una base real, listados en
-§ Lo que encontró el proyector. No existe ninguna carpeta nueva, y no puede
-existir ninguna hasta que un agujero la nombre.**
+> **Referencia.** El proyector está construido, testeado y corrido **[ran]**.
+> Devolvió cinco huecos contra una base real, listados en § Lo que encontró el
+> proyector. No existe ninguna carpeta nueva, y ninguna puede existir hasta que
+> un hueco la nombre.
 
 Un sistema operativo te deja ver su propia forma. Podés abrir la lista de
 procesos, recorrer el filesystem, preguntar quién está logueado. ai-os hoy no

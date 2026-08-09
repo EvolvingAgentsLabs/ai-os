@@ -4,9 +4,9 @@
 
 <sub>The study this document was written to report. It did not happen.</sub>
 
-> **Status: the study ran and produced nothing, and the first version of this
+> **Finding.** The study ran and produced nothing, and the first version of this
 > document reported a finding that was an artefact of one character. [ran]
-> 2026-08-08.** Kept in full, because the artefact is more instructive than the
+> 2026-08-08. Kept in full, because the artefact is more instructive than the
 > finding would have been.
 
 [13-degradation](13-degradation.md) documented the g-AMIE result — physician

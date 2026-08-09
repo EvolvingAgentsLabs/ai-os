@@ -133,6 +133,11 @@ jobs:
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/flows
         run: npm test
+      - name: The published test count matches the suites
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/flows
+        working-directory: .
+        run: ./scripts/check-test-count.sh
 
   ui:
     name: ai-ui

@@ -5,7 +5,7 @@
 <sub>A stream rearranged into a map.</sub>
 
 
-> **Status: built and running — `ai-ui/`, 61 tests. Unproven.**
+> **Reference.** Built and running — `ai-ui/`, 61 tests. Unproven.
 >
 > The desk exists: documents, agent cubes, the trace face, layout that persists
 > per scope. What has *not* happened is the falsification at the foot of this

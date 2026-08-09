@@ -5,7 +5,7 @@
 <sub>Una repetición destacándose del ruido. Hasta que el ruido gana.</sub>
 
 
-> **Estado: implementado, testeado, y δ medido una vez.** `ai-flows/src/observability.ts`
+> **Referencia.** Implementado, testeado, y δ medido una vez. `ai-flows/src/observability.ts`
 > — 23 tests **[ran]**; 39 en todo `ai-flows`. La medición está abajo y cambió el
 > código.
 

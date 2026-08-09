@@ -131,7 +131,7 @@ crear uno.
 > lee exactamente un llamador en todo el árbol, `pi-tools.ts` **[read]**. En
 > `claude` los agentes hijos están hardcodeados; en `codex` y `opencode` la
 > delegación pasa dentro de su CLI. **Tu carpeta `agents/` no hace nada en tres de
-> cinco harness.**
+> cinco harness.
 
 ---
 

@@ -109,7 +109,7 @@ scheduling them.
 > untouched. **Updated 2026-08-07: all three of Phase 3's gates have now been run
 > — M4's opened, depth-2's instrument turned out to be un-constructible, and the
 > agent-principal signal was misread and is corrected in
-> [ADR-0009](adr/0009-a-flow-records-who-it-acts-for.md).**
+> [ADR-0009](adr/0009-a-flow-records-who-it-acts-for.md).
 
 ### What "a version worth iterating on" has to mean
 

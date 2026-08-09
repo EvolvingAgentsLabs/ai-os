@@ -4,8 +4,8 @@
 
 <sub>Dos lifts que parecen resultados. La distancia entre sus cimas es el único número que decide — y cambia de signo.</sub>
 
-> **Estado: estimadores implementados y testeados. No se corrió ninguna comparación
-> de modelos.** `stats.ts`, `conformance.ts` y `tasks/physics.ts` — 97 tests **[ran]** en
+> **Hallazgo.** Estimadores implementados y testeados. No se corrió ninguna comparación
+> de modelos. `stats.ts`, `conformance.ts` y `tasks/physics.ts` — 97 tests **[ran]** en
 > 73 en todo `ai-flows`. Todavía no hay suite de tareas ni un segundo modelo, y
 > este documento tiene cuidado de decir qué está citado y qué está medido.
 
@@ -123,7 +123,7 @@ carga un número de arriba:
 
 > **Una flota de modelos chicos es viable para saltos cortos, verificables y
 > descomponibles detrás de un orquestador que valida. No es viable como cadena
-> larga, autónoma y secuencial.**
+> larga, autónoma y secuencial.
 
 Cortos: los modelos de frontera aciertan en <10% de las tareas que a un humano le
 llevan más de cuatro horas ([METR](https://metr.org/blog/2026-1-29-time-horizon-1-1/)).

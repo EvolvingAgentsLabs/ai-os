@@ -7,7 +7,7 @@
 
 > **El inglés es canónico.** Traducción de [`doc/04-ai-ui.md`](../04-ai-ui.md).
 >
-> **Estado: construido y corriendo — `ai-ui/`, 61 tests. Sin probar.**
+> **Referencia.** Construido y corriendo — `ai-ui/`, 61 tests. Sin probar.
 >
 > El escritorio existe: documentos, cubitos de agentes, la cara de traza,
 > disposición que persiste por scope. Lo que *no* pasó es la falsificación al pie

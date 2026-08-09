@@ -7,7 +7,7 @@
 
 > **El inglés es canónico.** Traducción de [`doc/09-scales.md`](../09-scales.md).
 
-> **Estado: el eje está especificado. Sólo la escala individual entra en M2.**
+> **Referencia.** El eje está especificado. Sólo la escala individual entra en M2.
 >
 > Este documento existe porque la misma pregunta estaba por responderse dos veces
 > — una para flows, otra para memoria — con dos vocabularios distintos. Se
