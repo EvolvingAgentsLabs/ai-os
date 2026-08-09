@@ -4,6 +4,8 @@
 
 <sub>Twenty-one archived. One still warm.</sub>
 
+> **Project.** What "frozen" means for the organisation's other repositories.
+
 
 ai-os is the organisation's primary project. Everything else is frozen. This
 document defines what "frozen" means operationally, because an undefined freeze

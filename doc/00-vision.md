@@ -4,6 +4,8 @@
 
 <sub>Scattered talk becoming one durable object.</sub>
 
+> **Project.** Why this exists. Nothing here is a claim about running software.
+
 
 ## The claim
 

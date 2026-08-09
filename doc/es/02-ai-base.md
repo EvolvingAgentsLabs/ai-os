@@ -4,6 +4,8 @@
 
 <sub>Una base, partida por una junta que igual sostiene.</sub>
 
+> **Referencia.** QM tal como es, leído del código y no de su README.
+
 
 > **El inglés es canónico.** Traducción de [`doc/02-ai-base.md`](../02-ai-base.md).
 >

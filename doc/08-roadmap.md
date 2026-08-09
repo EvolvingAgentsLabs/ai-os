@@ -4,6 +4,8 @@
 
 <sub>Two milestones solid, the rest still outlines.</sub>
 
+> **Project.** Milestones and blockers. What is built is stated in each pillar document.
+
 Milestones in dependency order. Each states what "done" means and what would
 show it was not worth doing. No dates — this organisation's estimates have not
 been informative.

@@ -4,6 +4,8 @@
 
 <sub>Apache sobre MIT, y qué permite la intersección.</sub>
 
+> **Proyecto.** Términos. Obligan a este repositorio.
+
 
 > **El inglés es canónico.** Traducción de [`doc/06-licensing.md`](../06-licensing.md).
 >

@@ -4,6 +4,8 @@
 
 <sub>Apache over MIT, and what the overlap permits.</sub>
 
+> **Project.** Terms. Binding on this repository.
+
 
 > Not legal advice. This is an engineering document recording what we did and
 > why. If ai-os is ever commercialised or contributed to by non-employees, have

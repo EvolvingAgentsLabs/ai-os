@@ -5,7 +5,13 @@
 <sub>A stream rearranged into a map.</sub>
 
 
-> **Status: specified, not implemented.**
+> **Status: built and running — `ai-ui/`, 61 tests. Unproven.**
+>
+> The desk exists: documents, agent cubes, the trace face, layout that persists
+> per scope. What has *not* happened is the falsification at the foot of this
+> document — the stopwatch, a three-day-old flow somebody else ran, desk against
+> transcript. Until that runs, the honest claim is that it works, not that it
+> helps. See [the manual, Part 6](manual.md).
 
 ## The problem
 
