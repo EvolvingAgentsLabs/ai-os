@@ -38,7 +38,7 @@ import type { FlowStore } from "./flow-store.ts";
 import { verifySignature } from "./core-client.ts";
 import { FLOW_SHAPES, type FlowShape } from "./types.ts";
 import { composeFromAgent } from "./compose.ts";
-import type { ScopeNode } from "./conformation.ts";
+import type { Conformation, ScopeNode } from "./conformation.ts";
 
 export interface FlowServerOptions {
   store: FlowStore;
@@ -49,6 +49,18 @@ export interface FlowServerOptions {
   allowUnauthenticated?: boolean;
   /** Optional page renderer, so the view can be served live rather than written to a file. */
   renderView?: () => Promise<string>;
+  /**
+   * The projected conformation, so another surface can read the shape of the
+   * system without reaching into this one's stores.
+   *
+   * Injected rather than computed here for the same reason `renderView` is: the
+   * projector needs a workspace, a project store and a session store, and
+   * wiring those in would make this module depend on `ai-base`. The canvas
+   * (`ai-ui`) is the first caller — it needs the agent list to draw cubes, and
+   * a second copy of the projection would be a second answer to "what does this
+   * system look like".
+   */
+  conformation?: () => Promise<Conformation>;
   /**
    * Resolves a scope's agents, so a declared tree can be turned into steps.
    * Absent, `POST /flows/from-agent` answers 501 rather than half-working.
@@ -224,6 +236,15 @@ export function createFlowServer(opts: FlowServerOptions) {
       return { status: 201, body: { plan, flow: await store.getFlow(flow.id) } };
     }),
 
+    route("GET", "/conformation", async () => {
+      if (!opts.conformation) {
+        // 501 rather than an empty document: a caller that cannot tell "nothing
+        // is wired" from "the system is empty" will draw an empty desk and
+        // believe it.
+        return { status: 501, body: { error: "no conformation provider is wired into this server" } };
+      }
+      return { status: 200, body: await opts.conformation() };
+    }),
     route("GET", "/healthz", async () => ({ status: 200, body: { ok: true } })),
   ];
 

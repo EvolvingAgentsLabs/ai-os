@@ -1,0 +1,22 @@
+{
+  "name": "@ai-os/ai-ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@types/pg": "^8.21.0",
+    "pg": "^8.23.0"
+  }
+}

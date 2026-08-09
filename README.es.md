@@ -16,8 +16,8 @@ está congelado — ver [`doc/es/07-freeze-policy.md`](doc/es/07-freeze-policy.m
 **[English](README.md)** · El inglés es la versión canónica de todos los
 documentos; ver [Idiomas](#idiomas).
 
-> **`ai-base` y `ai-flows` corren — 247 tests propios, arriba de los 3.768 que
-> `ai-base` trae de upstream. `ai-ui` y `ai-storage` no existen.**
+> **`ai-base`, `ai-flows` y `ai-ui` corren — 281 tests propios, arriba de los 3.768 que
+> `ai-base` trae de upstream. `ai-storage` no existe.**
 > Nada acá describe software que exista salvo que lo diga, y cada captura es de una
 > instancia viva.
 
@@ -97,13 +97,36 @@ cd ai-flows && node scripts/seed-demo.ts                        # un proyecto, u
 Postgres es obligatorio pasado el primer turno — los stores en memoria son por
 proceso, así que un flow no puede retomarse de un proceso que terminó.
 
+### El escritorio
+
+<img src="doc/assets/manual/09-desk.jpg" alt="" width="100%">
+
+<sub>Los flows son documentos. Los agentes son cubitos que se apilan encima. Arrastrás uno sobre un documento y ese agente recibe un paso en ese flow — la misma instrucción que habría escrito componer un árbol.</sub>
+
+Las posiciones persisten por scope, así que una disposición sobrevive a recargar.
+El sistema propone una a partir del estado del flow y **nunca reacomoda lo que
+moviste** — que es toda la dificultad, porque el momento en que quiere re-proponer
+suele ser el momento en que lo estás mirando.
+
+Leer el escritorio nunca gasta una llamada al modelo. Agregar un paso y correrlo
+son cosas separadas, y correrlo es un click que dice lo que cuesta.
+
+```bash
+cd ai-ui && node scripts/serve.ts       # → http://localhost:8098
+```
+
 ## Lo que no está construido
 
 Ninguna forma de flow más allá de `Open` — sin `Sequence`, `Loop`, `Fan-out`,
-`Deliberation`, `Watch`, y sin merge. Sin canvas: la página de arriba la sirve
-`ai-flows`, y `ai-ui` no existe. Sin memoria por scope. Un agente no puede delegar a
-su propio subagente — ese tope es de upstream y es deliberado; un árbol declarado es
-composición que ejecuta la *sesión*, aplanada.
+`Deliberation`, `Watch`, y sin merge. Sin memoria por scope. `ai-storage` no
+existe. Un agente no puede delegar a su propio subagente — ese tope es de upstream
+y es deliberado; un árbol declarado es composición que ejecuta la *sesión*,
+aplanada.
+
+El canvas está construido pero **sin probar**. Su propia falsificación es un
+cronómetro — una persona, un flow de tres días que no corrió ella, canvas contra
+transcripción — y eso no se corrió. Hasta que se corra, lo honesto es decir que el
+escritorio existe y funciona, no que ayuda.
 
 Milestone por milestone: [08 · Roadmap](doc/es/08-roadmap.md). Documentos de
 diseño: [doc/es/](doc/es/).

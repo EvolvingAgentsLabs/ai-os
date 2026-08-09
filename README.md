@@ -15,8 +15,8 @@ organisation is frozen — see [`doc/07-freeze-policy.md`](doc/07-freeze-policy.
 **[Español](README.es.md)** · English is the canonical version of every document
 here; see [Languages](#languages).
 
-> **`ai-base` and `ai-flows` run — 247 tests of our own, on top of the 3,768
-> `ai-base` carries from upstream. `ai-ui` and `ai-storage` do not exist.** Nothing here describes software that exists unless it says so, and
+> **`ai-base`, `ai-flows` and `ai-ui` run — 281 tests of our own, on top of the 3,768
+> `ai-base` carries from upstream. `ai-storage` does not exist.** Nothing here describes software that exists unless it says so, and
 > every screenshot is from a live instance.
 
 ## What it does
@@ -95,13 +95,35 @@ cd ai-flows && node scripts/seed-demo.ts                        # a project, a r
 Postgres is required past the first turn — in-memory stores are per-process, so a
 flow cannot resume out of a process that exited.
 
+### The desk
+
+<img src="doc/assets/manual/09-desk.jpg" alt="" width="100%">
+
+<sub>Flows are documents. Agents are cubes that stack on them. Drag one onto a document and that agent gets a step in that flow — the same instruction composing a tree would have written.</sub>
+
+Positions persist per scope, so an arrangement survives a reload. The system
+proposes one from the flow's state and **never re-arranges what you moved** —
+which is the whole difficulty, because the moment it wants to re-propose is
+usually the moment you are looking at it.
+
+Reading the desk never spends a model call. Adding a step and running one are
+separate, and running one is a click that says what it costs.
+
+```bash
+cd ai-ui && node scripts/serve.ts       # → http://localhost:8098
+```
+
 ## What is not built
 
 No flow shape beyond `Open` — no `Sequence`, `Loop`, `Fan-out`, `Deliberation`,
-`Watch`, and no merge. No canvas: the page above is served by `ai-flows`, and
-`ai-ui` does not exist. No scoped memory. An agent cannot delegate to its own
-sub-agent — that cap is upstream's, and deliberate; a declared tree is composition
-the *session* executes, flattened.
+`Watch`, and no merge. No scoped memory. `ai-storage` does not exist. An agent
+cannot delegate to its own sub-agent — that cap is upstream's, and deliberate; a
+declared tree is composition the *session* executes, flattened.
+
+The canvas is built but **unproven**. Its own falsification is a stopwatch — a
+person, a three-day-old flow they did not run, canvas against transcript — and
+that has not been run. Until it is, the honest claim is that the desk exists and
+works, not that it helps.
 
 Milestone by milestone: [08 · Roadmap](doc/08-roadmap.md). Design documents:
 [doc/](doc/).

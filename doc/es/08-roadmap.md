@@ -97,7 +97,7 @@ Ordenados por lo que realmente está en el medio:
 |---|---|---|
 | Stores durables | **prerrequisito, no declarado hasta ahora** | nada — es configuración |
 | Motor de flows (M2) | **desbloqueado** | el cliente HTTP firmado, que nadie escribió |
-| El canvas (M5) | **bloqueado por M2** | no hay estado de flow para renderizar |
+| El canvas (M5) | **construido 2026-08-09, sin probar** | el cronómetro — una persona, un flow de tres días que no corrió ella, canvas contra transcripción. Construirlo no lo respondió |
 | Memoria por scope (M4) | **con compuerta** | un test de headroom que no se corrió |
 | Delegación profundidad 2 | **diferido** | [ADR-0008](adr/0008-conformation-is-projected.md) — su condición no se disparó |
 | Agentes-principal | **diferido** | ADR-0008 — su condición no se disparó |
