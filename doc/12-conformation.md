@@ -178,6 +178,10 @@ has shown a system where it would be legible. Deferred with a condition.
 
 ## What is actually missing: nobody can see any of this
 
+<img src="assets/manual/06-system-explorer.jpg" alt="" width="100%">
+
+<sub>The projector's output, rendered — a live instance. Every level, its roster, its agent tree. <code>AnomalyScanner</code> is struck through because it is declared in <code>DataQualityAgent.md</code> and has no file: a declared name is a claim, a file is a fact. <strong>[ran]</strong> 2026-08-09.</sub>
+
 Which is a projection problem, not a storage problem. The substrate for the
 communication graph is durable and already written: the session tape carries
 `kind: "message"`, `author`, `scopeLabel` and `overheard` per record

@@ -152,6 +152,11 @@ repeat is something a noisy instrument cannot be trusted about.
 Every verdict carries δ, the detection probability and the capacity with it, so a
 verdict is never read without the number that bounds it.
 
+<img src="assets/manual/05-flow-view.jpg" alt="" width="100%">
+
+<sub>The verdict where a person meets it. <code>not enough to say · 2 observations · δ ≤ 14.6%</code> — two attempts is below the window, so the page says so instead of rounding it to "fine". The bound travels with the verdict. <strong>[ran]</strong> 2026-08-09.</sub>
+
+
 ## The second axis, and why it is not an ADR yet
 
 Observability answers *can it be seen*. It does not answer *can it be moved*, and

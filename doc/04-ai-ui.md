@@ -56,6 +56,43 @@ The failure mode to design against: a generated layout that rearranges itself
 under the user's hands. **Rule: the system proposes on state change; it never
 re-arranges what the user has touched.**
 
+## The metaphor: a desk, not a dashboard — decided 2026-08-09
+
+The four words above say what the canvas *does*. They say nothing about what it
+should look like, and the first thing built from them — a flat dark document —
+drew exactly one complaint: **it was unclear.** Everything on it had the same
+weight, so nothing told you what kind of thing you were looking at.
+
+The answer is a metaphor old enough to have been tested on people who had never
+used a computer: **the desktop of System 7 and Windows 3.1.**
+
+- **A window is a boundary.** A title bar and a border tell you where one thing
+  ends and the next begins, before you read either.
+- **A bevel is a surface.** Raised means a thing; recessed means a container that
+  holds things. It is a depth cue that needs no legend.
+- **A coloured block is a kind.** One colour per scope role, per agent, per step
+  state, used nowhere else — a flow's progress becomes a strip of cubes you can
+  count from across the room, and *where* it stopped is visible without reading.
+- **A document is a document.** A flow is a page with a folded corner, because
+  that is what it is: a titled thing somebody has to pick back up.
+- **Trays hold work.** In-tray for what is still moving, out-tray for what has
+  settled. This is not decoration — "where is this and is anyone holding it" is
+  the question the canvas exists to answer, so it should be the question the
+  layout answers first.
+
+This is already **[ran]**: the read-only explorer in `ai-flows/src/view.ts` was
+rebuilt this way, and its screenshots are in [the manual](manual.md). The canvas
+inherits the vocabulary rather than inventing a second one.
+
+What the canvas adds on top is exactly the four properties above — position that
+persists, state that updates in place, arrangement composed from the flow's
+shape, and direct manipulation as input. The explorer has none of them **on
+purpose**, which is what makes it the control arm: see § How this gets falsified.
+
+One thing the period does *not* get a vote on. Nine-point Geneva on a 640×480
+screen was a constraint, not a goal, and reproducing it would trade away the
+clarity the metaphor was adopted for. **Period chrome, present-day type.**
+
 ## Why a projection rather than a transcript — the sampling reason
 
 The claim above reads as taste. It is not, and the reason is worth stating

@@ -155,6 +155,26 @@ FLOWS_SIGNING_SECRET=<secret> node --env-file=/ruta/al/core.env scripts/serve.ts
 
 <sub>El sistema primero, porque <code>global/</code> se monta sólo-lectura en todos los scopes de abajo.</sub>
 
+#### Cómo se leen los colores
+
+La página toma su vocabulario de System 7 y Windows 3.1, y no por nostalgia: esas
+interfaces hacían visible **de qué tipo** es algo y **en qué estado** está antes
+de leer una sola palabra. Cada rol de scope, cada agente y cada estado de paso
+tiene un color que no se usa para nada más, y la página trae su propia leyenda —
+generada desde la misma tabla que la colorea, así no puede desfasarse de lo que
+explica.
+
+<img src="../assets/manual/08-desktop-key.jpg" alt="" width="100%">
+
+<sub>Señalás un cubito y ya sabés qué clase de cosa es. Esa es toda la idea.</sub>
+
+**Nada en la página es clickeable**, y eso sostiene el argumento en lugar de ser
+algo sin terminar. Esta página es el brazo de control del canvas
+([08-roadmap § Fase 2](08-roadmap.md)): todo lo que no pueda hacer y que después
+resulte que hace falta es evidencia *a favor* de construir M5, y sólo es
+evidencia mientras nadie le agregue interacción por comodidad. La barra de arriba
+lleva datos, no menús, por la misma razón.
+
 De arriba hacia abajo:
 
 - **System** — `org:<tu-org>`, cuyos `agents/` se montan en todos los demás scopes
@@ -207,7 +227,21 @@ Sacá `?dryRun=1` para crearlo, y después `POST /flows/:id/advance` por paso.
 
 <img src="../assets/manual/07-composed-flow.jpg" alt="" width="100%">
 
-<sub>Cada paso es una delegación real al archivo markdown del agente.</sub>
+<sub>Un flow compuesto en la bandeja de entrada, frenado en el paso 2. La tira debajo del objetivo es un cubito por paso — dos verdes, uno gris — así se ve dónde se frenó antes de leer nada.</sub>
+
+La tira está porque `2/3 pasos hechos` es un dato que hay que leer y tres cubitos
+es un dato que se ve, y porque la fracción tira a la basura *cuáles* pasos
+quedaron sin hacer. El trabajo que sigue moviéndose va a la **bandeja de
+entrada**; el que ya se asentó, a la **de salida**. "Dónde está esto y hay
+alguien sosteniéndolo" es la pregunta para la que existe la página, así que es la
+primera que contesta el layout.
+
+Hay algo más visible en esa captura, y no es un artefacto de renderizado. El paso
+0 delegó en `SchemaAgent`, que respondió preguntando *qué archivo contiene los
+datos del libro mayor* — no hizo trabajo — y el flow avanzó igual al paso 1. Todos
+los indicadores de la tarjeta dicen que el flow está bien. Esa es la degradación
+de la que habla [13-degradation](13-degradation.md), en la página, en una corrida
+real.
 
 ### Lo que la composición NO hace, y por qué
 

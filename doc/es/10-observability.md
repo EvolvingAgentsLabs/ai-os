@@ -154,6 +154,10 @@ repetición es algo sobre lo que un instrumento ruidoso no es confiable.
 Todo veredicto viaja con δ, la probabilidad de detección y la capacidad, así que
 nunca se lee un veredicto sin el número que lo acota.
 
+<img src="../assets/manual/05-flow-view.jpg" alt="" width="100%">
+
+<sub>El veredicto donde lo cruza una persona. <code>not enough to say · 2 observations · δ ≤ 14.6%</code> — dos intentos está por debajo de la ventana, así que la página lo dice en vez de redondearlo a "todo bien". La cota viaja con el veredicto. <strong>[ran]</strong> 2026-08-09.</sub>
+
 ## El segundo eje, y por qué todavía no es un ADR
 
 La observabilidad responde *si se puede ver*. No responde *si se puede mover*, y

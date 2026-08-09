@@ -180,6 +180,11 @@ proyector haya mostrado un sistema donde sería legible. Diferido con una condic
 
 ## Lo que falta de verdad: nadie puede ver nada de esto
 
+<img src="../assets/manual/06-system-explorer.jpg" alt="" width="100%">
+
+<sub>La salida del proyector, renderizada — una instancia viva. Cada nivel, su roster, su árbol de agentes. <code>AnomalyScanner</code> aparece tachado porque está declarado en <code>DataQualityAgent.md</code> y no tiene archivo: un nombre declarado es una afirmación, un archivo es un hecho. <strong>[ran]</strong> 2026-08-09.</sub>
+
+
 Que es un problema de proyección, no de almacenamiento. El sustrato del grafo de
 comunicación es durable y ya está escrito: el tape de sesión lleva `kind:
 "message"`, `author`, `scopeLabel` y `overheard` por registro

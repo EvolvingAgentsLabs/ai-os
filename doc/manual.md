@@ -153,6 +153,25 @@ FLOWS_SIGNING_SECRET=<secret> node --env-file=/path/to/core.env scripts/serve.ts
 
 <sub>System first, because <code>global/</code> is mounted read-only into every scope below it.</sub>
 
+#### Reading the colours
+
+The page borrows its vocabulary from System 7 and Windows 3.1, and not for
+nostalgia: those interfaces made **kind** and **state** visible before you read a
+word. Every scope role, every agent, every step state has one colour used nowhere
+else, and the page carries its own key — generated from the same table that
+colours it, so it cannot drift from what it explains.
+
+<img src="assets/manual/08-desktop-key.jpg" alt="" width="100%">
+
+<sub>Point at a cube and you know what kind of thing it is. That is the whole idea.</sub>
+
+**Nothing on the page is clickable**, and that is load-bearing rather than
+unfinished. This page is the control arm for the canvas
+([08-roadmap § Phase 2](08-roadmap.md)): anything it cannot do that you turn out
+to need is evidence *for* building M5, and it is only evidence while nobody
+quietly adds interaction here. The bar across the top carries facts, not menus,
+for the same reason.
+
 Read it top to bottom:
 
 - **System** — `org:<your-org>`, whose `agents/` mount into every other scope as
@@ -205,7 +224,19 @@ Drop `?dryRun=1` to create it, then `POST /flows/:id/advance` per step.
 
 <img src="assets/manual/07-composed-flow.jpg" alt="" width="100%">
 
-<sub>Each step is a real delegation to the agent's own markdown file.</sub>
+<sub>A composed flow in the in-tray, stopped at step 2. The strip under the goal is one cube per step — two green, one grey — so where it stopped is visible before you read anything.</sub>
+
+The strip is there because `2/3 steps done` is a fact you have to read and three
+cubes is a fact you see, and because the fraction throws away *which* steps are
+unfinished. Work still moving sits in the **in-tray**; work that has settled sits
+in the **out-tray**. "Where is this and is anyone holding it" is the question the
+page exists to answer, so it is the question the layout answers first.
+
+There is something else visible in that screenshot, and it is not a rendering
+artefact. Step 0 delegated to `SchemaAgent`, which replied asking *which file
+contains the ledger data* — it did no work — and the flow advanced to step 1
+anyway. Every status on the card says the flow is fine. That is the degradation
+[13-degradation](13-degradation.md) is about, on the page, in a real run.
 
 ### What composition does not do, and why
 
