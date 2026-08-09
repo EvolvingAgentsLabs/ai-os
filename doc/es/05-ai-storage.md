@@ -13,6 +13,40 @@
 > afirmación muy cercana de esta organización midió *igual que el enfoque
 > ingenuo*, y ese resultado moldea este documento más que ninguna otra entrada.
 
+
+## La forma, dibujada antes de construirla — 2026-08-09
+
+<img src="../assets/manual/11-trace-memory.jpg" alt="" width="100%">
+
+<sub>El cajón de memoria en el escritorio, sellado <strong>NOT BUILT — THIS IS THE SPEC</strong>. Nada de eso se guarda: las fichas se recalculan desde las trazas de los flows en cada lectura, que es lo que lo vuelve un boceto y no memoria.</sub>
+
+Este documento es una especificación, y una imagen es una más barata — una imagen
+interactiva más barata todavía, porque descubrís qué necesita una promoción
+intentando apretar el botón. `ai-ui/src/memory.ts` la dibuja, y ese módulo existe
+para que se discuta con él y después se tire.
+
+A qué compromete el dibujo a este documento:
+
+- **Cuatro niveles, del más duradero al menos**, y un escalón por promoción:
+  flow → project → user → system.
+- **La procedencia no es opcional.** Cada nota nombra los flows de los que salió.
+  Una nota que nadie puede rastrear hasta el trabajo que la produjo no se
+  distingue de una que alguien tipeó, y no se puede revisar cuando ese trabajo
+  resulta haber estado mal.
+- **Consolidar es quedarse con lo que arrastró.** Sobreviven los pasos que
+  movieron algo; los que `contribution.ts` marcó como que no arrastraron nada se
+  descartan.
+
+Esa última es la idea barata, y es la razón de que esto no sea un port de
+[evolving-memory](https://github.com/EvolvingAgentsLabs/evolving-memory). La
+parte difícil de consolidar una traza — *qué pasos importaron* — es la pregunta
+que `contribution.ts` ya responde en cada flow. Ese proyecto llama al mismo
+trabajo `TraceCurator`.
+
+**Lo que el boceto no responde, y este documento tiene que responder:** cuando dos
+notas dicen lo mismo, ¿cuál sobrevive? Consolidar no puede ser un loop sobre los
+flows terminados, y esa es la razón.
+
 ## Resultado previo, dicho primero
 
 El flagship anterior (`evolving-agents`) indexaba cada componente dos veces — una

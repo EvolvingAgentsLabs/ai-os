@@ -33,6 +33,8 @@ import {
   renderDeskHtml,
 } from "./desk.ts";
 import { type DeskState, propose } from "./layout.ts";
+import { type FlowTrace, traceOf } from "./trace.ts";
+import { MEMORY_LEVELS, type MemoryNote, proposeNote } from "./memory.ts";
 import type { LayoutStore } from "./layout-store.ts";
 
 /**
@@ -63,7 +65,20 @@ export interface FlowsClient {
       goal: string;
       state: string;
       updatedAt: number;
-      steps: Array<{ index: number; state: string; intent: string }>;
+      steps: Array<{
+        index: number;
+        state: string;
+        intent: string;
+        result?: string | null;
+        /** The trace. Without these the desk can draw a skeleton and nothing else. */
+        attempts?: Array<{
+          n: number;
+          state: string;
+          runId: string | null;
+          error: string | null;
+          observation: { digest: string; source: string } | null;
+        }>;
+      }>;
     }>
   >;
   appendStep(flowId: string, intent: string): Promise<{ index: number }>;
@@ -185,6 +200,8 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         agents: [],
         people: [],
         layout: { scopeId: "", docs: {}, cubes: {} },
+        notes: [],
+        memoryLevels: MEMORY_LEVELS,
         scopes: [],
       };
     }
@@ -205,6 +222,10 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         intent: s.intent,
         agent: agentOfIntent(s.intent),
       })),
+      // What actually happened, computed with ai-flows' own instruments rather
+      // than re-derived here: a second answer to "is this drifting" is a second
+      // answer, and the one on screen would be the untested one.
+      trace: traceOf(f.steps, agentOfIntent),
     }));
 
     const declared = new Set(chosen.agents.flatMap((a) => a.subagents));
@@ -245,6 +266,29 @@ export function createDeskServer(opts: DeskServerOptions): Server {
     };
     const layout = propose(state, await opts.layouts.get(chosen.scopeId));
 
+    /**
+     * The memory drawer, proposed from what the flows produced.
+     *
+     * Nothing is stored: `ai-storage` does not exist. These notes are recomputed
+     * on every read from the traces above, which is exactly what makes them a
+     * sketch rather than memory — a memory that vanishes when you stop looking
+     * is not one. The UI says so on every card.
+     */
+    const notes: MemoryNote[] = docs
+      .filter((d) => d.state === "done")
+      .map((d) =>
+        proposeNote({
+          id: d.id,
+          title: d.title,
+          goal: d.goal,
+          steps: d.trace.steps.map((s) => ({
+            agent: s.agent,
+            result: s.result,
+            ignored: Boolean(s.ignoredInput),
+          })),
+        }),
+      );
+
     return {
       scopeId: chosen.scopeId,
       scopeLabel: chosen.scopeId,
@@ -254,6 +298,8 @@ export function createDeskServer(opts: DeskServerOptions): Server {
       agents,
       people: chosen.members,
       layout,
+      notes,
+      memoryLevels: MEMORY_LEVELS,
       scopes: usable.map((s) => ({ scopeId: s.scopeId, label: s.scopeId })),
     };
   }
@@ -288,6 +334,7 @@ export function createDeskServer(opts: DeskServerOptions): Server {
           docs: v.docs,
           agents: v.agents,
           layout: v.layout,
+          notes: v.notes,
           busy,
         });
       }

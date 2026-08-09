@@ -45,6 +45,8 @@ export interface DeskDoc {
   title: string;
   goal: string;
   state: string;
+  /** What actually happened. Real: every field comes from the flow store. */
+  trace: import("./trace.ts").FlowTrace;
   steps: Array<{
     index: number;
     state: string;
@@ -78,6 +80,9 @@ export interface DeskView {
   layout: unknown;
   /** Scopes this desk can switch to. */
   scopes: Array<{ scopeId: string; label: string }>;
+  /** SKETCH. ai-storage does not exist; these are recomputed on every read. */
+  notes: import("./memory.ts").MemoryNote[];
+  memoryLevels: ReadonlyArray<{ level: string; color: string; note: string }>;
 }
 
 function esc(s: unknown): string {
@@ -106,6 +111,7 @@ function jsonForScript(value: unknown): string {
 const DESK_CSS = `
 body{overflow:hidden}
 .desk{position:relative;width:100vw;height:calc(100vh - 30px);overflow:auto}
+.desk.hasdrawer .surface{padding-bottom:160px}
 .surface{position:relative;width:2400px;height:1600px}
 
 /* A document on the desk. Same folded-corner idea as the explorer, at object size. */
@@ -166,6 +172,38 @@ button[disabled]{opacity:.5;cursor:default}
 .steps li{display:flex;gap:5px;align-items:baseline;padding:1px 0;font-size:11px}
 .note{margin-top:8px;padding:6px 8px;border:1px solid #c6c1b7;background:#f0ece4;font-size:11px}
 .note.warn{border-left:4px solid #e0a020}
+.note.alert{border-left:4px solid #b03a2e;background:#f7ebe8;color:#7d2419}
+
+/* Tabs: state and trace answer different questions about the same document. */
+.tabs{display:flex;gap:4px;margin:8px 0 0}
+.tabs button{font-size:10px;padding:1px 8px}
+.tabs button[aria-selected="true"]{box-shadow:inset -1px -1px 0 var(--lite),inset 1px 1px 0 var(--dark);font-weight:700}
+.tr{margin-top:8px}
+.tr .st{border-top:1px solid #e4dfd6;padding:5px 0}
+.tr .hd{display:flex;gap:5px;align-items:baseline}
+.tr .res{margin:4px 0 0 16px;padding:4px 6px;background:#f0ece4;border:1px solid #ded9d0;
+  white-space:pre-wrap;font-size:10px;max-height:96px;overflow:auto}
+.tr .att{margin:3px 0 0 16px;font-size:10px;color:var(--dim);font-family:var(--mono)}
+.tr .flag{margin:4px 0 0 16px;font-size:10px;color:#7d2419}
+
+/* The memory drawer. Hatched, because none of it is built. */
+.drawer{position:fixed;left:0;bottom:0;right:318px;height:150px;
+  border-top:2px solid #000;background:#cfcbc2;
+  background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.05) 0 6px,transparent 6px 12px);
+  padding:22px 12px 12px;overflow-x:auto;display:flex;gap:10px;align-items:flex-start}
+.drawer h3{position:absolute;top:4px;left:12px;margin:0;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:#3b3f44}
+/* Beside the title, not opposite it: the right edge is where the fixed rail
+   lands, and the one marking that must never be hidden was hidden there. */
+.drawer .stamp{position:absolute;top:4px;left:74px;font-size:10px;color:#7d2419;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;border:1px solid #7d2419;padding:0 5px}
+.card{flex:0 0 210px;background:var(--paper);border:1px dashed #7d2419;padding:6px 8px;font-size:10px;
+  box-shadow:2px 2px 0 rgba(0,0,0,.15)}
+.card .lv{display:flex;align-items:center;gap:5px;font-weight:700;margin-bottom:3px}
+.card .bd{white-space:pre-wrap;max-height:64px;overflow:hidden;color:#3b3f44}
+.card .from{margin-top:4px;color:var(--dim);font-family:var(--mono);font-size:9px}
+.levels{display:flex;gap:10px;font-size:10px;margin-left:auto;align-items:flex-start;flex:0 0 auto}
+.levels div{display:flex;align-items:center;gap:4px}
 select{font:inherit;font-size:11px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:300;
   background:var(--paper);border:1px solid #000;box-shadow:3px 3px 0 rgba(0,0,0,.4);
@@ -313,6 +351,39 @@ const DESK_JS = String.raw`
   // ---- selection panel ----------------------------------------------------
   const select = (kind, id) => { selected = { kind, id }; renderPanel(); };
 
+  // Which face of a document is showing. State answers "where is this"; trace
+  // answers "what happened" -- two questions, and a panel that answers both at
+  // once answers neither.
+  let tab = 'state';
+
+  const traceHtml = (doc) => {
+    const t = doc.trace || { steps: [], movement: '', detail: '', ignoredCount: 0, movementTone: 'muted' };
+    return '<div class="' + (t.movementTone === 'ok' ? 'ok' : t.movementTone === 'warn' ? 'warn' : 'dim') + '">' +
+      escape_(t.movement) + '</div><div class="dim">' + escape_(t.detail) + '</div>' +
+      (t.ignoredCount
+        ? '<div class="note alert"><strong>' + t.ignoredCount + ' step(s) used nothing they were given.</strong> ' +
+          'Each ran, settled and reported. None carried a distinctive word out of its predecessor.</div>'
+        : '') +
+      '<div class="tr">' + t.steps.map((s) =>
+        '<div class="st"><div class="hd">' +
+        '<span class="cube sm" style="--c:' + (S.stateColors[s.state] || '#b9b4a8') + '"></span>' +
+        '<span class="dim">' + s.index + '</span><strong>' + escape_(s.agent || 'step') + '</strong>' +
+        '</div>' +
+        (s.result ? '<div class="res">' + escape_(s.result) + '</div>' : '') +
+        (s.attempts.length
+          ? s.attempts.map((a) => '<div class="att">attempt ' + a.n + ' · ' +
+              (a.runId ? escape_(a.runId.slice(0, 8)) : 'no run') + ' · ' +
+              (a.digest ? escape_(a.digest) + ' ' + escape_(a.source || '') : 'no observation') +
+              (a.error ? ' · <span class="err">' + escape_(a.error.slice(0, 120)) + '</span>' : '') +
+              '</div>').join('')
+          : '<div class="att">never attempted</div>') +
+        (s.ignoredInput
+          ? '<div class="flag">carried ' + Math.round(s.ignoredInput.carried * 100) + '% of ' +
+            s.ignoredInput.inputTokens + ' distinctive tokens it was handed</div>'
+          : '') +
+        '</div>').join('') + '</div>';
+  };
+
   const renderPanel = () => {
     const p = document.getElementById('panel');
     if (!selected) { p.style.display = 'none'; return; }
@@ -321,8 +392,19 @@ const DESK_JS = String.raw`
       const doc = S.docs.find((d) => d.id === selected.id);
       if (!doc) { selected = null; p.style.display = 'none'; return; }
       const next = doc.steps.find((s) => s.state === 'pending' || s.state === 'running');
+      if (tab === 'trace') {
+        p.querySelector('.win-body').innerHTML =
+          '<h4>' + escape_(doc.title) + '</h4>' +
+          '<div class="tabs"><button id="tab-state">State</button>' +
+          '<button id="tab-trace" aria-selected="true">Trace</button></div>' +
+          traceHtml(doc);
+        p.querySelector('#tab-state').onclick = () => { tab = 'state'; renderPanel(); };
+        return;
+      }
       p.querySelector('.win-body').innerHTML =
         '<h4>' + escape_(doc.title) + '</h4>' +
+        '<div class="tabs"><button id="tab-state" aria-selected="true">State</button>' +
+        '<button id="tab-trace">Trace</button></div>' +
         '<div class="dim">' + escape_(doc.state) + ' · ' + doc.done + '/' + doc.total + ' steps done</div>' +
         '<p style="margin:6px 0 0">' + escape_(doc.goal) + '</p>' +
         '<ul class="steps">' + doc.steps.map((s) =>
@@ -340,6 +422,7 @@ const DESK_JS = String.raw`
               '</strong> because nothing has closed it. This spends nothing — there is no step left to run.</div>' +
               '<div class="act"><button id="adv">Mark the flow finished</button></div>'
             : '<div class="note">Nothing left to do.</div>');
+      p.querySelector('#tab-trace').onclick = () => { tab = 'trace'; renderPanel(); };
       const b = p.querySelector('#adv');
       if (b) {
         const label = b.textContent;
@@ -402,14 +485,42 @@ const DESK_JS = String.raw`
     for (const s of surface.querySelectorAll('.stack')) {
       s.classList.toggle('empty', s.children.length === 0);
     }
+    renderDrawer();
     renderPanel();
+  }
+
+  // The memory drawer. Every card is dashed and the drawer is hatched, because
+  // ai-storage does not exist and none of this is stored -- the notes are
+  // recomputed from the traces on every read. A surface that draws a sketch the
+  // same way it draws measured state teaches its reader to trust both equally.
+  function renderDrawer() {
+    const d = document.getElementById('drawer');
+    if (!d) return;
+    const notes = S.notes || [];
+    d.innerHTML =
+      '<h3>Memory</h3><span class="stamp">Not built — this is the spec</span>' +
+      (notes.length
+        ? notes.map((n) => {
+            const lv = (S.memoryLevels || []).find((x) => x.level === n.level) || { color: '#b9b4a8' };
+            return '<div class="card"><div class="lv"><span class="cube sm" style="--c:' + lv.color + '"></span>' +
+              escape_(n.level) + '</div><div class="bd"><strong>' + escape_(n.title) + '</strong>\n' +
+              escape_(n.body) + '</div><div class="from">from ' +
+              n.from.map((f) => escape_(f.slice(0, 8))).join(', ') + '</div></div>';
+          }).join('')
+        : '<div class="card" style="border-style:dashed"><div class="bd">' +
+          'Nothing consolidated yet. A note is proposed from a flow once it finishes — ' +
+          'keeping the steps that carried something forward and dropping the ones that did not.' +
+          '</div></div>') +
+      '<div class="levels">' + (S.memoryLevels || []).map((l) =>
+        '<div><span class="cube sm" style="--c:' + l.color + '"></span>' + escape_(l.level) + '</div>').join('') +
+      '</div>';
   }
 
   async function refresh() {
     const r = await fetch('/state?scope=' + encodeURIComponent(S.scopeId));
     if (!r.ok) return;
     const next = await r.json();
-    S.docs = next.docs; S.agents = next.agents; S.busy = next.busy;
+    S.docs = next.docs; S.agents = next.agents; S.busy = next.busy; S.notes = next.notes;
     layout = next.layout;
     document.getElementById('stamp').textContent = new Date(next.at).toISOString();
     render();
@@ -424,7 +535,9 @@ const DESK_JS = String.raw`
   // A document can be addressed directly: ?select=<flowId>. Sharing "look at
   // this one" should be a link rather than an instruction to find it, and it is
   // the only way a screenshot can show the panel.
-  const wanted = new URLSearchParams(location.search).get('select');
+  const q = new URLSearchParams(location.search);
+  const wanted = q.get('select');
+  if (q.get('tab') === 'trace') tab = 'trace';
   if (wanted && S.docs.some((d) => d.id === wanted)) select('doc', wanted);
   // Live, but on a leash: a desk that re-fetches every second spends nothing on
   // the model and everything on the reader's attention. Five seconds is slower
@@ -455,6 +568,8 @@ export function renderDeskHtml(view: DeskView): string {
     docs: view.docs,
     agents: view.agents,
     layout: view.layout,
+    notes: view.notes,
+    memoryLevels: view.memoryLevels,
     busy,
     stateColors: STATE_COLORS,
     agentColor: AGENT_COLOR,
@@ -480,10 +595,11 @@ export function renderDeskHtml(view: DeskView): string {
   <button id="reload">Refresh</button>
   <span class="right">harness ${esc(view.harness)} · <span id="stamp">${esc(new Date(view.at).toISOString())}</span></span>
 </div>
-<div class="desk deskbg">
+<div class="desk deskbg hasdrawer">
   <div class="surface" id="surface">
     <div class="shelf"><h3>Agents</h3></div>
   </div>
+  <div class="drawer" id="drawer"></div>
 </div>
 <div class="rail">
   <div class="win panel" id="panel" style="display:none">

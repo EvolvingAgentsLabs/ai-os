@@ -401,6 +401,69 @@ devuelve el cubito en vez de dibujar algo falso.
 
 <sub>Seleccionar un documento abre su panel: cada paso por agente, y el único control que gasta plata — con el costo dicho antes de apretarlo. Un documento es direccionable: <code>?select=&lt;flowId&gt;</code>.</sub>
 
+### La traza: qué pasó de verdad
+
+El panel de un documento tiene dos caras. **State** responde *dónde está esto*.
+**Trace** responde *qué pasó*, y es la cara para la que existe todo este sistema.
+
+<img src="../assets/manual/11-trace-memory.jpg" alt="" width="100%">
+
+<sub>La cara Trace de un documento, de una instancia viva, y el cajón de memoria abajo. Cada paso con su resultado, su intento, su run y la huella de observación capturada al cerrarse ese intento — más el veredicto de movimiento, citado con la cota bajo la que se lee.</sub>
+
+Todo en esa cara está **medido**, no resumido:
+
+- **`progressing` · `3 observations · δ ≤ 14.6%`** — el veredicto de movimiento de
+  [10-observability](10-observability.md), calculado con el mismo
+  `observabilityOf` que usa el explorador. Por debajo de dos observaciones dice
+  *not enough to say* en vez de redondear a "todo bien", porque una repetición es
+  prueba y una diferencia es un rumor.
+- **La huella debajo de cada intento** es de lo que está hecho ese veredicto. Se
+  captura al cerrar el intento y nunca se infiere
+  ([ADR-0007](adr/0007-observation-captured-not-derived.md)).
+- **Un paso que no usó nada de lo que recibió** aparece marcado en rojo con los
+  números detrás de la marca: cuánto del input arrastró, y cuántos tokens
+  distintivos había para arrastrar. Ese es el titular de
+  [13-degradation](13-degradation.md), y todos los demás indicadores de la
+  tarjeta dicen que el flow está bien.
+
+La captura trae uno propio. El `ReviewAgent` del paso 2 informa que *"couldn't
+access the files due to sandbox isolation, but I have both files in context so
+I'll do the review directly."* Revisó de memoria. Nada en el estado del flow lo
+dice: el paso está verde, el flow está `done`, la tira está llena. **Sólo se lee
+en la traza**, que es el argumento para que la traza esté en el canvas y no a una
+página de distancia.
+
+### Memoria: un dibujo de software que no existe
+
+<sub><strong>NOT BUILT — THIS IS THE SPEC.</strong> El cajón de abajo está rayado y cada ficha va en línea punteada, y lo dice sobre el objeto y no en una nota al pie.</sub>
+
+`ai-storage` es [05](05-ai-storage.md) y nada más. No hay store, ni promoción, ni
+consolidación. Lo que muestra el cajón es una ficha **recalculada desde las
+trazas en cada lectura** — una memoria que desaparece cuando dejás de mirarla no
+es memoria, y por eso justamente está dibujada como boceto.
+
+Está acá porque una imagen es una especificación más barata que un documento, y
+una interactiva más barata todavía: descubrís qué necesita "promover las notas de
+un flow al proyecto" intentando apretar el botón.
+
+La forma a la que se compromete:
+
+| | |
+|---|---|
+| **Cuatro niveles** | `system` · `user` · `project` · `flow`, del más duradero al menos, de doc/05 |
+| **La promoción es de a un escalón** | flow → project → user → system, explícita y reversible |
+| **La procedencia es obligatoria** | cada nota nombra los flows de los que salió; una nota que nadie puede rastrear no se distingue de una que alguien tipeó |
+| **Consolidar es quedarse con lo que arrastró** | sobreviven los pasos que movieron algo; los marcados como que no arrastraron nada se descartan |
+
+Esa última fila es la idea barata y la razón de que esto no sea un port. La parte
+difícil de consolidar — *qué pasos de una traza importaron* — es la pregunta que
+`contribution.ts` ya responde. `evolving-memory` la llama `TraceCurator`; acá ya
+corre en cada flow.
+
+**Lo que el boceto no responde**, y la versión real tiene que responder: cuando
+dos notas dicen lo mismo, ¿cuál sobrevive? Por eso consolidar no puede ser
+simplemente un loop sobre los flows terminados.
+
 ### Leer el escritorio nunca arranca trabajo
 
 La página relee el estado cada cinco segundos. Nada de eso puede lanzar un paso:
