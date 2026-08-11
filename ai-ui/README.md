@@ -2,7 +2,7 @@
 
 The OS-level interface: a desk you arrange, not a chat log.
 
-> **Status: built and running — 103 tests, `npm test`. Unproven.** The design is
+> **Status: built and running — 114 tests, `npm test`. Unproven.** The design is
 > [`../doc/04-ai-ui.md`](../doc/04-ai-ui.md); the seam it talks over is
 > [ADR-0006](../doc/adr/0006-ai-flows-lives-outside-core.md).
 >
@@ -60,6 +60,7 @@ One package: a layout model, a layout store, a render and a server. It talks to
 | `memory.ts` | **a drawing of software that does not exist** — see below |
 | `flows-http.ts` | the signed client for `ai-flows` |
 | `simulate.ts` | `window.fetch` replaced in-page, so the demo is the real client |
+| `tour.ts` | Play — the demo driving itself with real events. Demo only; a test asserts the product cannot ship it |
 
 The visual vocabulary — bevels, cubes, the colour per kind and state — is
 **not** here. It lives in [`../ai-flows/src/vocabulary.ts`](../ai-flows/src/vocabulary.ts)

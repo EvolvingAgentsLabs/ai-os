@@ -191,6 +191,71 @@ camino que el escritorio hoy no tiene, y es el único ítem de esta lista donde
 equivocarse edita el sistema en vez de un registro del sistema. Tiene que ir
 después del cronómetro, no antes.
 
+## Lo que encontró correrlo — 2026-08-11 [ran]
+
+Las fases 1–4 se construyeron, testearon y mergearon antes de que nada las corriera
+contra un core vivo. Hacerlo llevó una tarde y encontró **cuatro defectos que todos
+los tests pasaron por alto**, que es exactamente el argumento de la distinción que
+este repositorio hace entre [read] y [ran].
+
+| | Encontrado | Por qué ningún test lo agarró |
+|---|---|---|
+| **El seam de `ask` nunca estuvo cableado.** `POST /flows/:id/ask` tomaba una capacidad inyectada que `scripts/serve.ts` nunca proveía, así que un despliegue real contestaba 501 | al levantar la stack | Todos los tests inyectan su propio stub. El runner es el único llamador que nadie stubea |
+| **El poll de cinco segundos destruía la respuesta.** Re-renderizar el panel reconstruía su innerHTML, así que una respuesta por la que alguien *pagó una llamada de modelo* desaparecía en cinco segundos — y una pregunta tipeada más lento que eso se borraba a mitad | al preguntar y esperar | El panel renderiza bien. Lo que pierde es el *segundo* render, y ningún test renderizaba dos veces |
+| **El modelo contestaba en markdown**, así que el panel mostraba asteriscos y backticks literales | al leer la respuesta | Nada verificaba cómo se veía el texto, y verificar que el modelo obedezca habría sido medir fraseo |
+| **El limpiador de markdown no matcheaba nada.** El cliente es un template `String.raw`, así que `\\*` enviaba un backslash escapado en vez de un asterisco escapado | el test escrito para el arreglo | El arreglo se veía bien en el fuente. El test evalúa el helper **tal como lo envía la página**, y por eso falló |
+
+El último vale la pena conservarlo. Fue un defecto *en la reparación del tercero*,
+cazado en un minuto porque el test extrae la función de la página renderizada y la
+corre, en vez de testear el TypeScript que la produce. Un test escrito contra el
+fuente habría pasado y habría enviado un limpiador que en silencio no hacía nada.
+
+**Y el arreglo del markup va del lado del display, no del prompt.** El prompt sí
+pide prosa plana y el modelo mayormente obedece — pero *mayormente* significa que
+la página es correcta a una *tasa*, y depender de un sampler para que cumpla una
+instrucción de formato es cómo una superficie se vuelve intermitentemente
+incorrecta. Restringir la salida es una sugerencia; sacar los marcadores es una
+garantía.
+
+**Deixis verificada de punta a punta** contra `pi` en el core real: pregunté *what
+did this actually produce?*, y la respuesta nombró el archivo que escribió
+`MigrationAgent` y lo que confirmó `ReviewAgent` — nada de eso aparece en el goal
+del flow. El camino sin evidencia contestó `spent: false` sin comprar un turno.
+Los dos **[ran]**.
+
+## Play — el demo manejándose solo, 2026-08-11 [ran]
+
+Todo lo de arriba es invisible hasta que alguien hace un gesto, y quien visita un
+sitio web no lo va a hacer. Así que el demo tiene un botón **Play** que recorre el
+escritorio con su propio vocabulario: seleccionar un flow, leer el digest, señalar
+el menú, tipear una pregunta y mandarla, arrastrar un cubo a un documento, avanzar
+el step, abrir la cara de traza.
+
+**Maneja el cliente real. No reproduce una película.** Cada beat despacha los
+eventos que produce una mano — `pointerdown`, `pointermove`, `pointerup` sobre el
+cubo real, `click` sobre el botón real — y después deja que el escritorio
+reaccione como reaccione. Es la misma regla bajo la que vive
+[simulate.ts](../../ai-ui/src/simulate.ts), un nivel más arriba, y compra la misma
+propiedad: **si el escritorio se rompe, el tour se rompe.** Una animación
+scripteada de un producto es una segunda implementación de él, y sigue pareciendo
+correcta exactamente mientras nadie la chequee.
+
+Verificado manejando a mano el beat más difícil contra la página construida: el
+drag sintético agregó un step real, 1 → 2, con la instrucción de delegación que
+habría escrito `compose.ts` **[ran]**.
+
+Dos reglas bajo las que vive. **Nunca pelea con quien está mirando** — cualquier
+evento *trusted* lo detiene donde está, y `isTrusted` es lo que separa a la persona
+del tour, así que no puede detenerse a sí mismo. Y es **solo del demo**, inyectado
+al lado de la simulación y verificado ausente del producto, porque una cosa que
+mueve sola los documentos de alguien no es una función.
+
+Un defecto que expuso de inmediato: los documentos del demo llevaban `updatedAt: 0`,
+así que el digest declaraba su ventana como *"state as of 20370 days ago"*.
+Correcto, e inútil — una proyección que anuncia una ventana absurda es la función
+demostrando su propia falla. El demo ahora tiene un reloj fijo y sus flows tienen
+edades plausibles.
+
 ## Cómo se falsea todo esto
 
 **Sin instrumento nuevo.** La medición es la que `04` ya especifica: una persona,

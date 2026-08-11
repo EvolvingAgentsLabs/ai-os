@@ -315,6 +315,22 @@ export const SIMULATION_JS = String.raw`
  * that carries nothing forward (`ReviewAgent` answers "Looks fine to me."), and
  * an agent declared with no file behind it.
  */
+/**
+ * The demo's "now".
+ *
+ * A fixed instant rather than `Date.now()`, so the page is byte-identical on
+ * every build and a diff of `demo/index.html` shows what changed rather than
+ * when it was generated.
+ *
+ * It exists because the digest **declares the window it represents**, and the
+ * demo's documents used to carry `updatedAt: 0` — which rendered, correctly and
+ * uselessly, as "state as of 20370 days ago". A projection that declares a
+ * nonsense window is worse than one that declares none: it is the feature
+ * demonstrating its own failure.
+ */
+export const DEMO_AT = 1_760_000_000_000;
+const hoursAgo = (h: number) => DEMO_AT - h * 3600_000;
+
 export function demoWorld(): {
   docs: Array<Record<string, unknown>>;
   agents: Array<Record<string, unknown>>;
@@ -351,7 +367,7 @@ export function demoWorld(): {
         title: "Ledger currency rewrite",
         goal: "rewrite the ledger so every amount carries its currency",
         state: "waiting",
-        updatedAt: 0,
+        updatedAt: hoursAgo(43),
         done: 2,
         total: 3,
         steps: [
@@ -375,7 +391,7 @@ export function demoWorld(): {
         title: "Duplicate ledger rows",
         goal: "find and report duplicate rows in the ledger",
         state: "draft",
-        updatedAt: 0,
+        updatedAt: hoursAgo(4),
         done: 0,
         total: 1,
         steps: [step(0, "DataQualityAgent", "pending", null)],

@@ -15,7 +15,7 @@ import { writeFileSync } from "node:fs";
 import { type DeskDoc, renderDeskHtml } from "../src/desk.ts";
 import { digestOf } from "../src/zoom.ts";
 import { actionsFor } from "../src/actions.ts";
-import { demoWorld } from "../src/simulate.ts";
+import { DEMO_AT, demoWorld } from "../src/simulate.ts";
 import { propose } from "../src/layout.ts";
 import { MEMORY_LEVELS } from "../src/memory.ts";
 import { traceOf } from "../src/trace.ts";
@@ -35,7 +35,6 @@ const world = demoWorld();
 // only symptom would have been a page that looked slightly emptier than the
 // product. A cast that silences the compiler on the one file nobody runs in CI
 // is the drift this repository keeps finding by hand.
-const DEMO_AT = 1_760_000_000_000;
 const docs: DeskDoc[] = world.docs.map((d) => {
   const raw = d as unknown as Omit<
     DeskDoc,
