@@ -333,8 +333,10 @@ document could not be clicked as an agent — the document under it answered fir
 which broke the one gesture the conversation depends on. And a click with a
 pixel of tremor in it was treated as a drag, so clicking an agent already on a
 document dropped it there again: `POST /assign`, a real step appended, from a
-gesture the person performed as a click. Four pixels now separate a gesture from
-a tremor.
+gesture the person performed as a click. Eight pixels now separate a gesture from
+a slip, a cube put back on the document it came from writes nothing at all, and
+the desk **announces what was selected** so the mascot reads the product's own
+decision instead of re-deriving it from pointer events and disagreeing with it.
 
 ### What it deliberately does not do
 

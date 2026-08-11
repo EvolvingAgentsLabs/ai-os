@@ -400,9 +400,11 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
     // the first of those as a drag meant clicking an agent that was already on a
     // document dropped it there again -- a real write, a real step appended, from
     // what the person performed as a click. Four pixels is the difference between
-    // a gesture and a tremor. Found by clicking, not by reading.
+    // a gesture and a slip. Eight of them, because a finger on a trackpad slides
+    // further than a mouse does and the write at the other end of this is real.
+    // Found by clicking, not by reading.
     if (!drag.moved) {
-      if (Math.abs(ev.clientX - drag.x0) + Math.abs(ev.clientY - drag.y0) < 4) return;
+      if (Math.abs(ev.clientX - drag.x0) + Math.abs(ev.clientY - drag.y0) < 8) return;
       drag.moved = true;
     }
     const x = ev.clientX - drag.sr.left - drag.dx + surface.parentElement.scrollLeft;
@@ -482,6 +484,11 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
       return;
     }
     const flowId = onto.dataset.id;
+    // Picked up and put back down on the same document. That is not an
+    // instruction, it is a change of mind -- and appending a second step for the
+    // same agent because a hand wobbled over the document it was already on is
+    // the worst kind of write: silent, real, and indistinguishable from a click.
+    if (flowId === d.flow) { select('cube', d.id); render(); return; }
     const occupied = Object.values(layout.cubes).filter((c) => c.onDoc === flowId);
     const slot = occupied.length ? Math.max.apply(null, occupied.map((c) => c.slot)) + 1 : 0;
     layout.cubes[d.id] = { x, y, pinned: true, onDoc: flowId, slot };
@@ -506,7 +513,20 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
   window.addEventListener('pointercancel', endDrag);
 
   // ---- selection panel ----------------------------------------------------
-  const select = (kind, id) => { selected = { kind, id }; renderPanel(); };
+  /**
+   * What the person is looking at.
+   *
+   * Announced as an event because the mascot used to work this out for itself
+   * from pointer events, and it got a different answer than the desk did: an
+   * agent standing inside a document was a document to one of them and an agent
+   * to the other. Whoever else wants to know now hears it from the surface that
+   * decided it.
+   */
+  const select = (kind, id) => {
+    selected = { kind, id };
+    renderPanel();
+    window.dispatchEvent(new CustomEvent('desk:select', { detail: { kind: kind, id: id } }));
+  };
 
   // Which face of a document is showing. State answers "where is this"; trace
   // answers "what happened" -- two questions, and a panel that answers both at

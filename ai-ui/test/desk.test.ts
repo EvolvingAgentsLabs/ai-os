@@ -607,7 +607,15 @@ describe("a click is not a drag", () => {
     assert.match(html, /if \(!drag\.moved\) \{/);
     assert.match(
       html,
-      /Math\.abs\(ev\.clientX - drag\.x0\) \+ Math\.abs\(ev\.clientY - drag\.y0\) < 4/,
+      /Math\.abs\(ev\.clientX - drag\.x0\) \+ Math\.abs\(ev\.clientY - drag\.y0\) < 8/,
     );
+  });
+
+  it("writes nothing when a cube is put back on the document it came from", () => {
+    // The other half of the same defect: past the threshold, a wobble over the
+    // document an agent was already standing on appended a second step for it.
+    // A drag that ends where it started is a change of mind, not an instruction.
+    const html = renderDeskHtml(view());
+    assert.match(html, /if \(flowId === d\.flow\) \{ select\('cube', d\.id\); render\(\); return; \}/);
   });
 });

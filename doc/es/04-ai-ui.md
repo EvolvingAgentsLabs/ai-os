@@ -355,8 +355,11 @@ documento no se podía tocar como agente — respondía primero el documento deb
 y eso rompía el único gesto del que depende la conversación. Y un clic con un
 píxel de temblor se tomaba como arrastre, así que tocar un agente que ya estaba
 sobre un documento lo soltaba ahí de nuevo: `POST /assign`, un paso real
-agregado, a partir de un gesto que la persona hizo como clic. Ahora cuatro
-píxeles separan un gesto de un temblor.
+agregado, a partir de un gesto que la persona hizo como clic. Ahora ocho píxeles
+separan un gesto de un resbalón, un cubo devuelto al documento del que salió no
+escribe nada, y el escritorio **anuncia qué se seleccionó** para que la mascota
+lea la decisión del propio producto en vez de re-deducirla de los eventos de
+puntero y contradecirlo.
 
 ### Lo que a propósito NO hace
 
