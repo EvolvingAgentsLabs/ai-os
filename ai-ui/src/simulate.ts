@@ -50,6 +50,32 @@ export const SIMULATION_JS = String.raw`
   // The whole backend, in memory. Shapes match the real API exactly; where they
   // drift, the demo lies about the product, which is the one thing it may not do.
   const S = window.__DESK__;
+
+  /**
+   * Which scope this page is showing.
+   *
+   * The demo is one static file and the scope selector navigates rather than
+   * fetches, so every scope's starting world is embedded and the shim picks one
+   * by query string. Anything else would mean the second scope is a second page,
+   * which is a second copy of the desk, which is the thing this file exists to
+   * refuse.
+   */
+  const worlds = window.__WORLDS__ || {};
+  const wanted = new URLSearchParams(location.search).get('scope');
+  if (wanted && worlds[wanted]) {
+    const w = worlds[wanted];
+    S.scopeId = wanted;
+    S.docs = w.docs; S.agents = w.agents; S.layout = w.layout; S.notes = w.notes || [];
+    const sel = document.getElementById('scope');
+    if (sel) sel.value = wanted;
+    // By id. Counting spans found the banner instead and wrote the new counts
+    // beside the old ones, so the chrome stated two different sizes for one desk.
+    const count = document.getElementById('counts');
+    if (count) count.textContent =
+      S.docs.length + ' document(s) · ' + S.agents.length + ' agent(s) · ' +
+      (count.textContent.match(/(\d+) person/) || [0, '0'])[1] + ' person(s)';
+  }
+
   const world = {
     docs: JSON.parse(JSON.stringify(S.docs)),
     agents: JSON.parse(JSON.stringify(S.agents)),
@@ -78,6 +104,12 @@ export const SIMULATION_JS = String.raw`
       'Scanned 4,182 rows. Found 3 duplicate pairs sharing a settlement id, all on 2025-01-05.',
     LedgerLead:
       'Split the goal and routed each piece. Schema first, then migration, then review.',
+    // The signal lab. PeakAgent is left pending on the broken chain so the
+    // answer arrives while somebody is watching: confident, precise, and about
+    // a spectrum that is entirely zeros.
+    PeakAgent: 'Strongest component: bin 0 (0.0 Hz), magnitude 0.00.',
+    QuantiseAgent: 'Converted 64 samples to fixed point at 0.5 counts per unit. Range respected, nothing clipped.',
+    ChainLead: 'Split the measurement chain and routed each stage in order.',
   };
 
   const digestFor = (agent, n) => (agent || 'step').toLowerCase().slice(0, 8) + '00' + n;
@@ -99,10 +131,28 @@ export const SIMULATION_JS = String.raw`
     }
     // "Used nothing it was given": the distinctive words of the previous result
     // that appear in this one. Same shape as contribution.ts, same threshold.
+    //
+    // And the same precedence as trace.ts: a step whose runner measured its own
+    // handoff is not handed to the word counter at all. Without this clause the
+    // shim silently un-flagged every measured step on the first poll -- the
+    // signal lab's broken stage was flagged in the page the server rendered and
+    // unflagged five seconds later, which is exactly the drift this file exists
+    // to make impossible. Found by reading the client's state, not the code.
     const words = (t) => new Set(String(t || '').toLowerCase().match(/[a-z]{4,}/g) || []);
     const out = steps.map((s) => ({ ...s, agent: agentOf(s.intent), attempts: s.attempts || [] }));
     let ignoredCount = 0;
-    const settled = out.filter((s) => s.state === 'done' && s.result);
+    for (const s of out) {
+      if (!s.contribution) continue;
+      if (s.contribution.carried === 0) {
+        s.ignoredInput = {
+          carried: 0,
+          inputTokens: s.contribution.inputTokens,
+          note: s.contribution.note,
+        };
+        ignoredCount += 1;
+      }
+    }
+    const settled = out.filter((s) => s.state === 'done' && s.result && !s.contribution);
     for (let i = 1; i < settled.length; i += 1) {
       const prior = words(settled[i - 1].result);
       if (prior.size < 12) continue;

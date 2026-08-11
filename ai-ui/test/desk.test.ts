@@ -619,3 +619,49 @@ describe("a click is not a drag", () => {
     assert.match(html, /if \(flowId === d\.flow\) \{ select\('cube', d\.id\); render\(\); return; \}/);
   });
 });
+
+/**
+ * Numbers, drawn.
+ *
+ * A step whose output is a waveform cannot be summarised in prose: "64 samples
+ * returned, nothing clipped" is what a working stage says and what a stage that
+ * returned 64 zeros says. The desk draws the shape, and never without the scale.
+ */
+describe("a step's numbers", () => {
+  const withSeries = (series: number[]): DeskView => {
+    const v = view();
+    v.docs[0]!.steps = v.docs[0]!.steps.map((s, i) =>
+      i === 0 ? { ...s, series } : s,
+    );
+    v.docs[0]!.trace.steps[0]!.series = series;
+    return v;
+  };
+
+  it("is drawn with its peak beside it, so the scale cannot lie", () => {
+    const html = renderDeskHtml(withSeries([0.2, 1, 0.4]));
+    assert.match(html, /const spark = \(xs, w, h\)/);
+    assert.match(html, /' values · peak '/);
+  });
+
+  it("says out loud when there is nothing in it", () => {
+    // A bar chart normalised to its own maximum looks the same at 1.3 units and
+    // at zero. The one case the reader must not have to squint at is the empty
+    // one, so it is words rather than pixels.
+    const html = renderDeskHtml(withSeries([0, 0, 0]));
+    assert.match(html, /nothing here/);
+    assert.match(html, /\.spark\.dead i\{background:#b03a2e\}/);
+  });
+
+  it("lets the handoff flag name the instrument that judged it", () => {
+    const v = view();
+    v.docs[0]!.trace.steps[0]!.ignoredInput = {
+      carried: 0,
+      inputTokens: 64,
+      note: "its output does not move when its input does",
+    };
+    const html = renderDeskHtml(v);
+    assert.match(html, /s\.ignoredInput\.note/);
+    // And the old phrasing survives for the flows that were judged on prose.
+    assert.match(html, /distinctive tokens it was handed/);
+  });
+});

@@ -338,6 +338,57 @@ a slip, a cube put back on the document it came from writes nothing at all, and
 the desk **announces what was selected** so the mascot reads the product's own
 decision instead of re-deriving it from pointer events and disagreeing with it.
 
+### The signal lab — the same desk, on numbers — 2026-08-11 [ran]
+
+The desk's claim is that **green is not correct**: a step can run, settle, report
+and have carried nothing forward. On a flow of prose that is a real claim and a
+hard one to feel — the reader has to take the instrument's word for it. So the
+demo grew a second scope where the same claim is a picture.
+
+`group:signal-lab` holds two flows. Both hunt a 5 Hz tone under a 23 Hz mains
+hum. Both use the same six agents in the same six steps. Both are green from end
+to end. One of them found the tone at bin 5; the other lost it at step 2 and
+answered *"strongest component: bin 0 (0.0 Hz), magnitude 0.00"* with the same
+confidence.
+
+The defect is a fixed-point conversion with the scale entered wrong — 0.5 counts
+per unit instead of 32767 — so every sample truncates to zero. The stage returns
+64 valid numbers, in range, nothing clipped, and says so. Every stage after it
+runs correctly on nothing.
+
+**Nothing in `ai-ui` knows what a Fourier transform is.** The digest, the trace,
+the action menu, the mascot and the "carried nothing forward" flag do all of the
+work unchanged. That is the point of the scope: the instruments are not about
+text.
+
+What it needed, and each of these is a product change rather than a demo trick:
+
+- **A step can carry numbers.** `series` on a step, drawn as bars with the peak
+  printed beside them — because a chart normalised to its own maximum looks the
+  same at 1.3 units and at zero, and the one case nobody may have to squint at is
+  the empty one. It says *peak 0.00 — nothing here*, in words.
+- **A runner can supply its own verdict on a handoff.** `contribution` on a raw
+  step: when the thing that ran the stage can answer "does my output move when my
+  input does", its answer wins and prose overlap is not consulted. Both the flag
+  and the action menu now **name the instrument that judged**, rather than always
+  claiming to have counted distinctive tokens.
+- **Opening the Trace face replays the flow's handoffs** across the desk: each
+  result travelling to the next agent, and the one that did not arrive falling on
+  the floor in red.
+
+The measurement itself is a perturbation: each stage is re-run with every sample
+nudged by 1% and the change in its output is compared to the change in its input.
+Zero means the stage is not listening. It is deliberately not a correctness
+check — a stage can be perfectly sensitive and perfectly wrong, and the demo says
+so by leaving the stages downstream of the defect unflagged. They did not destroy
+anything; they were handed nothing.
+
+**The argument for the scope is a test, not a claim.** `dsp-demo.test.ts` runs
+the desk's usual instrument — prose overlap, `contribution.ts` — over the broken
+chain and asserts it flags **nothing**. The two reports differ by one number and
+share every distinctive word. If that test ever goes the other way, the text
+instrument was enough and this scope should be deleted.
+
 ### What it deliberately does not do
 
 **Reading the desk never spends a model call.** `POST /assign` writes a step and
