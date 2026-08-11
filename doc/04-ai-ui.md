@@ -291,6 +291,51 @@ public — you can watch a small model stay grounded, or watch it fail to.
 This is also the one place the desk reaches the network for something other than
 its own state, and only after a press that states the size first.
 
+### One species, and they talk — 2026-08-11 [ran]
+
+The first cut of this had two sprites. The mascot was a 26px body with 4×6 eyes
+and four legs; an agent was a 15px body with 2×4 eyes and three legs carved out
+of its bottom edge. Both were "the cube with eyes" in the source, and neither was
+in the picture: a reader saw *a character standing next to a row of chips*, which
+is the mascot-bolted-on failure the design was written to avoid. Two sprites is
+two species however the comment reads.
+
+There is one sprite now ([creatures.ts](../ai-ui/src/creatures.ts)), drawn on a
+16-pixel grid and scaled by `--u`. The system agent is the same animal at `--u:2`
+with a second outline, and it blinks, walks and watches through the same code
+every other agent does.
+
+**Every creature looks at the pointer.** Six lines, rounded to a whole grid unit
+so the pupil moves in pixels like everything else. It is the largest change in
+how alive the desk is for the least code on this page.
+
+**Agents asleep on the shelf.** Forty seconds with nothing asking for them and
+they doze, with one snoring pixel-letter. It is a real state of the system —
+"nothing is asking for this one" — that a row of alert faces was quietly denying.
+
+**The handover, drawn.** When a step settles, the result travels from the agent
+that produced it to the agent that received it: a green square that arrives, or a
+red one that falls short and drops. The verdict is `ignoredInput` off the trace,
+not a second measurement. The finding this whole system exists to surface used to
+be a sentence two clicks inside a panel; it is now a thing you watch fall on the
+floor.
+
+**They answer for themselves.** Click an agent and Cubi walks over and asks it —
+and the agent replies in its own balloon, in the first person, out of its own
+record. An agent that ran and carried nothing forward *confesses*: "I answered
+'Looks fine to me'. The trace says I carried nothing out of the step before
+mine." Delegation is the mechanic this product is about, and a companion that
+summarised the other agents would have been one more surface reading their trace
+for them.
+
+Two more defects that only clicking could find. An agent standing **inside** a
+document could not be clicked as an agent — the document under it answered first,
+which broke the one gesture the conversation depends on. And a click with a
+pixel of tremor in it was treated as a drag, so clicking an agent already on a
+document dropped it there again: `POST /assign`, a real step appended, from a
+gesture the person performed as a click. Four pixels now separate a gesture from
+a tremor.
+
 ### What it deliberately does not do
 
 **Reading the desk never spends a model call.** `POST /assign` writes a step and

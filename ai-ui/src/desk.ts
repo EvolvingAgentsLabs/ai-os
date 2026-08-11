@@ -42,7 +42,7 @@ import { AGENT_COLOR, SUBAGENT_COLOR } from "../../ai-flows/src/vocabulary.ts";
 import { SIMULATION_JS } from "./simulate.ts";
 import { TOUR_CSS, TOUR_JS } from "./tour.ts";
 import { MASCOT_CSS, MASCOT_JS } from "./mascot.ts";
-import { CREATURES_JS } from "./creatures.ts";
+import { CREATURES_JS, CREATURE_CSS } from "./creatures.ts";
 
 export interface DeskDoc {
   id: string;
@@ -163,37 +163,17 @@ body{overflow:hidden}
   font-size:11px;cursor:grab;user-select:none;touch-action:none;white-space:nowrap;z-index:20}
 .acube.dragging{box-shadow:5px 5px 0 rgba(0,0,0,.3);z-index:60;cursor:grabbing}
 .acube.instack{position:static;box-shadow:1px 1px 0 rgba(0,0,0,.3);padding:2px 6px 2px 3px}
-/* The body. Same colour and outline the cube always had, plus the two things a
-   reader keeps asking a static picture and not getting: eyes, so "is this one
-   working" is answerable at a glance, and legs, because a thing that moves
-   between documents by itself has to look like a thing that could. Both are
-   drawn in the notation's own pixels -- nothing here is an illustration. */
-.acube .blk{position:relative;width:15px;height:15px;background:var(--c);border:1px solid rgba(0,0,0,.55);
-  box-shadow:inset 1.5px 1.5px 0 rgba(255,255,255,.5),inset -1.5px -1.5px 0 rgba(0,0,0,.3)}
-.acube .blk i{position:absolute;top:5px;width:2px;height:4px;background:#16181a;
-  animation:blink 5.4s steps(1,end) infinite;animation-delay:var(--bd,0s)}
-.acube .blk i.l{left:3px} .acube .blk i.r{left:8px}
-/* Legs, carved out of the body's bottom edge in the chip's own colour: two
-   notches make three legs, and nothing overflows the chip. */
-.acube .blk::before,.acube .blk::after{content:"";position:absolute;bottom:-1px;width:3px;height:4px;
-  background:var(--face);border:1px solid rgba(0,0,0,.4);border-bottom:0}
-.acube .blk::before{left:2px} .acube .blk::after{right:2px}
-@keyframes blink{0%,97%{height:4px;top:5px}98%,100%{height:1px;top:7px}}
-@keyframes step2{from{height:4px}to{height:2px}}
-.acube.walking .blk::before{animation:step2 .3s steps(2,end) infinite}
-.acube.walking .blk::after{animation:step2 .3s steps(2,end) infinite reverse}
+/* The body is CREATURE_CSS, shared with every other creature on this desk --
+   there is exactly one sprite now, at one size or twice it. What is left here is
+   only how a creature sits inside the chip that carries its name. */
+.acube{padding-bottom:6px}
+.acube .blk{--u:1}
 .acube.missing{opacity:.55;cursor:not-allowed}
 .acube.missing .n{text-decoration:line-through}
-/* Declared with no file behind it: the eyes are shut. It is not idle, it is
-   not there -- and the picture should not offer it as a thing that could work. */
-.acube.missing .blk i{height:1px;top:7px;animation:none}
-/* Running: the one animation on the desk, because "is it moving" is the
-   question. The eyes narrow while it thinks, out of step with each other. */
+/* Running: the chip pulses too, because the body alone is 16 pixels wide and
+   "something is happening here" has to be readable from across the desk. */
 .acube.busy{animation:pulse 1.1s ease-in-out infinite}
-.acube.busy .blk i{animation:think .5s steps(2,end) infinite}
-.acube.busy .blk i.r{animation-delay:.25s}
 @keyframes pulse{0%,100%{box-shadow:2px 2px 0 rgba(0,0,0,.3)}50%{box-shadow:2px 2px 0 rgba(224,160,32,.9)}}
-@keyframes think{from{height:4px;top:5px}to{height:2px;top:6px}}
 /* What it is doing, on the agent rather than in a panel somebody has to open. */
 .acube .doing{font-size:9px;color:#7a5200;background:#f7e9c9;border:1px solid #d8bd7a;padding:0 3px}
 /* How many steps this one instance holds in the document it is standing on. */
@@ -355,6 +335,10 @@ select{font:inherit;font-size:11px}
  */
 const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
   const S = window.__DESK__;
+  // Published so the mascot builds its body from the same string rather than
+  // from a copy of it. One sprite, one definition, one species -- the copy is
+  // how the desk ended up with a character standing next to a row of chips.
+  window.__CRT__ = CREATURE_BODY;
   const surface = document.getElementById('surface');
   const toast = document.getElementById('toast');
   let layout = S.layout;
@@ -401,6 +385,7 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
     drag = {
       el, kind, id, sr, moved: false,
       dx: ev.clientX - r.left, dy: ev.clientY - r.top,
+      x0: ev.clientX, y0: ev.clientY,
       flow: kind === 'cube' && at > 0 ? key.slice(at + 1) : null,
     };
     el.classList.add('dragging');
@@ -411,7 +396,15 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
 
   const moveDrag = (ev) => {
     if (!drag) return;
-    drag.moved = true;
+    // A hand that presses a mouse button moves a pixel or two doing it. Treating
+    // the first of those as a drag meant clicking an agent that was already on a
+    // document dropped it there again -- a real write, a real step appended, from
+    // what the person performed as a click. Four pixels is the difference between
+    // a gesture and a tremor. Found by clicking, not by reading.
+    if (!drag.moved) {
+      if (Math.abs(ev.clientX - drag.x0) + Math.abs(ev.clientY - drag.y0) < 4) return;
+      drag.moved = true;
+    }
     const x = ev.clientX - drag.sr.left - drag.dx + surface.parentElement.scrollLeft;
     const y = ev.clientY - drag.sr.top - drag.dy + surface.parentElement.scrollTop;
     drag.el.style.left = Math.max(0, x) + 'px';
@@ -435,6 +428,13 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
     if (!drag) return;
     const d = drag; drag = null;
     d.el.classList.remove('dragging');
+    const body = d.el.querySelector && d.el.querySelector('.crt');
+    if (body) {
+      // It takes the impact. An object that arrives weightless was never moved.
+      body.classList.add('landed');
+      setTimeout(() => body.classList.remove('landed'), 300);
+      wake(body);
+    }
     document.querySelectorAll('.docnode.over').forEach((x) => x.classList.remove('over'));
     if (!d.moved) { select(d.kind, d.id); return; }
 
@@ -812,7 +812,8 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
     el.dataset.key = key;
     el.dataset.id = a.name;
     const color = a.missing ? S.missingColor : (a.child ? S.subagentColor : S.agentColor);
-    el.innerHTML = '<span class="blk" style="--c:' + color + '"><i class="l"></i><i class="r"></i></span>' +
+    el.innerHTML = '<span class="blk crt' + (a.missing ? ' blind' : '') + '" style="--c:' + color + '">' +
+      CREATURE_BODY + '</span>' +
       '<span class="n">' + escape_(a.name) + '</span>' +
       '<span class="doing"></span><span class="mult"></span>';
     // Out of phase, or a shelf of creatures blinks in unison and reads as a row
@@ -836,6 +837,130 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
       el.style.transform = 'translate(' + (b.left - a.left) + 'px,' + (b.top - a.top) + 'px)';
     });
     setTimeout(() => el.remove(), 460);
+  };
+
+  // ---- the eyes -----------------------------------------------------------
+  /**
+   * Every creature looks at the pointer.
+   *
+   * Six lines, and it is the single largest change in how alive the desk feels:
+   * a room of things that track you is a room of things, and a row of sprites
+   * staring through you is a row of icons. The offset is rounded to a whole grid
+   * unit, so the pupil moves in pixels like everything else here rather than
+   * sliding a fraction of one.
+   */
+  let look = null, aiming = false, lastLook = 0;
+
+  const aim = () => {
+    aiming = false;
+    if (!look) return;
+    for (const b of document.querySelectorAll('.crt')) {
+      const r = b.getBoundingClientRect();
+      if (!r.width || r.bottom < 0 || r.top > window.innerHeight) continue;
+      const dx = look.x - (r.left + r.width / 2);
+      const dy = look.y - (r.top + r.height / 2);
+      const m = Math.sqrt(dx * dx + dy * dy) || 1;
+      const u = parseFloat(getComputedStyle(b).getPropertyValue('--u')) || 1;
+      b.style.setProperty('--ex', Math.round(dx / m) * u + 'px');
+      b.style.setProperty('--ey', Math.round(dy / m) * u + 'px');
+      // Something came close: whatever was dozing there is awake now.
+      if (Math.abs(dx) < 110 && Math.abs(dy) < 90) wake(b);
+    }
+  };
+
+  window.addEventListener('pointermove', (ev) => {
+    look = { x: ev.clientX, y: ev.clientY };
+    lastLook = Date.now();
+    if (!aiming) { aiming = true; requestAnimationFrame(aim); }
+  }, { passive: true });
+
+  // ---- sleep --------------------------------------------------------------
+  /**
+   * An agent nobody has asked for anything falls asleep on the shelf.
+   *
+   * It is not decoration: "nothing is asking for this one" is a real state of
+   * the system that the desk had no way of showing, and a shelf of alert little
+   * faces implies six agents waiting on you when in fact none of them is waiting
+   * for anything. They wake when the pointer comes near, when they are dragged,
+   * and the moment they are given work.
+   */
+  const wake = (node) => {
+    const b = node.classList && node.classList.contains('crt') ? node : node.querySelector('.crt');
+    if (!b) return;
+    b.dataset.woke = String(Date.now());
+    if (!b.classList.contains('asleep')) return;
+    b.classList.remove('asleep');
+    const z = b.querySelector('.zzz');
+    if (z) z.remove();
+  };
+
+  setInterval(() => {
+    const now = Date.now();
+    for (const el of surface.querySelectorAll('.acube:not(.instack):not(.merging)')) {
+      const b = el.querySelector('.crt');
+      if (!b || el.classList.contains('missing') || b.classList.contains('asleep')) continue;
+      if (now - Number(b.dataset.woke || 0) < 40000) continue;
+      b.classList.add('asleep');
+      const z = document.createElement('span');
+      z.className = 'zzz';
+      z.textContent = 'z';
+      b.appendChild(z);
+    }
+  }, 5000);
+
+  // ---- the handover -------------------------------------------------------
+  /**
+   * Draw the result travelling from the step that produced it to the step that
+   * received it — and draw it **falling** when the trace says the receiver
+   * carried nothing forward.
+   *
+   * This is the finding the whole trace face exists for, and until now it was a
+   * sentence in a panel two clicks away. A green square that arrives and a red
+   * one that drops on the floor is the same fact, in the place people are
+   * already looking. The verdict is read off the trace's own ignoredInput,
+   * which ai-flows computed; nothing here measures anything.
+   */
+  const creatureBox = (agent, flowId) => {
+    const el = cubeAt(cubeKey(agent, flowId)) ||
+      document.querySelector('.acube:not(.merging)[data-id="' + CSS.escape(agent) + '"]');
+    const b = el && el.querySelector('.crt');
+    return b ? b.getBoundingClientRect() : null;
+  };
+
+  const drawHandover = (doc, stepIndex) => {
+    const h = handoverOf(doc, stepIndex);
+    if (!h) return;
+    const a = creatureBox(h.from, doc.id), b = creatureBox(h.to, doc.id);
+    if (!a || !b) return;
+    const p = document.createElement('div');
+    p.className = 'pkt' + (h.carried ? '' : ' dropped');
+    p.style.left = a.right + 'px';
+    p.style.top = (a.top + 4) + 'px';
+    document.body.appendChild(p);
+    requestAnimationFrame(() => {
+      if (h.carried) {
+        p.style.transform = 'translate(' + (b.left - a.right - 5) + 'px,' + (b.top - a.top) + 'px)';
+      } else {
+        // Short of the receiver, and down. It was handed over and not taken.
+        p.style.transform = 'translate(' + Math.round((b.left - a.right) / 2) + 'px,64px)';
+        p.style.opacity = '0';
+      }
+    });
+    setTimeout(() => p.remove(), 1000);
+  };
+
+  // What each step was last time the desk looked, so a settle can be noticed
+  // rather than polled for. Only transitions draw.
+  const stepWas = {};
+  const noticeSettled = () => {
+    for (const d of S.docs) {
+      for (const s of (d.steps || [])) {
+        const k = d.id + '#' + s.index;
+        const was = stepWas[k];
+        stepWas[k] = s.state;
+        if (painted && was && was !== 'done' && s.state === 'done') drawHandover(d, s.index);
+      }
+    }
   };
 
   // ---- render -------------------------------------------------------------
@@ -864,6 +989,7 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
       s.classList.toggle('empty', s.children.length === 0);
 
     if (painted) walkEverythingThatMoved(was);
+    noticeSettled();
     painted = true;
     renderDrawer();
     renderPanel();
@@ -956,6 +1082,8 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
 
       const doing = doingOf(w.a.name, w.flowId);
       el.classList.toggle('busy', !!doing);
+      el.querySelector('.crt').classList.toggle('busy', !!doing);
+      if (doing) wake(el);
       el.querySelector('.doing').textContent = doing ? 'step ' + doing.step.index + ' · running' : '';
       el.querySelector('.mult').textContent = w.steps > 1 ? '×' + w.steps : '';
     }
@@ -981,12 +1109,18 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
       const now = el.getBoundingClientRect();
       const dx = before.left - now.left, dy = before.top - now.top;
       if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
-      el.classList.remove('moving', 'walking');
+      const body = el.querySelector('.crt');
+      el.classList.remove('moving');
+      if (body) body.classList.remove('walking');
       el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
       requestAnimationFrame(() => {
-        el.classList.add('moving', 'walking');
+        el.classList.add('moving');
+        if (body) { body.classList.add('walking'); wake(body); }
         el.style.transform = '';
-        setTimeout(() => { el.classList.remove('moving', 'walking'); }, 480);
+        setTimeout(() => {
+          el.classList.remove('moving');
+          if (body) body.classList.remove('walking');
+        }, 480);
       });
     }
   }
@@ -1010,10 +1144,18 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
     const name = el.dataset.id;
     const c = layout.cubes[name] || { x: 20, y: 40 };
     const d = drift[name] || { dx: 0, dy: 0 };
-    const step = (n) => n + Math.round((Math.random() - 0.5) * 22);
-    const nx = Math.min(Math.max(c.x + d.dx + (Math.random() < 0.5 ? -6 : 6), 8), 120) - c.x;
-    const ny = Math.min(Math.max(step(c.y + d.dy), 30), 1400) - c.y;
-    drift[name] = { dx: nx, dy: ny };
+    const nx = Math.min(Math.max(c.x + d.dx + (Math.random() < 0.5 ? -6 : 6), 8), 120);
+    const ny = Math.min(Math.max(c.y + d.dy + Math.round((Math.random() - 0.5) * 22), 30), 1400);
+    // Not on top of each other. Two creatures wandering into the same spot read
+    // as one creature with a rendering fault, and the shelf did exactly that
+    // within a minute of being left alone.
+    for (const other of free) {
+      if (other === el) continue;
+      const o = layout.cubes[other.dataset.id] || { x: 0, y: 0 };
+      const od = drift[other.dataset.id] || { dx: 0, dy: 0 };
+      if (Math.abs(o.x + od.dx - nx) < 96 && Math.abs(o.y + od.dy - ny) < 26) return;
+    }
+    drift[name] = { dx: nx - c.x, dy: ny - c.y };
     render();
   }, 5200);
 
@@ -1110,7 +1252,7 @@ export function renderDeskHtml(view: DeskView): string {
   return `<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ai-os — the desk</title>
-<style>${CHROME_CSS}${DESK_CSS}${view.simulate ? TOUR_CSS + MASCOT_CSS : ""}</style>
+<style>${CHROME_CSS}${CREATURE_CSS}${DESK_CSS}${view.simulate ? TOUR_CSS + MASCOT_CSS : ""}</style>
 <div class="menubar">
   <span class="apple">ai-os</span>
   ${view.simulate ? `<span class="sim">Simulated — no core, no model, nothing stored</span><span class="dim">reloading starts over</span>` : ""}
