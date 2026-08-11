@@ -162,7 +162,18 @@ export const SIMULATION_JS = String.raw`
     for (const d of world.docs) {
       for (const s of d.steps) if (s.state === 'running' && agentOf(s.intent)) busy[agentOf(s.intent)] = true;
     }
-    return { at: Date.now(), docs: world.docs, agents: world.agents, layout: world.layout, notes: world.notes, busy };
+    // Every step carries the agent its intent names, because that is what the
+    // server sends (server.ts: agent: agentOfIntent(s.intent)). The shim only
+    // did it inside the trace, so a step added by dropping a cube arrived with
+    // no agent on it -- and the desk, which now draws one creature per document
+    // an agent has work in, drew nothing for a step that plainly had an owner.
+    // A shim whose shapes drift from the API is the demo lying about the
+    // product, which is the one thing this file may not do.
+    const docs = world.docs.map((d) => ({
+      ...d,
+      steps: d.steps.map((s) => ({ ...s, agent: s.agent || agentOf(s.intent) })),
+    }));
+    return { at: Date.now(), docs: docs, agents: world.agents, layout: world.layout, notes: world.notes, busy };
   };
 
   const findDoc = (id) => world.docs.find((d) => d.id === id);
