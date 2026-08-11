@@ -233,7 +233,7 @@ describe("the simulated page", () => {
     const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
       (m) => m[1]!,
     );
-    assert.equal(scripts.length, 3, "state, shim, client");
+    assert.equal(scripts.length, 4, "state, shim, client, tour");
     assert.doesNotThrow(() => new Function(scripts[1]!), "the shim must parse");
     assert.match(html, /Simulated — no core, no model, nothing stored/);
   });
@@ -445,5 +445,57 @@ describe("markup the panel does not render is removed, not hoped away", () => {
     // Stripping must not become a way in: the result is escaped afterwards.
     const html = renderDeskHtml(view());
     assert.match(html, /escape_\(plain\(r\.answer\)\)/);
+  });
+});
+
+/**
+ * Play — the demo driving itself.
+ *
+ * Two properties are worth holding. The tour must **never reach the product**,
+ * because a thing that moves a person's documents around on its own is not a
+ * feature. And it must drive the real client rather than animate a picture of
+ * one — a scripted movie of a product is a second implementation, and it goes on
+ * looking right for exactly as long as nobody checks.
+ */
+describe("the guided tour", () => {
+  it("is absent from the real desk", () => {
+    const html = renderDeskHtml(view());
+    assert.ok(!html.includes("tourbar"), "the product must not ship a tour");
+    assert.ok(!html.includes("Play"));
+  });
+
+  it("ships with the demo", () => {
+    const html = renderDeskHtml({ ...view(), simulate: true });
+    assert.match(html, /tourbar/);
+    assert.match(html, /▶ Play/);
+  });
+
+  it("parses as JavaScript", () => {
+    // Same trap as the client and the shim: these are String.raw templates and
+    // one stray backtick ends them early.
+    const html = renderDeskHtml({ ...view(), simulate: true });
+    const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]!);
+    assert.equal(scripts.length, 4, "state, shim, client, tour");
+    for (const [i, s] of scripts.entries())
+      assert.doesNotThrow(() => new Function(s), `script ${i} does not parse`);
+  });
+
+  it("drives the real client with real events rather than drawing a movie", () => {
+    const js = renderDeskHtml({ ...view(), simulate: true });
+    // The drag is three real pointer events on the real cube.
+    assert.match(js, /new PointerEvent\('pointerdown'/);
+    assert.match(js, /new PointerEvent\('pointermove'/);
+    assert.match(js, /new PointerEvent\('pointerup'/);
+    // And the buttons are the page's own.
+    assert.match(js, /document\.getElementById\('adv'\)/);
+    assert.match(js, /document\.getElementById\('qgo'\)/);
+  });
+
+  it("yields to a real gesture, and cannot stop itself", () => {
+    // `isTrusted` is false for everything the tour dispatches, so the guard
+    // distinguishes the person from the tour. Without it the first synthetic
+    // pointerdown would halt the tour it belongs to.
+    const js = renderDeskHtml({ ...view(), simulate: true });
+    assert.match(js, /if \(e\.isTrusted\) halt\(\)/);
   });
 });

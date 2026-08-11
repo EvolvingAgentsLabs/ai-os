@@ -40,6 +40,7 @@ import {
 } from "../../ai-flows/src/vocabulary.ts";
 import { AGENT_COLOR, SUBAGENT_COLOR } from "../../ai-flows/src/vocabulary.ts";
 import { SIMULATION_JS } from "./simulate.ts";
+import { TOUR_CSS, TOUR_JS } from "./tour.ts";
 
 export interface DeskDoc {
   id: string;
@@ -810,7 +811,7 @@ export function renderDeskHtml(view: DeskView): string {
   return `<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ai-os — the desk</title>
-<style>${CHROME_CSS}${DESK_CSS}</style>
+<style>${CHROME_CSS}${DESK_CSS}${view.simulate ? TOUR_CSS : ""}</style>
 <div class="menubar">
   <span class="apple">ai-os</span>
   ${view.simulate ? `<span class="sim">Simulated — no core, no model, nothing stored</span><span class="dim">reloading starts over</span>` : ""}
@@ -846,6 +847,7 @@ export function renderDeskHtml(view: DeskView): string {
 <div class="toast" id="toast"></div>
 <script>window.__DESK__ = ${jsonForScript(client)};</script>
 ${view.simulate ? `<script>${SIMULATION_JS}</script>` : ""}
+${view.simulate ? `<script>${TOUR_JS}</script>` : ""}
 <script>${DESK_JS}</script>
 </html>`;
 }

@@ -223,6 +223,39 @@ did this actually produce?*, y la respuesta nombró el archivo que escribió
 del flow. El camino sin evidencia contestó `spent: false` sin comprar un turno.
 Los dos **[ran]**.
 
+## Play — el demo manejándose solo, 2026-08-11 [ran]
+
+Todo lo de arriba es invisible hasta que alguien hace un gesto, y quien visita un
+sitio web no lo va a hacer. Así que el demo tiene un botón **Play** que recorre el
+escritorio con su propio vocabulario: seleccionar un flow, leer el digest, señalar
+el menú, tipear una pregunta y mandarla, arrastrar un cubo a un documento, avanzar
+el step, abrir la cara de traza.
+
+**Maneja el cliente real. No reproduce una película.** Cada beat despacha los
+eventos que produce una mano — `pointerdown`, `pointermove`, `pointerup` sobre el
+cubo real, `click` sobre el botón real — y después deja que el escritorio
+reaccione como reaccione. Es la misma regla bajo la que vive
+[simulate.ts](../../ai-ui/src/simulate.ts), un nivel más arriba, y compra la misma
+propiedad: **si el escritorio se rompe, el tour se rompe.** Una animación
+scripteada de un producto es una segunda implementación de él, y sigue pareciendo
+correcta exactamente mientras nadie la chequee.
+
+Verificado manejando a mano el beat más difícil contra la página construida: el
+drag sintético agregó un step real, 1 → 2, con la instrucción de delegación que
+habría escrito `compose.ts` **[ran]**.
+
+Dos reglas bajo las que vive. **Nunca pelea con quien está mirando** — cualquier
+evento *trusted* lo detiene donde está, y `isTrusted` es lo que separa a la persona
+del tour, así que no puede detenerse a sí mismo. Y es **solo del demo**, inyectado
+al lado de la simulación y verificado ausente del producto, porque una cosa que
+mueve sola los documentos de alguien no es una función.
+
+Un defecto que expuso de inmediato: los documentos del demo llevaban `updatedAt: 0`,
+así que el digest declaraba su ventana como *"state as of 20370 days ago"*.
+Correcto, e inútil — una proyección que anuncia una ventana absurda es la función
+demostrando su propia falla. El demo ahora tiene un reloj fijo y sus flows tienen
+edades plausibles.
+
 ## Cómo se falsea todo esto
 
 **Sin instrumento nuevo.** La medición es la que `04` ya especifica: una persona,

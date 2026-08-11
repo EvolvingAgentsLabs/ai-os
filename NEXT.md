@@ -5,7 +5,7 @@
 
 ## Where things stand
 
-`ai-base`, `ai-flows` and `ai-ui` run. `ai-storage` does not exist. 397 tests of
+`ai-base`, `ai-flows` and `ai-ui` run. `ai-storage` does not exist. 402 tests of
 our own; CI checks that number against the suites, so it cannot drift again.
 
 Everything is merged to `main` in both repositories, nothing is open, and

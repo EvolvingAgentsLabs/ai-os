@@ -213,6 +213,37 @@ actually produce?*, and the answer named the file `MigrationAgent` wrote and wha
 `ReviewAgent` confirmed — neither of which appears in the flow's goal. The
 no-evidence path answered `spent: false` without buying a turn. Both **[ran]**.
 
+## Play — the demo driving itself, 2026-08-11 [ran]
+
+Everything above is invisible until somebody performs a gesture, and a visitor to
+a website will not. So the demo has a **Play** button that walks the desk through
+its own vocabulary: select a flow, read the digest, point at the menu, type a
+question and ask it, drag a cube onto a document, advance the step, open the trace
+face.
+
+**It drives the real client. It does not play a movie.** Every beat dispatches the
+events a hand produces — `pointerdown`, `pointermove`, `pointerup` on the actual
+cube, `click` on the actual button — and then lets the desk react however it
+reacts. That is the same rule [simulate.ts](../ai-ui/src/simulate.ts) lives under,
+one level up, and it buys the same property: **if the desk breaks, the tour
+breaks.** A scripted animation of a product is a second implementation of it, and
+it goes on looking correct for exactly as long as nobody checks.
+
+Verified by driving the hardest beat by hand against the built page: the synthetic
+drag appended a real step, 1 → 2, carrying the delegation intent `compose.ts`
+would have written **[ran]**.
+
+Two rules it lives under. It **never fights the person watching** — any *trusted*
+event stops it where it is, and `isTrusted` is what separates the person from the
+tour, so it cannot halt itself. And it is **demo-only**, injected beside the
+simulation and asserted absent from the product, because a thing that moves
+somebody's documents around on its own is not a feature.
+
+One defect it exposed immediately: the demo's documents carried `updatedAt: 0`, so
+the digest declared its window as *"state as of 20370 days ago"*. Correct, and
+useless — a projection announcing a nonsense window is the feature demonstrating
+its own failure. The demo now has a fixed clock and its flows have plausible ages.
+
 ## How all of this gets falsified
 
 **No new instrument.** The measurement is the one `04` already specifies: a

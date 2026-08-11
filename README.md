@@ -39,7 +39,7 @@ Español: [Correr ai-os](doc/es/manual.md).
 
 ## State
 
-`ai-base`, `ai-flows` and `ai-ui` run — **397 tests of our own**, on top of the
+`ai-base`, `ai-flows` and `ai-ui` run — **402 tests of our own**, on top of the
 3,768 `ai-base` carries from upstream. `ai-storage` is specified and not built.
 
 Nothing in this repository describes software that exists unless it says so, and
