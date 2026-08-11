@@ -12,7 +12,9 @@
  * No server, no database, no model. Open the file.
  */
 import { writeFileSync } from "node:fs";
-import { renderDeskHtml } from "../src/desk.ts";
+import { type DeskDoc, renderDeskHtml } from "../src/desk.ts";
+import { digestOf } from "../src/zoom.ts";
+import { actionsFor } from "../src/actions.ts";
 import { demoWorld } from "../src/simulate.ts";
 import { propose } from "../src/layout.ts";
 import { MEMORY_LEVELS } from "../src/memory.ts";
@@ -26,13 +28,44 @@ const world = demoWorld();
 
 // The same projection the server does, so the first frame of the demo is built
 // by the product's own code rather than written by hand.
-const docs = world.docs.map((d) => ({
-  ...(d as Record<string, unknown>),
-  trace: traceOf(
-    (d as { steps: Parameters<typeof traceOf>[0] }).steps,
-    agentOfIntent,
-  ),
-})) as never;
+//
+// Typed as `DeskDoc[]` rather than cast to `never`. The cast that used to be
+// here is why adding a required field to `DeskDoc` did not fail this script:
+// the demo would have shipped documents with no digest and no menu, and the
+// only symptom would have been a page that looked slightly emptier than the
+// product. A cast that silences the compiler on the one file nobody runs in CI
+// is the drift this repository keeps finding by hand.
+const DEMO_AT = 1_760_000_000_000;
+const docs: DeskDoc[] = world.docs.map((d) => {
+  const raw = d as unknown as Omit<
+    DeskDoc,
+    "trace" | "digest" | "actions"
+  > & { steps: Parameters<typeof traceOf>[0] };
+  const trace = traceOf(raw.steps, agentOfIntent);
+  const digest = digestOf(
+    {
+      flowId: raw.id,
+      title: raw.title,
+      state: raw.state,
+      updatedAt: raw.updatedAt,
+      trace,
+    },
+    "step",
+    DEMO_AT,
+  );
+  return {
+    ...raw,
+    trace,
+    digest,
+    actions: actionsFor({
+      flowId: raw.id,
+      state: raw.state,
+      digest,
+      trace,
+      availableAgents: world.agents.map((a) => a["name"] as string),
+    }),
+  };
+});
 
 const layout = propose(
   {

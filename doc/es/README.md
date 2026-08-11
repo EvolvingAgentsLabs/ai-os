@@ -29,6 +29,7 @@ documento que cambia de clase se reescribe el cartel el mismo día.
 | [02 · ai-base](02-ai-base.md) | Qué da QM realmente — verificado contra el código, no contra su README — y los seams sobre los que se construye |
 | [03 · ai-flows](03-ai-flows.md) | El modelo de flow: objetivo, pasos, intentos, observaciones. **`Open` corre; las otras cinco formas son especificación** |
 | [04 · ai-ui](04-ai-ui.md) | El escritorio: documentos, cubitos de agentes, la cara de traza. Construido; su propia falsificación no se corrió |
+| [15 · Interacción generada](15-generated-interaction.md) | Zoom semántico, el menú que se auto-revela, deixis y fork — lo que un modelo puede hacer y una GUI no podía. Fases 1–4 construidas, fase 5 especificada |
 | [09 · Escalas](09-scales.md) | Individual, colectiva, proyecto, sistema — un solo eje para flows y memoria, y es `scopeId` |
 | [10 · Observabilidad](10-observability.md) | Si el progreso de un flow se puede leer siquiera. Deriva contra ilegible, y el piso de ruido medido entre las dos |
 | [12 · Conformación](12-conformation.md) | Proyectos, agentes y carpetas: qué es el workspace en capas, y por qué la membresía nunca vive ahí |

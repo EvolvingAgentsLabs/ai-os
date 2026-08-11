@@ -37,6 +37,8 @@ import { type DeskState, propose } from "./layout.ts";
 import { type FlowTrace, traceOf } from "./trace.ts";
 import { MEMORY_LEVELS, type MemoryNote, proposeNote } from "./memory.ts";
 import type { LayoutStore } from "./layout-store.ts";
+import { digestOf } from "./zoom.ts";
+import { actionsFor } from "./actions.ts";
 
 /**
  * Everything the canvas needs from `ai-flows`, as an interface rather than an
@@ -105,6 +107,27 @@ export interface FlowsClient {
    */
   resume(flowId: string): Promise<{ resumed: number }>;
   advance(flowId: string): Promise<{ kind: string }>;
+  /**
+   * Copy steps `0..atStep` into a new flow carrying `forkedFrom`.
+   *
+   * The gesture this serves is the one a GUI made ordinary and an agent system
+   * never had: **try it a different way without losing the way it went.** The
+   * field has been in the flow model since the first commit with nothing on the
+   * surface able to produce one.
+   */
+  fork(flowId: string, atStep: number): Promise<{ id: string; title: string }>;
+  /**
+   * Answer a question about a flow, or about one step of it.
+   *
+   * `spent` says whether a turn was bought. It is not decoration: the desk
+   * reports it, because a surface that spends silently teaches its user to stop
+   * counting.
+   */
+  ask(
+    flowId: string,
+    question: string,
+    step?: number,
+  ): Promise<{ answer: string; spent: boolean; evidence: number }>;
 }
 
 export interface DeskServerOptions {
@@ -209,25 +232,53 @@ export function createDeskServer(opts: DeskServerOptions): Server {
 
     const flows = await opts.flows.flows(chosen.scopeId);
     collectInBackground(flows);
-    const docs: DeskDoc[] = flows.map((f) => ({
-      id: f.id,
-      title: f.title,
-      goal: f.goal,
-      state: f.state,
-      updatedAt: f.updatedAt,
-      done: f.steps.filter((s) => s.state === "done").length,
-      total: f.steps.length,
-      steps: f.steps.map((s) => ({
-        index: s.index,
-        state: s.state,
-        intent: s.intent,
-        agent: agentOfIntent(s.intent),
-      })),
+    const agentNames = chosen.agents.map((a) => a.name);
+    const docs: DeskDoc[] = flows.map((f) => {
       // What actually happened, computed with ai-flows' own instruments rather
       // than re-derived here: a second answer to "is this drifting" is a second
       // answer, and the one on screen would be the untested one.
-      trace: traceOf(f.steps, agentOfIntent),
-    }));
+      const trace = traceOf(f.steps, agentOfIntent);
+      // The digest and the menu are both **pure functions of state**, computed
+      // on every read on purpose: they cost nothing, so the rule that reading
+      // never spends a model call is not merely respected here, it is not even
+      // in play. Model-written enrichment is the part that has to be cached on
+      // state change, and that is `projection.ts`.
+      const digest = digestOf(
+        {
+          flowId: f.id,
+          title: f.title,
+          state: f.state,
+          updatedAt: f.updatedAt,
+          trace,
+        },
+        "step",
+        now(),
+      );
+      return {
+        id: f.id,
+        title: f.title,
+        goal: f.goal,
+        state: f.state,
+        updatedAt: f.updatedAt,
+        done: f.steps.filter((s) => s.state === "done").length,
+        total: f.steps.length,
+        steps: f.steps.map((s) => ({
+          index: s.index,
+          state: s.state,
+          intent: s.intent,
+          agent: agentOfIntent(s.intent),
+        })),
+        trace,
+        digest,
+        actions: actionsFor({
+          flowId: f.id,
+          state: f.state,
+          digest,
+          trace,
+          availableAgents: agentNames,
+        }),
+      };
+    });
 
     const declared = new Set(chosen.agents.flatMap((a) => a.subagents));
     const byName = new Map(chosen.agents.map((a) => [a.name, a] as const));
@@ -435,6 +486,48 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         await opts.flows.resume(body.flowId);
         const outcome = await opts.flows.advance(body.flowId);
         return send(200, { ok: true, outcome: outcome.kind });
+      }
+
+      /**
+       * Fork a flow at a step — the undo an agent system never had.
+       *
+       * A GUI made experimenting safe by making it reversible. Agent work is not
+       * reversible: a step that ran, ran. Forking is the closest true thing —
+       * the history is kept and the alternative gets its own — and
+       * `forkedFrom { flowId, atStep }` has been in the flow model since the
+       * first commit with no gesture able to produce one.
+       *
+       * **This spends nothing.** It copies records. The fork does not run until
+       * somebody advances it, which is its own click with its own stated cost.
+       */
+      if (req.method === "POST" && url.pathname === "/fork") {
+        const body = JSON.parse((await readBody(req)) || "{}");
+        const atStep = Number(body?.atStep);
+        if (!body?.flowId || !Number.isInteger(atStep) || atStep < 0)
+          return send(400, { error: "flowId and a step index are required" });
+        const forked = await opts.flows.fork(body.flowId, atStep);
+        return send(200, { ok: true, ...forked });
+      }
+
+      /**
+       * Ask about the selected object — deixis.
+       *
+       * The question can be three words because the selection carries the noun.
+       * `ai-flows` builds the prompt from the trace and refuses to spend when
+       * there is no evidence; this route only forwards the pronoun and reports
+       * back whether a turn was bought.
+       */
+      if (req.method === "POST" && url.pathname === "/ask") {
+        const body = JSON.parse((await readBody(req)) || "{}");
+        const question =
+          typeof body?.question === "string" ? body.question.trim() : "";
+        if (!body?.flowId || !question)
+          return send(400, { error: "flowId and a question are required" });
+        const step = Number.isInteger(body.step)
+          ? (body.step as number)
+          : undefined;
+        const answered = await opts.flows.ask(body.flowId, question, step);
+        return send(200, { ok: true, ...answered });
       }
 
       return send(404, { error: "not found" });

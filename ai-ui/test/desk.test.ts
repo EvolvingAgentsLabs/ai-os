@@ -8,8 +8,42 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { type DeskView, renderDeskHtml } from "../src/desk.ts";
+import { type DeskDoc, type DeskView, renderDeskHtml } from "../src/desk.ts";
 import { propose } from "../src/layout.ts";
+import { digestOf } from "../src/zoom.ts";
+import { actionsFor } from "../src/actions.ts";
+
+/**
+ * Fill in the derived halves of a document with the real functions.
+ *
+ * Hand-written digests and menus in a fixture would drift from the ones the
+ * server builds, and the render tests would then be asserting against a shape
+ * the product does not produce.
+ */
+const derived = (d: Omit<DeskDoc, "digest" | "actions">, at: number): DeskDoc => {
+  const digest = digestOf(
+    {
+      flowId: d.id,
+      title: d.title,
+      state: d.state,
+      updatedAt: d.updatedAt,
+      trace: d.trace,
+    },
+    "step",
+    at,
+  );
+  return {
+    ...d,
+    digest,
+    actions: actionsFor({
+      flowId: d.id,
+      state: d.state,
+      digest,
+      trace: d.trace,
+      availableAgents: ["SchemaAgent", "MigrationAgent", "ReviewAgent"],
+    }),
+  };
+};
 
 const view = (over: Partial<DeskView> = {}): DeskView => {
   const docs = over.docs ?? [
@@ -51,7 +85,7 @@ const view = (over: Partial<DeskView> = {}): DeskView => {
         ],
       },
     },
-  ];
+  ].map((d) => derived(d as Omit<DeskDoc, "digest" | "actions">, 1_760_000_000_000));
   const agents = over.agents ?? [
     {
       name: "SchemaAgent",
@@ -247,5 +281,86 @@ describe("the script the page actually ships", () => {
       !script.includes("${"),
       "the client must not contain template interpolation",
     );
+  });
+});
+
+/**
+ * Semantic zoom, the proposed menu and motion, as they reach the page.
+ *
+ * The motion assertion is the one worth having. `layout.ts` guarantees the
+ * system never re-arranges what a person touched, and that guarantee is
+ * currently invisible — you cannot see that your arrangement is safe, you can
+ * only fail to notice it being destroyed. A pinned node with no transition is
+ * how the page says it, so a rule that silently dropped `.pinned{transition:none}`
+ * would make a placed document animate under its owner's hands.
+ */
+describe("what the page says without being read", () => {
+  it("puts the digest on the panel, with the window it covers", () => {
+    const html = renderDeskHtml(view());
+    assert.match(html, /class="digest"/);
+    // Rule 1 of the sampling argument: a projection declares its window.
+    assert.match(html, /covering/);
+  });
+
+  it("ships the menu with the cost of each action beside it", () => {
+    const html = renderDeskHtml(view());
+    // Both labels must exist in the shipped client: an action that cannot state
+    // its cost is not offerable, so neither branch may be dead code.
+    assert.match(html, /spends a model call/);
+    assert.match(html, /'free'/);
+    assert.match(html, /\.menu \.mc\.spends/);
+    assert.match(html, /\.menu \.mc\.free/);
+  });
+
+  it("does not animate a document its owner placed", () => {
+    const html = renderDeskHtml(view());
+    assert.match(html, /\.docnode\{transition:left/);
+    assert.match(html, /\.docnode\.pinned,\.acube\.pinned\{transition:none\}/);
+  });
+
+  it("honours a reader who asked for less motion", () => {
+    assert.match(renderDeskHtml(view()), /prefers-reduced-motion/);
+  });
+
+  it("keeps a digest built from a flow's own numbers, not a template", () => {
+    const html = renderDeskHtml(view());
+    // The fixture's one flow has a single recorded attempt on step 0.
+    assert.match(html, /1 attempt/);
+  });
+});
+
+describe("the new panel cannot be a way in", () => {
+  it("escapes a digest headline built from a hostile title", () => {
+    const v = view();
+    const html = renderDeskHtml({
+      ...v,
+      docs: v.docs.map((d) => ({
+        ...d,
+        digest: { ...d.digest, headline: '</script><img src=x onerror=alert(1)>' },
+      })),
+    });
+    assert.ok(!html.includes("<img src=x onerror"));
+  });
+
+  it("escapes the evidence line of a proposed action", () => {
+    const v = view();
+    const html = renderDeskHtml({
+      ...v,
+      docs: v.docs.map((d) => ({
+        ...d,
+        actions: [
+          {
+            id: "x",
+            label: "</script><b>label</b>",
+            why: "</script><b>why</b>",
+            spends: false,
+            route: null,
+            source: "state" as const,
+          },
+        ],
+      })),
+    });
+    assert.ok(!html.includes("<b>label</b>"));
+    assert.ok(!html.includes("<b>why</b>"));
   });
 });

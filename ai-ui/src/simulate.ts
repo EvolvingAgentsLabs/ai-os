@@ -138,6 +138,20 @@ export const SIMULATION_JS = String.raw`
       d.done = d.steps.filter((s) => s.state === 'done').length;
       d.total = d.steps.length;
       if (d.total && d.done === d.total && d.state !== 'done') d.state = 'waiting';
+
+      // The digest and the menu were built by the real modules at build time
+      // (scripts/build-demo.ts). They are NOT recomputed here, and a second
+      // in-page implementation of them is exactly what this file exists to
+      // avoid -- the demo is the real client, not a second product.
+      //
+      // So when the state they describe moves, they are dropped rather than
+      // shown stale. That is projection.ts's rule applied literally: a
+      // projection is shown against the state it describes, or it is not shown.
+      // The panel renders without them, which is the degradation the desk is
+      // designed to survive anyway.
+      const sig = d.state + ':' + d.steps.map((s) => s.index + s.state).join(',');
+      if (d._sig === undefined) d._sig = sig;
+      else if (d._sig !== sig) { d._sig = sig; d.digest = null; d.actions = []; }
     }
     world.notes = world.docs.filter((d) => d.state === 'done').map(noteFor);
   };
@@ -164,7 +178,7 @@ export const SIMULATION_JS = String.raw`
     const url = typeof input === 'string' ? input : (input && input.url) || '';
     // Anything not one of the desk's own three endpoints goes to the network,
     // so this shim cannot silently swallow a call somebody adds later.
-    if (!/^\/(state|layout|assign|unassign|advance)/.test(url)) return real(input, init);
+    if (!/^\/(state|layout|assign|unassign|advance|fork|ask)/.test(url)) return real(input, init);
     const body = init && init.body ? JSON.parse(init.body) : {};
 
     if (url.indexOf('/state') === 0) return json(stateBody());
@@ -239,6 +253,52 @@ export const SIMULATION_JS = String.raw`
         if (doc.steps.every((s) => s.state === 'done')) doc.state = 'waiting';
       }, 1600);
       return json({ ok: true, outcome: 'advanced' });
+    }
+
+    if (url.indexOf('/fork') === 0) {
+      const doc = findDoc(body.flowId);
+      if (!doc) return json({ error: 'no such flow' }, 404);
+      const at = Math.max(0, Number(body.atStep) || 0);
+      // Copies records, spends nothing, and does not run -- the same contract
+      // the real route has. The copy keeps steps 0..at and drops their results,
+      // because the fork's history is its own, not its ancestor's.
+      const copy = {
+        id: doc.id + '-fork-' + (world.docs.length + 1),
+        title: doc.title + ' (fork at ' + at + ')',
+        goal: doc.goal,
+        state: 'draft',
+        updatedAt: Date.now(),
+        steps: doc.steps.slice(0, at + 1).map((s) => ({
+          index: s.index, state: 'pending', intent: s.intent, result: null, attempts: [],
+        })),
+      };
+      world.docs.push(copy);
+      world.layout.docs[copy.id] = {
+        x: (world.layout.docs[doc.id] || { x: 200 }).x + 40,
+        y: (world.layout.docs[doc.id] || { y: 40 }).y + 300,
+        pinned: false,
+      };
+      return json({ ok: true, id: copy.id, title: copy.title });
+    }
+
+    if (url.indexOf('/ask') === 0) {
+      const doc = findDoc(body.flowId);
+      if (!doc) return json({ error: 'no such flow' }, 404);
+      // The demo has no model. Rather than fake an answer -- which would teach
+      // the reader that this surface can do something it cannot prove here --
+      // it says what it would have done and what it would have read.
+      const evidence = doc.steps.reduce(
+        (n, s) => n + (s.attempts || []).length + (s.result ? 1 : 0), 0);
+      return json({
+        ok: true,
+        spent: false,
+        evidence: evidence,
+        answer: evidence === 0
+          ? 'Nothing has run in this flow, so there is nothing in the trace to answer from.'
+          : 'The demo has no model behind it. Against a real core this question would be answered from '
+            + evidence + ' piece(s) of recorded evidence -- attempts, errors and observations -- and never '
+            + 'from the goal text.',
+      });
     }
 
     return json({ error: 'not found' }, 404);

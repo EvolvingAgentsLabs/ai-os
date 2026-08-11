@@ -39,6 +39,7 @@ import { verifySignature } from "./core-client.ts";
 import { FLOW_SHAPES, type FlowShape } from "./types.ts";
 import { composeFromAgent } from "./compose.ts";
 import type { Conformation, ScopeNode } from "./conformation.ts";
+import { answerWithoutEvidence, askPrompt, type AskInput } from "./ask.ts";
 
 export interface FlowServerOptions {
   store: FlowStore;
@@ -66,6 +67,16 @@ export interface FlowServerOptions {
    * Absent, `POST /flows/from-agent` answers 501 rather than half-working.
    */
   scopeAgents?: (scopeId: string) => Promise<{ scope: ScopeNode; systemScope?: ScopeNode } | null>;
+  /**
+   * Runs one short turn to answer a question about a flow ([ask.ts](ask.ts)).
+   *
+   * Injected for the same reason `scopeAgents` is: the route needs a core
+   * client, and constructing one here would give this module a second way to
+   * reach the core beside the engine's. Absent, `POST /flows/:id/ask` answers
+   * 501 — the desk then shows the computed digest and no prose, which is the
+   * degradation this whole surface is designed to survive.
+   */
+  ask?: (prompt: string) => Promise<string>;
   now?: () => number;
 }
 
@@ -200,6 +211,54 @@ export function createFlowServer(opts: FlowServerOptions) {
     route("POST", "/flows/:id/resume", async ({ params }) => {
       const resumed = await engine.resume(params.id!);
       return { status: 200, body: { ...resumed, flow: await store.getFlow(params.id!) } };
+    }),
+
+    /**
+     * Answer a question about a flow, or about one step of it.
+     *
+     * `POST /flows/:id/ask { question, step? }`. The `step` is the pronoun —
+     * whatever the person had selected — and it is what makes a three-word
+     * question answerable.
+     *
+     * Two things this route does before it will spend a turn. It refuses an
+     * empty question, and it answers from `answerWithoutEvidence` when the trace
+     * holds nothing, because buying a model call to be told "there is no
+     * information here" is paying for a worse copy of a sentence already known
+     * to be true. `spent` says which happened, so the caller is never guessing
+     * whether it was billed.
+     */
+    route("POST", "/flows/:id/ask", async ({ params, body }) => {
+      const b = (body ?? {}) as Record<string, unknown>;
+      const question = typeof b.question === "string" ? b.question.trim() : "";
+      if (!question) return { status: 400, body: { error: "question is required" } };
+
+      const flow = await store.getFlow(params.id!);
+      if (!flow) return { status: 404, body: { error: "not_found" } };
+
+      const stepIndex = Number.isInteger(b.step) ? (b.step as number) : undefined;
+      const input: AskInput = {
+        title: flow.title,
+        goal: flow.goal,
+        state: flow.state,
+        steps: flow.steps,
+        selection: stepIndex === undefined ? { kind: "flow" } : { kind: "step", index: stepIndex },
+        question,
+      };
+
+      const prompt = askPrompt(input);
+      if (prompt.evidenceCount === 0)
+        return { status: 200, body: { answer: answerWithoutEvidence(input), spent: false, evidence: 0 } };
+
+      if (!opts.ask)
+        return {
+          status: 501,
+          body: { error: "not_configured", message: "no model seam is wired into this server" },
+        };
+
+      return {
+        status: 200,
+        body: { answer: await opts.ask(prompt.text), spent: true, evidence: prompt.evidenceCount },
+      };
     }),
 
     route("POST", "/flows/:id/fork", async ({ params, body }) => {
