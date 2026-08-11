@@ -61,8 +61,21 @@ export interface TraceStep {
    * judge" — `contribution.ts` refuses to grade a handoff below
    * `MIN_INPUT_TOKENS`, and rendering that refusal as a pass would invent a
    * verdict it declined to give.
+   *
+   * `note` is set when the verdict came from the runner's own measurement rather
+   * than from prose overlap, and it says which instrument spoke. A flag that
+   * always claims to have counted distinctive tokens is lying the moment the
+   * step's output was numbers.
    */
-  ignoredInput?: { carried: number; inputTokens: number };
+  ignoredInput?: { carried: number; inputTokens: number; note?: string };
+  /**
+   * The step's output as a shape, when the runner reported one.
+   *
+   * Numbers are the one kind of result that prose cannot summarise: "the band is
+   * clean" and "the band is empty" are the same sentence, and only the picture
+   * separates them. Optional everywhere — a flow of text steps carries none.
+   */
+  series?: number[];
 }
 
 export interface FlowTrace {
@@ -81,6 +94,18 @@ export interface RawStep {
   state: string;
   intent: string;
   result?: string | null;
+  /**
+   * What the runner measured about this step's handoff, if it measured one.
+   *
+   * Prose overlap ([contribution.ts](../../ai-flows/src/contribution.ts)) is the
+   * fallback for when nothing better exists, and it is the wrong instrument for
+   * a step whose output is a waveform: two stages can share every word and one
+   * of them can still have deleted the signal. When the thing that ran the step
+   * can answer "does my output move when my input does", its answer wins.
+   */
+  contribution?: { carried: number; inputTokens: number; note?: string };
+  /** The step's output as numbers, if it produced any. */
+  series?: number[];
   attempts?: Array<{
     n: number;
     state: string;
@@ -118,25 +143,41 @@ export function traceOf(
     }
   }
 
+  // Measured beats inferred. Steps whose runner reported a contribution are not
+  // handed to the prose instrument at all -- running both and picking would be
+  // two verdicts about one handoff, and the screen would show whichever came
+  // second.
+  const measured = new Map(
+    steps
+      .filter((s) => s.contribution)
+      .map((s) => [s.index, s.contribution!] as const),
+  );
+
   const ignored = new Map(
     contributionsOf(
-      steps.map((s) => ({
-        index: s.index,
-        state: s.state,
-        result: s.result ?? null,
-      })),
+      steps
+        .filter((s) => !s.contribution)
+        .map((s) => ({
+          index: s.index,
+          state: s.state,
+          result: s.result ?? null,
+        })),
     )
       .filter((c) => c.verdict === "ignored-input")
       .map((c) => [c.stepIndex, c] as const),
   );
 
+  let flaggedCount = ignored.size;
+  for (const c of measured.values()) if (c.carried === 0) flaggedCount += 1;
+
   return {
     movement,
     movementTone: tone,
     detail,
-    ignoredCount: ignored.size,
+    ignoredCount: flaggedCount,
     steps: steps.map((s) => {
-      const flagged = ignored.get(s.index);
+      const own = measured.get(s.index);
+      const flagged = own && own.carried === 0 ? own : ignored.get(s.index);
       return {
         index: s.index,
         state: s.state,
@@ -150,11 +191,13 @@ export function traceOf(
           source: a.observation?.source ?? null,
           error: a.error,
         })),
+        ...(s.series ? { series: s.series } : {}),
         ...(flagged
           ? {
               ignoredInput: {
                 carried: flagged.carried,
                 inputTokens: flagged.inputTokens,
+                ...("note" in flagged && flagged.note ? { note: flagged.note } : {}),
               },
             }
           : {}),

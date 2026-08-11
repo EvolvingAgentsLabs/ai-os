@@ -101,7 +101,14 @@ export function actionsFor(input: ActionInput): Action[] {
     out.push({
       id: `handoff-${ignored.index}`,
       label: `Step ${ignored.index} used nothing it was given`,
-      why: `${ignored.ignoredInput!.carried} of ${ignored.ignoredInput!.inputTokens} tokens carried forward. The handoff is broken, so what this step produced did not come from what preceded it.`,
+      // The instrument that judged the handoff says so in its own terms. This
+      // line used to claim tokens whatever had been measured, which reads as
+      // nonsense over a step whose output was a waveform -- and a menu entry
+      // whose reason is nonsense is a menu entry nobody trusts.
+      why: `${
+        ignored.ignoredInput!.note ??
+        `${ignored.ignoredInput!.carried} of ${ignored.ignoredInput!.inputTokens} tokens carried forward`
+      }. The handoff is broken, so what this step produced did not come from what preceded it.`,
       spends: false,
       route: "/ask",
       step: ignored.index,

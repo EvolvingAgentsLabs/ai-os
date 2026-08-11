@@ -66,6 +66,8 @@ export interface DeskDoc {
     state: string;
     agent: string | null;
     intent: string;
+    /** The step's output as numbers, when it produced any. Drawn, not printed. */
+    series?: number[];
   }>;
   done: number;
   total: number;
@@ -151,6 +153,18 @@ body{overflow:hidden}
 .docnode .goal{font-size:12px;color:#3b3f44;margin:0 0 6px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .docnode .meta{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+/* A step's numbers, as a shape.
+   Bars in whole pixels on the same grid as everything else, and never without
+   the caption underneath: a chart with no scale invites the reader to see a
+   trend in noise, which is the failure doc/04 spends a section on. The caption
+   carries the peak, so a flatline cannot be mistaken for a small signal. */
+.spark{display:flex;align-items:flex-end;gap:1px;background:#fff;border:1px solid #cfcbc2;
+  padding:2px;overflow:hidden}
+.spark i{display:block;background:#3f6f8f;flex:0 0 auto;min-height:1px}
+.spark.dead i{background:#b03a2e}
+.sparkcap{font:10px/1.3 var(--mono);color:var(--dim);margin-top:2px}
+.sparkcap b{color:#7d2419;font-weight:700}
 
 /* The stack: cubes resting on the document, offset so the pile reads as a pile. */
 .stack{min-height:26px;margin-top:8px;padding:4px;border:1px dashed #c6c1b7;
@@ -554,9 +568,15 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
               (a.error ? ' · <span class="err">' + escape_(a.error.slice(0, 120)) + '</span>' : '') +
               '</div>').join('')
           : '<div class="att">never attempted</div>') +
+        (s.series ? '<div style="margin:4px 0 0 16px">' + spark(s.series, 226, 22) + '</div>' : '') +
+        // The flag names the instrument that produced it. It used to claim it had
+        // counted distinctive tokens whatever had actually been measured, which
+        // is a lie the moment a step's output is numbers.
         (s.ignoredInput
-          ? '<div class="flag">carried ' + Math.round(s.ignoredInput.carried * 100) + '% of ' +
-            s.ignoredInput.inputTokens + ' distinctive tokens it was handed</div>'
+          ? '<div class="flag">' + (s.ignoredInput.note
+              ? escape_(s.ignoredInput.note)
+              : 'carried ' + Math.round(s.ignoredInput.carried * 100) + '% of ' +
+                s.ignoredInput.inputTokens + ' distinctive tokens it was handed') + '</div>'
           : '') +
         '</div>').join('') + '</div>';
   };
@@ -683,6 +703,8 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
             '</div>'
           : '') +
         '<p style="margin:6px 0 0">' + escape_(doc.goal) + '</p>' +
+        (lastSeries(doc) ? '<div style="margin-top:8px">' +
+          spark(lastSeries(doc).series, 250, 30) + '</div>' : '') +
         '<ul class="steps">' + doc.steps.map((s) =>
           '<li><span class="cube sm" style="--c:' + (S.stateColors[s.state] || '#b9b4a8') + '"></span>' +
           '<span class="dim">' + s.index + '</span> ' + escape_(s.agent || s.intent.slice(0, 60)) + '</li>').join('') +
@@ -718,7 +740,11 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
         '<button id="qgo">Ask</button>' +
         '<div class="dim" style="margin-top:4px">Answered from the trace, not the goal. Spends a model call.</div>' +
         '<div id="qa"></div></div>';
-      p.querySelector('#tab-trace').onclick = () => { tab = 'trace'; renderPanel(); };
+      p.querySelector('#tab-trace').onclick = () => {
+        tab = 'trace';
+        renderPanel();
+        replayHandovers(doc);
+      };
       wireActions(p, doc);
       wireAsk(p, doc);
       const b = p.querySelector('#adv');
@@ -790,6 +816,42 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\`([^\`]+)\`/g, '$1')
     .replace(/(^|\s)__(.+?)__(?=\s|$)/g, '$1$2');
+
+  /**
+   * A step's numbers, drawn.
+   *
+   * Deliberately dumb: bars, one per sample, scaled to the largest absolute
+   * value in the series, in whole pixels. It is not a plotting library and must
+   * not become one -- what it is for is the single question a sentence cannot
+   * answer, which is whether the numbers are still there. A stage that says
+   * "64 samples returned, nothing clipped" and a stage that returned 64 zeros
+   * write the same report.
+   *
+   * The caption is not decoration. A bar chart normalised to its own maximum
+   * looks identical at 1.3 units and at 0.0001, so the peak is printed next to
+   * it, and a series that is all zeros says so in words.
+   */
+  const spark = (xs, w, h) => {
+    if (!xs || !xs.length) return '';
+    let max = 0;
+    for (const v of xs) max = Math.max(max, Math.abs(v));
+    const bw = Math.max(1, Math.floor((w - xs.length) / xs.length));
+    const dead = max === 0;
+    const bars = xs.map((v) => {
+      const px = dead ? 1 : Math.max(1, Math.round((Math.abs(v) / max) * h));
+      return '<i style="width:' + bw + 'px;height:' + px + 'px"></i>';
+    }).join('');
+    return '<div class="spark' + (dead ? ' dead' : '') + '" style="height:' + (h + 6) + 'px">' +
+      bars + '</div><div class="sparkcap">' + xs.length + ' values · peak ' +
+      (dead ? '<b>0.00 — nothing here</b>' : max.toFixed(2)) + '</div>';
+  };
+
+  /** The last thing this flow produced numbers for, if anything did. */
+  const lastSeries = (doc) => {
+    let out = null;
+    for (const s of (doc.steps || [])) if (s.series && s.series.length) out = s;
+    return out;
+  };
 
   const escape_ = (s) => String(s == null ? '' : s).replace(/[&<>"']/g,
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -969,6 +1031,21 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
     setTimeout(() => p.remove(), 1000);
   };
 
+  /**
+   * Replay every handoff in a flow, in order.
+   *
+   * The packet only draws on a transition, so a flow that was already finished
+   * when the page opened never shows the one thing worth seeing. Opening the
+   * Trace face asks for the history of this flow, and this is that history as
+   * motion: each result travelling to the next agent, and the one that did not
+   * arrive falling in front of you. Nothing runs, nothing is spent -- it is the
+   * same recorded verdicts the list below it prints.
+   */
+  const replayHandovers = (doc) => {
+    const settled = (doc.steps || []).filter((s) => s.state === 'done');
+    settled.forEach((s, i) => setTimeout(() => drawHandover(doc, s.index), i * 420));
+  };
+
   // What each step was last time the desk looked, so a settle can be noticed
   // rather than polled for. Only transitions draw.
   const stepWas = {};
@@ -1030,7 +1107,7 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
         el.innerHTML =
           '<div class="dbar"><span class="box"></span><span class="t"></span></div>' +
           '<div class="body"><p class="goal"></p><div class="meta"></div>' +
-          '<div class="stack"></div></div>';
+          '<div class="chart"></div><div class="stack"></div></div>';
         el.querySelector('.stack').dataset.stack = doc.id;
         el.querySelector('.dbar').addEventListener('pointerdown', (ev) => startDrag(el, 'doc', doc.id, ev));
         el.addEventListener('pointerdown', () => { if (!drag) select('doc', doc.id); });
@@ -1049,6 +1126,13 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
         '<span class="strip">' + doc.steps.map((s) =>
           '<span class="cube" style="--c:' + (S.stateColors[s.state] || '#b9b4a8') + '"></span>').join('') +
         '</span><span>' + doc.done + '/' + doc.total + '</span><span>' + escape_(doc.state) + '</span>';
+      // What this flow is carrying right now, on the document itself. Two flows
+      // whose strips are both green and whose shapes are a waveform and a
+      // flatline are two different outcomes, and the desk should not need to be
+      // asked which is which.
+      const ls = lastSeries(doc);
+      const chart = el.querySelector('.chart');
+      chart.innerHTML = ls ? spark(ls.series, 236, 26) : '';
       if (!drag || drag.el !== el) {
         el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
       }
@@ -1284,7 +1368,7 @@ export function renderDeskHtml(view: DeskView): string {
     )
     .join("")}</select></label>
   <span class="sep">|</span>
-  <span>${esc(view.docs.length)} document(s) · ${esc(view.agents.length)} agent(s) · ${esc(view.people.length)} person(s)</span>
+  <span id="counts">${esc(view.docs.length)} document(s) · ${esc(view.agents.length)} agent(s) · ${esc(view.people.length)} person(s)</span>
   <button id="reload">Refresh</button>
   <span class="right">harness ${esc(view.harness)} · <span id="stamp">${esc(new Date(view.at).toISOString())}</span></span>
 </div>

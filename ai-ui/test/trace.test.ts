@@ -117,3 +117,77 @@ describe("the step that used nothing it was given", () => {
     assert.equal(t.steps[1]!.ignoredInput, undefined);
   });
 });
+
+describe("a measurement from whoever ran the step", () => {
+  const step = (
+    index: number,
+    result: string,
+    contribution?: { carried: number; inputTokens: number; note?: string },
+    series?: number[],
+  ) => ({
+    index,
+    state: "done",
+    intent: 'agent="StageAgent"',
+    result,
+    attempts: [],
+    ...(contribution ? { contribution } : {}),
+    ...(series ? { series } : {}),
+  });
+
+  const agentOf = () => "StageAgent";
+
+  it("wins over prose overlap, and says which instrument spoke", () => {
+    // Prose overlap is the fallback for when nothing better exists. A step whose
+    // output was numbers has something better: the runner can answer "does my
+    // output move when my input does", and its answer is about the thing that
+    // actually broke.
+    const t = traceOf(
+      [
+        step(0, "Read 64 samples at 64 Hz off sensor-7. Peak amplitude 1.26."),
+        step(
+          1,
+          "Converted 64 samples to fixed point. Range respected, nothing clipped.",
+          { carried: 0, inputTokens: 64, note: "its output does not move when its input does" },
+          [0, 0, 0, 0],
+        ),
+      ],
+      agentOf,
+    );
+    assert.equal(t.ignoredCount, 1);
+    assert.equal(t.steps[1]!.ignoredInput!.carried, 0);
+    assert.match(t.steps[1]!.ignoredInput!.note!, /does not move/);
+    assert.deepEqual(t.steps[1]!.series, [0, 0, 0, 0]);
+  });
+
+  it("clears a step the word counter would have flagged", () => {
+    // Two reports with no distinctive word in common, and a runner that measured
+    // the handoff and found it fine. Running both instruments and picking would
+    // be two verdicts about one handoff; the measured one is the only one that
+    // looked at what the step actually passed on.
+    const t = traceOf(
+      [
+        step(0, "alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima"),
+        step(1, "Converted the window into fixed point.", {
+          carried: 0.83,
+          inputTokens: 64,
+          note: "output moved 0.830x its input",
+        }),
+      ],
+      agentOf,
+    );
+    assert.equal(t.ignoredCount, 0);
+    assert.equal(t.steps[1]!.ignoredInput, undefined);
+  });
+
+  it("still reads prose for steps nobody measured", () => {
+    const t = traceOf(
+      [
+        step(0, "alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima"),
+        step(1, "Looks fine to me."),
+      ],
+      agentOf,
+    );
+    assert.equal(t.ignoredCount, 1);
+    assert.equal(t.steps[1]!.ignoredInput!.note, undefined);
+  });
+});

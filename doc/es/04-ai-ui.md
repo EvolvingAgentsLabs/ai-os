@@ -361,6 +361,59 @@ escribe nada, y el escritorio **anuncia qué se seleccionó** para que la mascot
 lea la decisión del propio producto en vez de re-deducirla de los eventos de
 puntero y contradecirlo.
 
+### El laboratorio de señales — el mismo escritorio, sobre números — 2026-08-11 [ran]
+
+Lo que afirma el escritorio es que **verde no es correcto**: un paso puede
+correr, cerrar, reportar y no haber llevado nada adelante. En un flow de prosa
+eso es una afirmación real y difícil de sentir — hay que creerle al instrumento.
+Así que la demo ganó un segundo scope donde la misma afirmación es un dibujo.
+
+`group:signal-lab` tiene dos flows. Los dos buscan un tono de 5 Hz debajo de un
+zumbido de red de 23 Hz. Los dos usan los mismos seis agentes en los mismos seis
+pasos. Los dos están verdes de punta a punta. Uno encontró el tono en el bin 5;
+el otro lo perdió en el paso 2 y respondió *"componente más fuerte: bin 0
+(0.0 Hz), magnitud 0.00"* con la misma seguridad.
+
+El defecto es una conversión a punto fijo con la escala mal cargada — 0,5 cuentas
+por unidad en vez de 32767 — así que cada muestra se trunca a cero. La etapa
+devuelve 64 números válidos, dentro de rango, sin recorte, y lo informa. Todas
+las etapas siguientes corren correctamente sobre nada.
+
+**Nada en `ai-ui` sabe qué es una transformada de Fourier.** El digest, el trace,
+el menú de acciones, la mascota y la bandera de "no llevó nada adelante" hacen
+todo el trabajo sin cambios. Ése es el punto del scope: los instrumentos no son
+sobre texto.
+
+Lo que hizo falta, y cada cosa es un cambio del producto y no un truco de la demo:
+
+- **Un paso puede llevar números.** `series` en el paso, dibujado como barras con
+  el pico impreso al lado — porque un gráfico normalizado a su propio máximo se ve
+  igual a 1,3 unidades que a cero, y el único caso que nadie debería tener que
+  entrecerrar los ojos para leer es el vacío. Dice *peak 0.00 — nothing here*, con
+  palabras.
+- **Quien ejecuta puede aportar su propio veredicto sobre el traspaso.**
+  `contribution` en el paso crudo: cuando lo que corrió la etapa puede responder
+  "¿mi salida se mueve cuando se mueve mi entrada?", gana su respuesta y no se
+  consulta la superposición de prosa. Tanto la bandera como el menú **nombran el
+  instrumento que juzgó**, en vez de afirmar siempre que contaron tokens.
+- **Abrir la cara Trace reproduce los traspasos del flow** sobre el escritorio:
+  cada resultado viajando al siguiente agente, y el que no llegó cayéndose al
+  piso en rojo.
+
+La medición es una perturbación: se vuelve a correr cada etapa con todas las
+muestras corridas un 1% y se compara el cambio de su salida contra el de su
+entrada. Cero significa que la etapa no está escuchando. A propósito **no** es un
+chequeo de corrección — una etapa puede ser perfectamente sensible y estar
+perfectamente equivocada — y la demo lo dice dejando sin marcar a las etapas
+posteriores al defecto: no destruyeron nada, no les dieron nada.
+
+**El argumento del scope es un test, no una declaración.** `dsp-demo.test.ts`
+corre el instrumento habitual del escritorio — superposición de prosa,
+`contribution.ts` — sobre la cadena rota y afirma que **no marca nada**. Los dos
+reportes difieren en un número y comparten todas sus palabras distintivas. Si ese
+test alguna vez da lo contrario, el instrumento de texto alcanzaba y este scope
+hay que borrarlo.
+
 ### Lo que a propósito NO hace
 
 **Leer el escritorio nunca gasta una llamada al modelo.** `POST /assign` escribe
