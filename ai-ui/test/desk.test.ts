@@ -562,7 +562,16 @@ describe("agents as creatures", () => {
     assert.match(html, /function agentInstances\(docs, name\)/);
     assert.match(html, /function agentDoing\(docs, name, flowId\)/);
     // Product-side, not a demo trick: an unsimulated desk draws them too.
-    assert.match(html, /class="blk" style="--c:/);
+    assert.match(html, /class="blk crt/);
+    // And it draws them from the shared sprite. Two stylesheets is two species,
+    // whatever the comments say -- that is how the mascot ended up looking like
+    // a character standing next to a row of chips.
+    assert.match(html, /\.crt \.eye\{/);
+    assert.match(html, /\.crt \.leg\{/);
+    assert.ok(
+      !html.includes(".acube .blk i{"),
+      "the desk must not keep a private sprite",
+    );
   });
 
   it("reconciles rather than rebuilding, which is what makes motion possible", () => {
@@ -585,5 +594,20 @@ describe("agents as creatures", () => {
     // below would silently match a letter instead of whitespace.
     const html = renderDeskHtml(view());
     assert.ok(html.includes("(^|\\s)__(.+?)__(?=\\s|$)"), "the escape was eaten");
+  });
+});
+
+describe("a click is not a drag", () => {
+  it("ignores the tremor a hand makes while pressing a button", () => {
+    // Clicking an agent that is already standing on a document used to drop it
+    // there again -- POST /assign, a step appended, from a gesture the person
+    // performed as a click. The guard is in the client, so this asserts the
+    // shipped source carries it.
+    const html = renderDeskHtml(view());
+    assert.match(html, /if \(!drag\.moved\) \{/);
+    assert.match(
+      html,
+      /Math\.abs\(ev\.clientX - drag\.x0\) \+ Math\.abs\(ev\.clientY - drag\.y0\) < 4/,
+    );
   });
 });

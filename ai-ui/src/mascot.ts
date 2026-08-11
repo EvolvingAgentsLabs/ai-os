@@ -248,6 +248,138 @@ function cubiRemarks(state, ctx) {
 }
 
 /**
+ * What an agent answers when it is asked about itself.
+ *
+ * Cubi is the desk's own agent, not a narrator standing outside the system: when
+ * you click an agent, Cubi walks over and asks, and **the agent answers in its
+ * own balloon, in the first person**. That is not a flourish — delegation is the
+ * mechanic this whole product is about, and a companion that summarised the
+ * others would have been one more surface reading their trace for them.
+ *
+ * Every line is that agent's own record. The best one it can say is the
+ * confession: an agent that ran, settled, and carried nothing forward says so
+ * itself, which is a very different thing from a panel saying it about them.
+ */
+function agentSays(state, name) {
+  var docs = (state && state.docs) || [], agents = (state && state.agents) || [];
+  var a = null;
+  for (var i = 0; i < agents.length; i++) if (agents[i].name === name) a = agents[i];
+  if (!a) return null;
+  var clip = function (s, n) {
+    s = String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
+    return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  };
+  var pack = function (tone, en, enWhy, es, esWhy) {
+    return { id: 'agent:' + name, tone: tone, who: name,
+      en: { say: en, why: enWhy }, es: { say: es, why: esWhy } };
+  };
+
+  if (a.missing) {
+    return pack('alert',
+      'There is no file behind me. Somebody wrote my name in a subagents list and stopped there.',
+      'declared, no file — I cannot take a step',
+      'No hay ningún archivo detrás mío. Alguien escribió mi nombre en una lista de subagents y ahí quedó.',
+      'declarado, sin archivo — no puedo tomar un paso');
+  }
+
+  var running = null, ignored = null, last = null, attempts = 0, pending = 0, flows = 0;
+  for (var d = 0; d < docs.length; d++) {
+    var doc = docs[d], mine = 0;
+    for (var s = 0; s < (doc.steps || []).length; s++) {
+      var st = doc.steps[s];
+      if (st.agent !== name) continue;
+      mine += 1;
+      attempts += (st.attempts || []).length;
+      if (st.state === 'running') running = { doc: doc, step: st };
+      if (st.state === 'pending') pending += 1;
+      if (st.result) last = { doc: doc, step: st };
+    }
+    if (mine) flows += 1;
+    var tsteps = (doc.trace && doc.trace.steps) || [];
+    for (var t = 0; t < tsteps.length; t++)
+      if (tsteps[t].agent === name && tsteps[t].ignoredInput)
+        ignored = { doc: doc, step: tsteps[t] };
+  }
+
+  if (running) {
+    return pack('ok',
+      'I am on step ' + running.step.index + ' of "' + running.doc.title + '" right now.',
+      'running · ' + attempts + ' attempt(s) on my record',
+      'Estoy en el paso ' + running.step.index + ' de "' + running.doc.title + '" ahora mismo.',
+      'corriendo · ' + attempts + ' intento(s) en mi historial');
+  }
+  if (ignored) {
+    var tok = ignored.step.ignoredInput ? ignored.step.ignoredInput.inputTokens : 0;
+    return pack('alert',
+      'I ran in "' + ignored.doc.title + '" and I answered "' +
+        clip(ignored.step.result, 60) + '". The trace says I carried nothing out of the step before mine.',
+      'carried 0% of ' + tok + ' distinctive tokens I was handed',
+      'Corrí en "' + ignored.doc.title + '" y respondí "' +
+        clip(ignored.step.result, 60) + '". El trace dice que no llevé nada del paso anterior al mío.',
+      'arrastré 0% de los ' + tok + ' tokens distintivos que recibí');
+  }
+  if (last) {
+    return pack('idle',
+      'In "' + last.doc.title + '" I answered: ' + clip(last.step.result, 110),
+      attempts + ' attempt(s) across ' + flows + ' document(s)',
+      'En "' + last.doc.title + '" respondí: ' + clip(last.step.result, 110),
+      attempts + ' intento(s) en ' + flows + ' documento(s)');
+  }
+  if (pending) {
+    return pack('warn',
+      'I have work waiting and I have not run. What you can read about me is the goal, not anything I did.',
+      pending + ' step(s) pending, 0 attempts',
+      'Tengo trabajo esperando y no corrí. Lo que se puede leer de mí es el goal, no algo que haya hecho.',
+      pending + ' paso(s) pendientes, 0 intentos');
+  }
+  return pack('idle',
+    'Nothing has asked me for anything. Drop me on a document and I will have a step.',
+    'no steps anywhere — that is why I was asleep',
+    'Nadie me pidió nada. Soltame sobre un documento y voy a tener un paso.',
+    'sin pasos en ningún lado — por eso estaba dormido');
+}
+
+/**
+ * The fact sheet for one agent, when a model is answering for it.
+ *
+ * Same contract as the flow's: everything it may say, and the string its answer
+ * is checked against. Its own steps only — an agent speaking for the whole desk
+ * would be the summariser this design refuses to build.
+ */
+function cubiAgentFacts(state, name) {
+  var docs = (state && state.docs) || [], agents = (state && state.agents) || [];
+  var a = null;
+  for (var i = 0; i < agents.length; i++) if (agents[i].name === name) a = agents[i];
+  if (!a) return 'There is no agent called ' + name + ' on this desk.';
+  var clip = function (s, n) {
+    s = String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
+    return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  };
+  var L = ['AGENT: ' + a.name];
+  L.push('TOOLS: ' + ((a.tools || []).join(', ') || 'none declared'));
+  if (a.missing) L.push('FLAG: declared in a subagents list with no file behind it.');
+  var any = false;
+  for (var d = 0; d < docs.length; d++) {
+    var doc = docs[d];
+    for (var s = 0; s < (doc.steps || []).length; s++) {
+      var st = doc.steps[s];
+      if (st.agent !== name) continue;
+      any = true;
+      L.push('STEP ' + st.index + ' in "' + doc.title + '": ' + st.state + ', ' +
+        ((st.attempts || []).length ? (st.attempts || []).length + ' attempt(s)' : 'never attempted') +
+        '. ' + (st.result ? 'I answered: ' + clip(st.result, 160) : 'No result recorded.'));
+    }
+    var tsteps = (doc.trace && doc.trace.steps) || [];
+    for (var t = 0; t < tsteps.length; t++)
+      if (tsteps[t].agent === name && tsteps[t].ignoredInput)
+        L.push('FLAG: step ' + tsteps[t].index + ' carried 0% of the ' +
+          tsteps[t].ignoredInput.inputTokens + ' distinctive tokens it was handed.');
+  }
+  if (!any) L.push('NO STEPS: nothing has asked this agent for anything.');
+  return L.join('\n');
+}
+
+/**
  * The fact sheet.
  *
  * Everything a model is allowed to speak from, and the string cubiUngrounded
@@ -333,33 +465,19 @@ function cubiUngrounded(answer, facts) {
  * that stands on the control you are reaching for is the paperclip again.
  */
 export const MASCOT_CSS = `
-/* Cubi: the agent cube at 2x, in AGENT_COLOR, with the same outline and the same
-   inset light/dark as every .cube on the surface. */
-.cubi{position:fixed;z-index:390;width:26px;height:32px;pointer-events:auto;cursor:pointer;
+/* Cubi is not a character standing next to the agents: it is the same creature
+   ([creatures.ts](creatures.ts)) at --u:2, in the same amber, blinking with the
+   same keyframes and watching the pointer through the same code. The only thing
+   this file styles is where it stands and the double outline that says which one
+   of them speaks for the system. */
+.cubi{position:fixed;z-index:390;pointer-events:auto;cursor:pointer;
   transition:left .55s steps(14),top .55s steps(14)}
-.cubi .body{position:relative;width:26px;height:26px;background:var(--cubi,#e0a020);
-  border:1px solid #000;
-  box-shadow:inset 2px 2px 0 rgba(255,255,255,.5),inset -2px -2px 0 rgba(0,0,0,.3)}
-.cubi .eye{position:absolute;top:9px;width:4px;height:6px;background:#16181a;
-  transform-origin:50% 50%}
-.cubi .eye.l{left:6px} .cubi .eye.r{left:15px}
-.cubi.blink .eye{height:1px;top:12px}
-.cubi .legs{position:absolute;left:2px;top:26px;display:flex;gap:3px}
-.cubi .legs i{display:block;width:4px;height:6px;background:var(--cubi,#e0a020);
-  border:1px solid #000;border-top:0}
-.cubi.sitting .legs{display:none}
-.cubi.walking .legs i{animation:cubistep .34s steps(2,end) infinite}
-.cubi.walking .legs i:nth-child(2n){animation-delay:.17s}
-.cubi.walking .body{animation:cubibob .34s steps(2,end) infinite}
-@keyframes cubistep{from{height:6px}to{height:3px}}
-@keyframes cubibob{from{transform:translateY(0)}to{transform:translateY(-1px)}}
+.cubi .crt{--u:2;outline:1px solid #000;outline-offset:2px}
+.cubi.sitting .crt .leg{display:none}
 /* Alert: the outline goes to the colour a missing agent is drawn in, so the
    warning is in the palette the reader already learned. */
-.cubi.alert .body{animation:cubialert .28s steps(1,end) 6}
+.cubi.alert .crt{animation:cubialert .28s steps(1,end) 6}
 @keyframes cubialert{from{box-shadow:0 0 0 2px #b03a2e}to{box-shadow:none}}
-.cubi.thinking .eye{animation:cubithink .5s steps(2,end) infinite}
-.cubi.thinking .eye.r{animation-delay:.25s}
-@keyframes cubithink{from{height:6px;top:9px}to{height:2px;top:11px}}
 
 /* The balloon. A window, because on this desk every bounded thing is one. */
 .cubisay{position:fixed;z-index:391;width:288px;max-width:calc(100vw - 28px);
@@ -391,6 +509,25 @@ export const MASCOT_CSS = `
 /* Beside the sprite there is no honest tail to draw. */
 .cubisay.notail::after,.cubisay.notail::before{display:none}
 
+/* The agent's own balloon. Narrower and plainer than Cubi's, because it is not
+   the system talking: it is one agent answering for itself, and the difference
+   should be visible before either of them is read. */
+.crtsay{position:fixed;z-index:389;width:252px;max-width:calc(100vw - 28px);
+  background:var(--paper);border:1px solid #000;box-shadow:3px 3px 0 rgba(0,0,0,.4);
+  padding:7px 9px 8px;display:none;font-size:11px;line-height:1.42}
+.crtsay.on{display:block}
+.crtsay .who{font:700 10px/1 var(--mono);letter-spacing:.04em;color:#3b3f44;
+  margin:0 0 4px;text-transform:uppercase}
+.crtsay .said{margin:0}
+.crtsay .why{margin:5px 0 0;font-size:10px;color:var(--dim);border-top:1px dotted #b9b4a8;padding-top:4px}
+.crtsay.alert{border-left:4px solid #b03a2e}
+.crtsay.alert .said{color:#7d2419}
+.crtsay .ans{margin-top:6px;font-size:11px;white-space:pre-wrap;border-top:1px solid #cfcbc2;padding-top:5px}
+.crtsay .ung{margin-top:5px;font-size:10px;color:#7d2419;border:1px solid #b03a2e;padding:3px 5px}
+.crtsay .src{margin-top:5px;font-size:10px;color:var(--dim)}
+.crtsay details pre{margin:4px 0 0;font-family:var(--mono);font-size:10px;white-space:pre-wrap;
+  max-height:110px;overflow:auto;background:#fff;border:1px solid #cfcbc2;padding:4px}
+
 /* The brain: everything about it states its price before it is pressed, which is
    the rule the action menu lives under. */
 .cubisay .brain{margin:7px -10px -9px;padding:7px 10px;border-top:1px solid #000;background:#efece5}
@@ -410,7 +547,7 @@ export const MASCOT_CSS = `
 
 @media (prefers-reduced-motion: reduce){
   .cubi{transition:none}
-  .cubi.walking .legs i,.cubi.walking .body,.cubi.alert .body,.cubi.thinking .eye{animation:none}
+  .cubi.alert .crt{animation:none}
 }
 /* Under 720px the rail and the drawer already own the screen. Cubi keeps its
    corner and stops walking to things it would cover. */
@@ -462,8 +599,7 @@ ${BRAIN_JS}
   wrap.className = 'cubi';
   wrap.setAttribute('role', 'img');
   wrap.setAttribute('aria-label', "Cubi, the desk's agent cube");
-  wrap.innerHTML = '<div class="body"><span class="eye l"></span><span class="eye r"></span></div>' +
-    '<div class="legs"><i></i><i></i><i></i><i></i></div>';
+  wrap.innerHTML = '<span class="crt" style="--c:#e0a020">' + (window.__CRT__ || '') + '</span>';
   document.body.appendChild(wrap);
 
   const bubble = document.createElement('div');
@@ -472,6 +608,13 @@ ${BRAIN_JS}
   bubble.setAttribute('aria-live', 'polite');
   document.body.appendChild(bubble);
 
+  // The agent's balloon: one on the page, moved to whoever is answering.
+  const theirs = document.createElement('div');
+  theirs.className = 'crtsay';
+  theirs.setAttribute('role', 'status');
+  document.body.appendChild(theirs);
+
+  let talkingTo = null;   // the agent Cubi is currently asking
   let lang = (navigator.language || 'en').slice(0, 2) === 'es' ? 'es' : 'en';
   let seen = [];          // remark ids already said, so Cubi does not repeat itself
   let here = { x: 0, y: 0 };
@@ -563,11 +706,13 @@ ${BRAIN_JS}
     bubble.style.setProperty('--tail', tail + 'px');
   };
 
+  const body = () => wrap.querySelector('.crt');
+
   const walkTo = (x, y) => {
-    wrap.classList.add('walking');
+    body().classList.add('walking');
     place(x, y);
     clearTimeout(walkTo._t);
-    walkTo._t = setTimeout(() => wrap.classList.remove('walking'), 580);
+    walkTo._t = setTimeout(() => body().classList.remove('walking'), 580);
   };
 
   /**
@@ -636,6 +781,9 @@ ${BRAIN_JS}
       wrap.classList.add('alert');
       setTimeout(() => wrap.classList.remove('alert'), 1800);
     }
+    // It looks at whoever it is talking to while it talks.
+    body().classList.add('busy');
+    setTimeout(() => body().classList.remove('busy'), 700);
     if (seen.indexOf(remark.id) < 0) seen.push(remark.id);
     // A companion that never forgets has nothing left to say by the third
     // minute. Forget the oldest half once it has said eight things.
@@ -643,7 +791,48 @@ ${BRAIN_JS}
     wire();
   };
 
-  const hush = () => { bubble.classList.remove('on'); };
+  const hush = () => {
+    bubble.classList.remove('on');
+    theirs.classList.remove('on');
+    talkingTo = null;
+  };
+
+  /**
+   * Cubi walks over and asks; the agent answers for itself.
+   *
+   * The two balloons are deliberately different objects. Cubi says what it did
+   * — "I asked X" — and X says what X did, in the first person, out of its own
+   * record. A single balloon summarising both would have made Cubi a narrator
+   * of other agents, which is the thing this desk is trying not to build.
+   */
+  const askAgent = (name) => {
+    const el = document.querySelector('.acube:not(.merging)[data-id="' + CSS.escape(name) + '"]');
+    if (!el) return;
+    talkingTo = name;
+    const r = el.getBoundingClientRect();
+    walkTo(r.left - 46, r.top - 10);
+    const line = agentSays(S, name);
+    setTimeout(() => {
+      if (talkingTo !== name || !line) return;
+      const t = line[lang] || line.en;
+      theirs.className = 'crtsay on' + (line.tone === 'alert' ? ' alert' : '');
+      theirs.innerHTML = '<p class="who"></p><p class="said"></p><p class="why"></p>';
+      theirs.querySelector('.who').textContent = name +
+        (lang === 'es' ? ' responde' : ' answers');
+      theirs.querySelector('.said').textContent = t.say;
+      theirs.querySelector('.why').textContent = t.why;
+      placeTheirs(el);
+    }, 620);
+  };
+
+  const placeTheirs = (el) => {
+    const r = el.getBoundingClientRect();
+    const w = theirs.offsetWidth || 252, h = theirs.offsetHeight || 80;
+    const x = Math.min(Math.max(r.left + 24, 8), Math.max(8, window.innerWidth - 330 - w));
+    const y = Math.min(Math.max(r.bottom + 10, 44), Math.max(44, window.innerHeight - 166 - h));
+    theirs.style.left = x + 'px';
+    theirs.style.top = y + 'px';
+  };
 
   /**
    * React to something that happened.
@@ -744,7 +933,7 @@ ${BRAIN_JS}
     const prog = bubble.querySelector('#cubiprog');
     const btn = bubble.querySelector('#cubiwake');
     if (btn) btn.disabled = true;
-    wrap.classList.add('thinking');
+    body().classList.add('busy');
     const show = (pct, text) => {
       if (!prog) return;
       prog.innerHTML = '<div class="bar"><i style="width:' + Math.round(pct * 100) + '%"></i></div>' +
@@ -759,11 +948,11 @@ ${BRAIN_JS}
         initProgressCallback: (r) => show(r.progress || 0, r.text || ''),
       });
       brainMeta = pick;
-      wrap.classList.remove('thinking');
+      body().classList.remove('busy');
       say(lastRemark);
     } catch (e) {
       brain = null;
-      wrap.classList.remove('thinking');
+      body().classList.remove('busy');
       if (prog) prog.innerHTML = '<div class="cost">' +
         (lang === 'es' ? 'No se pudo cargar el modelo: ' : 'The model would not load: ') +
         String(e && e.message || e) + '</div>';
@@ -788,7 +977,7 @@ ${BRAIN_JS}
     const docId = sitting || (S.docs[0] && S.docs[0].id);
     const facts = cubiFacts(S, docId);
     out.textContent = lang === 'es' ? 'Pensando…' : 'Thinking…';
-    wrap.classList.add('thinking');
+    body().classList.add('busy');
     const sys = lang === 'es'
       ? 'Sos Cubi, un cubo que vive en un escritorio de agentes. Respondé en español, en dos oraciones como mucho. ' +
         'Usá SOLO los HECHOS de abajo. No inventes números, nombres ni resultados. Si el dato no está en los HECHOS, ' +
@@ -824,7 +1013,7 @@ ${BRAIN_JS}
     } catch (e) {
       out.textContent = (lang === 'es' ? 'Se cayó: ' : 'It fell over: ') + String(e && e.message || e);
     }
-    wrap.classList.remove('thinking');
+    body().classList.remove('busy');
   };
 
   // ---- watching the desk ----------------------------------------------------
@@ -842,19 +1031,31 @@ ${BRAIN_JS}
     const d = downAt; downAt = null;
     if (Math.abs(ev.clientX - d.x) + Math.abs(ev.clientY - d.y) > 6) return; // a drag
     react('select-agent', { agentName: d.name });
+    askAgent(d.name);
   });
 
   document.addEventListener('pointerdown', (ev) => {
     if (!ev.isTrusted) return;                       // the tour drives itself; let it
     armIdle();
     if (bubble.contains(ev.target) || wrap.contains(ev.target)) return;
-    const doc = ev.target.closest && ev.target.closest('.docnode');
-    if (doc) { sitOn(doc.dataset.id); setTimeout(() => react('select-doc', { docId: doc.dataset.id }), 420); return; }
+    // The agent first, then the document under it. Every creature with work is
+    // standing *inside* a document, so asking about the document first meant an
+    // agent on a desk could never be clicked as an agent -- the one gesture the
+    // whole conversation depends on. Found by clicking ReviewAgent and being
+    // told about the ledger flow.
+    //
     // A cube is answered on release, not on press: pressing one is how a drag
     // starts, and a companion that starts talking about an agent the moment you
     // pick it up is talking over the gesture it is meant to explain.
     const cube = ev.target.closest && ev.target.closest('.acube');
     if (cube) { downAt = { x: ev.clientX, y: ev.clientY, name: cube.dataset.id }; return; }
+    const doc = ev.target.closest && ev.target.closest('.docnode');
+    if (doc) {
+      talkingTo = null; theirs.classList.remove('on');
+      sitOn(doc.dataset.id);
+      setTimeout(() => react('select-doc', { docId: doc.dataset.id }), 420);
+      return;
+    }
     if (ev.target.id === 'tab-trace' && sitting) {
       setTimeout(() => react('trace', { docId: sitting }), 60);
     }
@@ -881,13 +1082,6 @@ ${BRAIN_JS}
   window.addEventListener('resize', follow);
   const scroller = document.querySelector('.desk');
   if (scroller) scroller.addEventListener('scroll', follow, { passive: true });
-
-  // Blink. Two frames, at an interval that is not a rhythm.
-  setInterval(() => {
-    if (wrap.classList.contains('thinking')) return;
-    wrap.classList.add('blink');
-    setTimeout(() => wrap.classList.remove('blink'), 130);
-  }, 4200);
 
   const f = fence();
   place(f.x1 - 40, f.y1 - 40);

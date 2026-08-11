@@ -313,6 +313,51 @@ público — se puede ver a un modelo chico mantenerse anclado, o verlo fallar.
 Éste es también el único lugar donde el escritorio toca la red por algo que no sea
 su propio estado, y sólo después de una pulsación que primero declara el tamaño.
 
+### Una sola especie, y hablan — 2026-08-11 [ran]
+
+La primera versión de esto tenía dos sprites. La mascota era un cuerpo de 26px
+con ojos de 4×6 y cuatro patas; un agente era un cuerpo de 15px con ojos de 2×4 y
+tres patas talladas como muescas en el borde de abajo. Los dos eran "el cubo con
+ojos" en el código, y ninguno lo era en el dibujo: quien miraba veía *un personaje
+al lado de una fila de fichas*, que es justo el fracaso de "mascota pegada
+encima" que el diseño decía evitar. Dos sprites son dos especies, diga lo que
+diga el comentario.
+
+Ahora hay un solo sprite ([creatures.ts](../../ai-ui/src/creatures.ts)), dibujado
+sobre una grilla de 16 píxeles y escalado por `--u`. El agente de sistema es el
+mismo animal en `--u:2` con un segundo contorno, y parpadea, camina y mira con el
+mismo código que cualquier otro agente.
+
+**Todas las criaturas miran el puntero.** Seis líneas, redondeadas a una unidad
+entera de grilla para que la pupila se mueva en píxeles como todo lo demás. Es el
+cambio que más vida agrega por menos código en toda la página.
+
+**Agentes dormidos en la repisa.** Cuarenta segundos sin que nadie los pida y se
+duermen, con una letra-píxel de ronquido. Es un estado real del sistema — "nadie
+está pidiendo éste" — que una fila de caritas despiertas venía negando.
+
+**El traspaso, dibujado.** Cuando un paso cierra, el resultado viaja desde el
+agente que lo produjo hasta el que lo recibió: un cuadrado verde que llega, o uno
+rojo que se queda corto y se cae. El veredicto es el `ignoredInput` del trace, no
+una segunda medición. El hallazgo por el que existe todo este sistema era una
+frase a dos clics dentro de un panel; ahora es algo que se ve caer al piso.
+
+**Contestan por sí mismos.** Tocás un agente, Cubi camina hasta él y le pregunta
+— y el agente responde en su propio globo, en primera persona, desde su propio
+registro. Un agente que corrió y no llevó nada adelante *confiesa*: "respondí
+'Looks fine to me'. El trace dice que no llevé nada del paso anterior al mío".
+La delegación es el mecanismo del que trata este producto, y un compañero que
+resumiera a los otros agentes habría sido una superficie más leyendo el trace por
+ellos.
+
+Dos defectos más que sólo encontró tocarlo. Un agente parado **adentro** de un
+documento no se podía tocar como agente — respondía primero el documento debajo,
+y eso rompía el único gesto del que depende la conversación. Y un clic con un
+píxel de temblor se tomaba como arrastre, así que tocar un agente que ya estaba
+sobre un documento lo soltaba ahí de nuevo: `POST /assign`, un paso real
+agregado, a partir de un gesto que la persona hizo como clic. Ahora cuatro
+píxeles separan un gesto de un temblor.
+
 ### Lo que a propósito NO hace
 
 **Leer el escritorio nunca gasta una llamada al modelo.** `POST /assign` escribe
