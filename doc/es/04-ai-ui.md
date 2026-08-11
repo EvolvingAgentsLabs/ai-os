@@ -242,6 +242,77 @@ documento; el escritorio re-propone desde el estado del flow; `ReviewAgent`
 derivar haría volver el cubito de un salto y desharía la asignación delante de
 quien la hizo. Así que un cubito fijado se queda en su documento.
 
+### Los agentes ahora son criaturas — 2026-08-11 [ran]
+
+Un agente era un cuadrado de color con un nombre. Lo ubicaba el layout, que sólo
+podía sostenerlo en **un** lugar — así que un agente con pasos en dos flows se
+dibujaba parado sobre el que el layout nombrara. El dibujo decía "está acá", el
+trace decía "está en los dos", y a quien se le cree es al dibujo.
+
+Tres cambios, todos en el producto y no en la demo:
+
+**Una criatura por cada documento en el que el agente tiene trabajo**, derivada de
+los pasos ([creatures.ts](../../ai-ui/src/creatures.ts)). Dos flows son dos de él,
+y el segundo *crece* del primero donde se lo puede ver pasar; cuando el trabajo se
+va, el sobrante camina de vuelta hacia el que queda. Varios pasos en un mismo flow
+siguen siendo una criatura con un multiplicador: una cola no es una multitud.
+
+**El cuerpo responde "¿este está trabajando?" sin abrir nada.** Ojos que parpadean
+mientras espera, se entrecierran mientras corre, y quedan cerrados en un agente
+declarado sin archivo detrás — más lo que está haciendo, encima del agente:
+*step 2 · running*.
+
+**Nada salta.** El render vaciaba la superficie y la volvía a dibujar cada cinco
+segundos, y por eso nada podía moverse: ningún elemento sobrevivía lo suficiente
+como para ser movido, y cada cambio de lugar era un nodo nuevo apareciendo donde
+estaba el viejo. Ahora reconcilia, y todo lo que quedó en otro lado *camina* hasta
+ahí — en píxeles enteros, con timing `steps()`, nunca deslizándose.
+
+Dos defectos salieron de construirlo, y a los dos los encontró correrlo. El
+backend simulado agregaba pasos **sin el campo `agent`**, donde el servidor pone
+`agent: agentOfIntent(s.intent)` en cada paso — la forma del dato de la demo se
+había apartado en silencio de la de la API, y lo primero que leyó ese campo lo
+encontró vacío. Y el `String.raw` del cliente tuvo que sobrevivir: inyectar las
+reglas nuevas por interpolación lo convertía en un template común, donde `\s` se
+colapsa a `s` y el regex que limpia markdown habría viajado buscando la letra.
+
+### La demo, y el compañero que sólo vive ahí — 2026-08-11 [ran]
+
+El escritorio jugable del sitio es el cliente real con `window.fetch` reemplazado
+([simulate.ts](../../ai-ui/src/simulate.ts)), así que hereda todo lo de arriba.
+Ahí se agregan dos cosas, con una puerta para que el producto no pueda embarcarlas:
+el tour que se maneja solo, y **Cubi** — el cubo de agente al doble de tamaño, con
+ojos.
+
+Cubi reacciona a lo que tocás, y cada línea que dice carga el hecho del que salió:
+*0 intentos en 1 paso*, *arrastró 0% de los 14 tokens distintivos que recibió*. Los
+comentarios los elige el estado y no un temporizador, que es toda la diferencia con
+el asistente de 1991 al que cita. Además se calla mientras habla el tour, y se
+corre en lugar de tapar el documento del que está hablando.
+
+**El cerebro opcional.** Un botón descarga un modelo de lenguaje **dentro del
+navegador** (WebLLM sobre WebGPU) y deja que Cubi responda libremente. Los escalones,
+con las cifras de VRAM del propio `prebuiltAppConfig` de WebLLM [read]:
+
+| escalón | VRAM | cuándo |
+|---|---|---|
+| `SmolLM2-360M-Instruct-q4f16_1` | 376 MB | inglés, y celular o ≤4 GB reportados |
+| `Qwen2.5-0.5B-Instruct-q4f16_1` | 945 MB | español siempre, y desktop por defecto |
+
+El Prompt API de Chrome no es un escalón: Chrome 148 lo trae prendido por defecto,
+y es sólo desktop y pide 22 GB de disco y 4 GB de VRAM [read].
+
+Dos reglas evitan que esto contradiga a la página donde está. **Los hechos nunca
+salen del modelo** — se le entrega una hoja armada desde el trace y se le dice que
+no puede agregarle nada, igual que `/ask` se responde desde el trace y nunca desde
+el goal. Y como un modelo de 360M inventa números igual, cada respuesta se contrasta
+contra esa hoja: los dígitos y los nombres con forma de agente que no estén ahí se
+imprimen debajo, en rojo, como sin respaldo. La demo discute su propia tesis en
+público — se puede ver a un modelo chico mantenerse anclado, o verlo fallar.
+
+Éste es también el único lugar donde el escritorio toca la red por algo que no sea
+su propio estado, y sólo después de una pulsación que primero declara el tamaño.
+
 ### Lo que a propósito NO hace
 
 **Leer el escritorio nunca gasta una llamada al modelo.** `POST /assign` escribe

@@ -233,7 +233,7 @@ describe("the simulated page", () => {
     const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
       (m) => m[1]!,
     );
-    assert.equal(scripts.length, 4, "state, shim, client, tour");
+    assert.equal(scripts.length, 5, "state, shim, tour, client, mascot");
     assert.doesNotThrow(() => new Function(scripts[1]!), "the shim must parse");
     assert.match(html, /Simulated — no core, no model, nothing stored/);
   });
@@ -475,7 +475,7 @@ describe("the guided tour", () => {
     // one stray backtick ends them early.
     const html = renderDeskHtml({ ...view(), simulate: true });
     const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]!);
-    assert.equal(scripts.length, 4, "state, shim, client, tour");
+    assert.equal(scripts.length, 5, "state, shim, tour, client, mascot");
     for (const [i, s] of scripts.entries())
       assert.doesNotThrow(() => new Function(s), `script ${i} does not parse`);
   });
@@ -497,5 +497,93 @@ describe("the guided tour", () => {
     // pointerdown would halt the tour it belongs to.
     const js = renderDeskHtml({ ...view(), simulate: true });
     assert.match(js, /if \(e\.isTrusted\) halt\(\)/);
+  });
+});
+
+/**
+ * The mascot.
+ *
+ * Two properties, and they are the two that decide whether a companion is a
+ * feature or the paperclip. It must **never reach the product** — a thing that
+ * walks around somebody's real documents, or fetches half a gigabyte from a CDN,
+ * is not something a desk ships by default. And it must **fetch nothing until
+ * asked**: the page's standing claim is that it makes no external request, and
+ * the only honest way to keep that while offering a model is to make the request
+ * the consequence of a press.
+ */
+describe("the mascot", () => {
+  it("does not exist on the product's page", () => {
+    const html = renderDeskHtml(view());
+    // Matched on markers rather than the substring "cubi", which the desk's own
+    // `cubic-bezier` transitions contain. A guard that fires on the product's
+    // stylesheet gets deleted, and then it guards nothing.
+    assert.ok(!html.includes("cubisay"), "the product must not ship a mascot");
+    assert.ok(!html.includes("cubiRemarks"), "nor its brain");
+    assert.ok(!html.includes("esm.run"), "the product must not reach a CDN");
+  });
+
+  it("is on the demo, with its balloon and its cube", () => {
+    const html = renderDeskHtml({ ...view(), simulate: true });
+    assert.match(html, /wrap\.className = 'cubi'/);
+    assert.match(html, /\.cubisay\{/);
+    // It is the agent cube, not a character: same amber the shelf draws agents
+    // in, so the mascot reads as a member of the notation rather than a guest.
+    assert.match(html, /--cubi,#e0a020/);
+  });
+
+  it("reaches the network only behind a press", () => {
+    // Not "it has a button": the import must be inside the handler. A top-level
+    // import would download the model on load and the cost notice would be a
+    // label on a thing that already happened.
+    const html = renderDeskHtml({ ...view(), simulate: true });
+    const wake = /wakeBrain = async \(\) => \{[\s\S]*?\n  \};/.exec(html);
+    assert.ok(wake, "wakeBrain must exist");
+    assert.match(wake[0], /await import\('https:\/\/esm\.run/);
+    assert.equal((html.match(/esm\.run/g) || []).length, 1);
+  });
+
+  it("stays quiet while the tour is talking", () => {
+    const html = renderDeskHtml({ ...view(), simulate: true });
+    assert.match(html, /window\.__TOUR__ = \{ running: false \}/);
+    assert.match(html, /if \(window\.__TOUR__ && window\.__TOUR__\.running\) return/);
+  });
+});
+
+/**
+ * The creatures.
+ *
+ * The desk draws an agent as a body with eyes and legs, one per document it has
+ * work in. Three properties are worth holding, and none of them can be seen from
+ * a screenshot after the fact.
+ */
+describe("agents as creatures", () => {
+  it("ships the rules it draws from, inside the client", () => {
+    const html = renderDeskHtml(view());
+    assert.match(html, /function agentInstances\(docs, name\)/);
+    assert.match(html, /function agentDoing\(docs, name, flowId\)/);
+    // Product-side, not a demo trick: an unsimulated desk draws them too.
+    assert.match(html, /class="blk" style="--c:/);
+  });
+
+  it("reconciles rather than rebuilding, which is what makes motion possible", () => {
+    // The old render emptied the surface every five seconds. Nothing could move,
+    // because no element survived long enough to be moved -- every position
+    // change was a new node appearing where the old one had been. If this line
+    // ever comes back, the walk, the split and the merge all become teleports
+    // again and nothing else in this suite would notice.
+    const html = renderDeskHtml(view());
+    assert.ok(
+      !html.includes("querySelectorAll('.docnode,.acube').forEach((n) => n.remove())"),
+      "the render must not clear the surface",
+    );
+    assert.match(html, /FLIP, first half/);
+  });
+
+  it("keeps the markdown stripper's escapes, which a plain template would eat", () => {
+    // The client is String.raw + concatenation rather than one interpolated
+    // template. In a plain template literal "\s" collapses to "s", and the rule
+    // below would silently match a letter instead of whitespace.
+    const html = renderDeskHtml(view());
+    assert.ok(html.includes("(^|\\s)__(.+?)__(?=\\s|$)"), "the escape was eaten");
   });
 });

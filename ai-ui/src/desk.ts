@@ -41,6 +41,8 @@ import {
 import { AGENT_COLOR, SUBAGENT_COLOR } from "../../ai-flows/src/vocabulary.ts";
 import { SIMULATION_JS } from "./simulate.ts";
 import { TOUR_CSS, TOUR_JS } from "./tour.ts";
+import { MASCOT_CSS, MASCOT_JS } from "./mascot.ts";
+import { CREATURES_JS } from "./creatures.ts";
 
 export interface DeskDoc {
   id: string;
@@ -161,13 +163,52 @@ body{overflow:hidden}
   font-size:11px;cursor:grab;user-select:none;touch-action:none;white-space:nowrap;z-index:20}
 .acube.dragging{box-shadow:5px 5px 0 rgba(0,0,0,.3);z-index:60;cursor:grabbing}
 .acube.instack{position:static;box-shadow:1px 1px 0 rgba(0,0,0,.3);padding:2px 6px 2px 3px}
-.acube .blk{width:12px;height:12px;background:var(--c);border:1px solid rgba(0,0,0,.55);
+/* The body. Same colour and outline the cube always had, plus the two things a
+   reader keeps asking a static picture and not getting: eyes, so "is this one
+   working" is answerable at a glance, and legs, because a thing that moves
+   between documents by itself has to look like a thing that could. Both are
+   drawn in the notation's own pixels -- nothing here is an illustration. */
+.acube .blk{position:relative;width:15px;height:15px;background:var(--c);border:1px solid rgba(0,0,0,.55);
   box-shadow:inset 1.5px 1.5px 0 rgba(255,255,255,.5),inset -1.5px -1.5px 0 rgba(0,0,0,.3)}
+.acube .blk i{position:absolute;top:5px;width:2px;height:4px;background:#16181a;
+  animation:blink 5.4s steps(1,end) infinite;animation-delay:var(--bd,0s)}
+.acube .blk i.l{left:3px} .acube .blk i.r{left:8px}
+/* Legs, carved out of the body's bottom edge in the chip's own colour: two
+   notches make three legs, and nothing overflows the chip. */
+.acube .blk::before,.acube .blk::after{content:"";position:absolute;bottom:-1px;width:3px;height:4px;
+  background:var(--face);border:1px solid rgba(0,0,0,.4);border-bottom:0}
+.acube .blk::before{left:2px} .acube .blk::after{right:2px}
+@keyframes blink{0%,97%{height:4px;top:5px}98%,100%{height:1px;top:7px}}
+@keyframes step2{from{height:4px}to{height:2px}}
+.acube.walking .blk::before{animation:step2 .3s steps(2,end) infinite}
+.acube.walking .blk::after{animation:step2 .3s steps(2,end) infinite reverse}
 .acube.missing{opacity:.55;cursor:not-allowed}
 .acube.missing .n{text-decoration:line-through}
-/* Running: the one animation on the desk, because "is it moving" is the question. */
+/* Declared with no file behind it: the eyes are shut. It is not idle, it is
+   not there -- and the picture should not offer it as a thing that could work. */
+.acube.missing .blk i{height:1px;top:7px;animation:none}
+/* Running: the one animation on the desk, because "is it moving" is the
+   question. The eyes narrow while it thinks, out of step with each other. */
 .acube.busy{animation:pulse 1.1s ease-in-out infinite}
+.acube.busy .blk i{animation:think .5s steps(2,end) infinite}
+.acube.busy .blk i.r{animation-delay:.25s}
 @keyframes pulse{0%,100%{box-shadow:2px 2px 0 rgba(0,0,0,.3)}50%{box-shadow:2px 2px 0 rgba(224,160,32,.9)}}
+@keyframes think{from{height:4px;top:5px}to{height:2px;top:6px}}
+/* What it is doing, on the agent rather than in a panel somebody has to open. */
+.acube .doing{font-size:9px;color:#7a5200;background:#f7e9c9;border:1px solid #d8bd7a;padding:0 3px}
+/* How many steps this one instance holds in the document it is standing on. */
+.acube .mult{font-size:9px;color:var(--dim);font-family:var(--mono)}
+/* An empty chip is still a bordered box with padding, which drew a small dash
+   after every idle agent's name. Nothing to say, nothing on screen. */
+.acube .doing:empty,.acube .mult:empty{display:none}
+/* Two instances of one agent: the second grows out of the first, and when its
+   work is gone it walks back into it. Neither is a fade -- an object that
+   appears by fading in did not come from anywhere. */
+@keyframes split{0%{transform:scale(.35)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
+.acube.splitting{animation:split .42s steps(7,end);z-index:40}
+.acube.merging{z-index:40;transition:transform .42s steps(11),opacity .42s steps(4);opacity:0}
+/* Walking between places: whole pixels, never a glide. */
+.acube.moving{transition:transform .45s steps(12)}
 
 .shelf{position:absolute;left:0;top:0;bottom:0;width:150px;padding:26px 8px 8px;
   background:rgba(0,0,0,.06);border-right:1px solid rgba(0,0,0,.25)}
@@ -302,8 +343,17 @@ select{font:inherit;font-size:11px}
  * bundler is the first instalment of that bill. If the stopwatch says the canvas
  * wins, a build step is cheap to add afterwards and will be paid for.
  */
-const DESK_JS = String.raw`
-(() => {
+/**
+ * The client.
+ *
+ * Concatenated rather than interpolated, and the body below stays a `String.raw`
+ * template: in a plain template literal every unrecognised escape collapses, so
+ * the `\s` in the markdown-stripper's regex would ship as a literal "s" and the
+ * rule would quietly match the wrong thing. The rules the creatures are drawn
+ * from ([creatures.ts](creatures.ts)) go inside the closure, ahead of the code
+ * that calls them.
+ */
+const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
   const S = window.__DESK__;
   const surface = document.getElementById('surface');
   const toast = document.getElementById('toast');
@@ -343,7 +393,16 @@ const DESK_JS = String.raw`
     if (el.classList.contains('missing')) { say('This agent is declared with no file behind it.'); return; }
     const r = el.getBoundingClientRect();
     const sr = surface.getBoundingClientRect();
-    drag = { el, kind, id, dx: ev.clientX - r.left, dy: ev.clientY - r.top, sr, moved: false };
+    // Which instance is in the hand, not just which agent: an agent working in
+    // two flows is two creatures, and taking one off a document must remove that
+    // document's step rather than whichever one the layout happened to name.
+    const key = el.dataset.key || '';
+    const at = key.indexOf('@');
+    drag = {
+      el, kind, id, sr, moved: false,
+      dx: ev.clientX - r.left, dy: ev.clientY - r.top,
+      flow: kind === 'cube' && at > 0 ? key.slice(at + 1) : null,
+    };
     el.classList.add('dragging');
     el.setPointerCapture(ev.pointerId);
     if (kind === 'cube') { el.classList.remove('instack'); surface.appendChild(el); el.style.position = 'absolute'; }
@@ -390,8 +449,14 @@ const DESK_JS = String.raw`
     const onto = docUnder(ev.clientX, ev.clientY);
     if (!onto) {
       const was = layout.cubes[d.id] || { slot: 0, onDoc: null };
-      const cameFrom = was.onDoc;
+      const cameFrom = d.flow || was.onDoc;
       layout.cubes[d.id] = { x, y, pinned: true, onDoc: null, slot: was.slot };
+      // A creature the person placed keeps that spot exactly: no drift on top of
+      // a chosen position.
+      drift[d.id] = { dx: 0, dy: 0 };
+      // Believed before the server answers, or the instance snaps back into the
+      // stack for the one frame between letting go and the step being removed.
+      releasing = cameFrom ? { agent: d.id, flowId: cameFrom } : null;
       saveLayout(); render();
       if (!cameFrom) return;
       // Taking a cube off a document is the inverse of dropping one on, so it
@@ -420,12 +485,18 @@ const DESK_JS = String.raw`
     const occupied = Object.values(layout.cubes).filter((c) => c.onDoc === flowId);
     const slot = occupied.length ? Math.max.apply(null, occupied.map((c) => c.slot)) + 1 : 0;
     layout.cubes[d.id] = { x, y, pinned: true, onDoc: flowId, slot };
+    // Dropping an instance of an agent that already works elsewhere does not
+    // move it: the step it already had is still there, so it becomes two. The
+    // one in the hand lands here and the other grows back where it was.
+    pending = { agent: d.id, flowId: flowId };
+    releasing = null;
     saveLayout(); render();
     try {
       const res = await post('/assign', { scopeId: S.scopeId, flowId, agent: d.id });
       say('Step ' + res.stepIndex + ' added: ' + d.id + ' on "' + res.flowTitle + '". Not run yet.', 4200);
       await refresh();
     } catch (e) {
+      pending = null; render();
       say('Could not add the step: ' + e.message, 5000);
     }
   };
@@ -642,12 +713,41 @@ const DESK_JS = String.raw`
     } else {
       const a = S.agents.find((x) => x.name === selected.id);
       if (!a) { selected = null; p.style.display = 'none'; return; }
+      // What this one is doing, and where -- read off the same steps the
+      // creatures are drawn from. Before this, clicking an agent told you what
+      // it was *for*, which is the description somebody wrote, and said nothing
+      // about the work it is in. The picture had the answer and the panel did
+      // not.
+      const mine = [];
+      for (const d of S.docs) {
+        const steps = (d.steps || []).filter((s) => s.agent === a.name);
+        if (steps.length) mine.push({ doc: d, steps: steps });
+      }
+      let ran = 0, running = null;
+      for (const m of mine) for (const s of m.steps) {
+        ran += (s.attempts || []).length;
+        if (s.state === 'running') running = { doc: m.doc, step: s };
+      }
       p.querySelector('.win-body').innerHTML =
         '<h4>' + escape_(a.name) + '</h4>' +
         '<div class="dim">' + a.tools.map(escape_).join(' ') + '</div>' +
         '<p style="margin:6px 0 0">' + escape_(a.description) + '</p>' +
+        (running
+          ? '<div class="note warn">Running <strong>step ' + running.step.index + '</strong> of "' +
+            escape_(running.doc.title) + '" right now.</div>'
+          : '') +
+        (mine.length
+          ? '<div class="dim" style="margin-top:8px">' +
+            (mine.length === 1 ? 'One document' : mine.length + ' documents') + ' · ' +
+            (ran ? ran + ' attempt(s) recorded' : 'never attempted') + '</div>' +
+            '<ul class="steps">' + mine.map((m) => m.steps.map((s) =>
+              '<li><span class="cube sm" style="--c:' + (S.stateColors[s.state] || '#b9b4a8') + '"></span>' +
+              '<span class="dim">' + s.index + '</span> ' + escape_(m.doc.title) +
+              (s.result ? '' : ' <span class="dim">— nothing recorded</span>') + '</li>').join('')).join('') +
+            '</ul>'
+          : '<div class="dim" style="margin-top:8px">Not in any flow. It is waiting on the shelf.</div>') +
         (a.missing ? '<div class="note warn">Declared in a subagents list with no file behind it. A declared name is a claim; a file is a fact.</div>'
-                   : '<div class="note">Drag this onto a document to give it a step in that flow.</div>');
+                   : '<div class="note">Drag this onto a document to give it a step in that flow. It keeps the steps it already has — an agent in two flows is two of it.</div>');
     }
   };
 
@@ -674,51 +774,248 @@ const DESK_JS = String.raw`
   const escape_ = (s) => String(s == null ? '' : s).replace(/[&<>"']/g,
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  // ---- the agents, as creatures -------------------------------------------
+  /**
+   * How many creatures an agent is.
+   *
+   * One per document it has work in, derived from the steps rather than from the
+   * layout. The layout could only ever hold an agent in one place, so an agent
+   * with steps in two flows was drawn standing in one of them -- the picture
+   * said "it is here", the trace said "it is in both", and the picture was the
+   * one people believed. An agent working in two flows is two creatures, and the
+   * second grows out of the first where you can watch it happen.
+   *
+   * The step count is how many steps one instance holds in that document, shown as
+   * a multiplier rather than as more bodies: five steps in one flow is one agent
+   * with a queue, not five agents.
+   */
+  const instancesOf = (name) => agentInstances(S.docs, name);
+  const doingOf = (name, flowId) => agentDoing(S.docs, name, flowId);
+  const cubeKey = (name, flowId) => creatureKey(name, flowId);
+  const cubeAt = (key) => document.querySelector('.acube:not(.merging)[data-key="' + CSS.escape(key) + '"]');
+
+  // A drop is believed before the server confirms it, so the creature does not
+  // walk to the document and then snap back for one frame while /assign is in
+  // flight. Cleared by the refresh that follows.
+  let pending = null;
+  // The mirror of it: an instance taken off a document is gone from the picture
+  // before /unassign answers, and comes back if the server refuses.
+  let releasing = null;
+  // Where an idle agent has wandered to, kept apart from the layout because the
+  // server owns that and would pull the creature back on the next poll. Drift is
+  // the creature's own; a position the person chose is the layout's.
+  const drift = {};
+
+  const makeCube = (a, key) => {
+    const el = document.createElement('div');
+    el.className = 'acube' + (a.missing ? ' missing' : '');
+    el.dataset.key = key;
+    el.dataset.id = a.name;
+    const color = a.missing ? S.missingColor : (a.child ? S.subagentColor : S.agentColor);
+    el.innerHTML = '<span class="blk" style="--c:' + color + '"><i class="l"></i><i class="r"></i></span>' +
+      '<span class="n">' + escape_(a.name) + '</span>' +
+      '<span class="doing"></span><span class="mult"></span>';
+    // Out of phase, or a shelf of creatures blinks in unison and reads as a row
+    // of indicator lights rather than as a row of things.
+    let h = 0;
+    for (let i = 0; i < key.length; i += 1) h = (h * 31 + key.charCodeAt(i)) % 997;
+    el.style.setProperty('--bd', (h % 47) / 10 + 's');
+    el.addEventListener('pointerdown', (ev) => startDrag(el, 'cube', a.name, ev));
+    return el;
+  };
+
+  /** Walk a disappearing instance into the one that remains, then drop it. */
+  const mergeInto = (el, sib) => {
+    const a = el.getBoundingClientRect(), b = sib.getBoundingClientRect();
+    el.classList.add('merging');
+    // Out of flow first: a merging creature that keeps its slot in the stack
+    // makes the whole stack reflow around a thing that is leaving.
+    el.style.position = 'fixed';
+    el.style.left = a.left + 'px'; el.style.top = a.top + 'px'; el.style.margin = '0';
+    requestAnimationFrame(() => {
+      el.style.transform = 'translate(' + (b.left - a.left) + 'px,' + (b.top - a.top) + 'px)';
+    });
+    setTimeout(() => el.remove(), 460);
+  };
+
   // ---- render -------------------------------------------------------------
+  /**
+   * Reconcile rather than rebuild.
+   *
+   * This function used to empty the surface and draw it again every five
+   * seconds. Everything therefore jumped: a creature crossing the desk restarted
+   * from its destination, a drag that landed mid-poll flickered, and no motion
+   * could ever be continuous because no element survived long enough to move.
+   * Now nodes persist and only what changed is written -- which is also what
+   * makes the walk below possible at all.
+   */
+  let painted = false;
+
   function render() {
-    surface.querySelectorAll('.docnode,.acube').forEach((n) => n.remove());
+    // FLIP, first half: where everything is before the DOM is rearranged.
+    const was = new Map();
+    for (const el of document.querySelectorAll('.acube:not(.merging)'))
+      was.set(el.dataset.key, el.getBoundingClientRect());
 
-    for (const doc of S.docs) {
-      const p = layout.docs[doc.id] || { x: 200, y: 40 };
-      const el = document.createElement('div');
-      // The pinned class is not styling -- it removes the transition. A document the
-      // person placed must not animate, because an object that slides after you
-      // let go of it reads as the system having moved it.
-      el.className = 'docnode' + (p.pinned ? ' pinned' : '');
-      el.dataset.id = doc.id;
-      el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
-      const strip = doc.steps.map((s) =>
-        '<span class="cube" style="--c:' + (S.stateColors[s.state] || '#b9b4a8') + '"></span>').join('');
-      el.innerHTML =
-        '<div class="dbar"><span class="box"></span><span class="t">' + escape_(doc.title) + '</span></div>' +
-        '<div class="body"><p class="goal">' + escape_(doc.goal) + '</p>' +
-        '<div class="meta"><span class="strip">' + strip + '</span>' +
-        '<span>' + doc.done + '/' + doc.total + '</span><span>' + escape_(doc.state) + '</span></div>' +
-        '<div class="stack" data-stack="' + escape_(doc.id) + '"></div></div>';
-      el.querySelector('.dbar').addEventListener('pointerdown', (ev) => startDrag(el, 'doc', doc.id, ev));
-      el.addEventListener('pointerdown', (ev) => { if (!drag) select('doc', doc.id); });
-      surface.appendChild(el);
-    }
+    renderDocs();
+    renderCubes();
 
-    for (const a of S.agents) {
-      const c = layout.cubes[a.name] || { x: 20, y: 40, onDoc: null, slot: 0 };
-      const el = document.createElement('div');
-      el.className = 'acube' + (a.missing ? ' missing' : '') + (S.busy[a.name] ? ' busy' : '');
-      el.dataset.id = a.name;
-      const color = a.missing ? S.missingColor : (a.child ? S.subagentColor : S.agentColor);
-      el.innerHTML = '<span class="blk" style="--c:' + color + '"></span><span class="n">' + escape_(a.name) + '</span>';
-      el.addEventListener('pointerdown', (ev) => startDrag(el, 'cube', a.name, ev));
-      const host = c.onDoc ? surface.querySelector('[data-stack="' + CSS.escape(c.onDoc) + '"]') : null;
-      if (host) { el.classList.add('instack'); host.appendChild(el); }
-      else { el.style.left = c.x + 'px'; el.style.top = c.y + 'px'; surface.appendChild(el); }
-    }
-
-    for (const s of surface.querySelectorAll('.stack')) {
+    for (const s of surface.querySelectorAll('.stack'))
       s.classList.toggle('empty', s.children.length === 0);
-    }
+
+    if (painted) walkEverythingThatMoved(was);
+    painted = true;
     renderDrawer();
     renderPanel();
   }
+
+  function renderDocs() {
+    const want = new Set(S.docs.map((d) => d.id));
+    for (const el of surface.querySelectorAll('.docnode'))
+      if (!want.has(el.dataset.id)) el.remove();
+
+    for (const doc of S.docs) {
+      const p = layout.docs[doc.id] || { x: 200, y: 40 };
+      let el = surface.querySelector('.docnode[data-id="' + CSS.escape(doc.id) + '"]');
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'docnode';
+        el.dataset.id = doc.id;
+        el.innerHTML =
+          '<div class="dbar"><span class="box"></span><span class="t"></span></div>' +
+          '<div class="body"><p class="goal"></p><div class="meta"></div>' +
+          '<div class="stack"></div></div>';
+        el.querySelector('.stack').dataset.stack = doc.id;
+        el.querySelector('.dbar').addEventListener('pointerdown', (ev) => startDrag(el, 'doc', doc.id, ev));
+        el.addEventListener('pointerdown', () => { if (!drag) select('doc', doc.id); });
+        surface.appendChild(el);
+      }
+      // The pinned class is not styling -- it removes the transition. A document
+      // the person placed must not animate, because an object that slides after
+      // you let go of it reads as the system having moved it.
+      el.classList.toggle('pinned', !!p.pinned);
+      el.querySelector('.t').textContent = doc.title;
+      el.querySelector('.goal').textContent = doc.goal;
+      // Only the parts that carry state are rewritten. The stack is left alone:
+      // it holds live creatures, and replacing their parent's innerHTML is how
+      // the old version threw them away sixty times a minute.
+      el.querySelector('.meta').innerHTML =
+        '<span class="strip">' + doc.steps.map((s) =>
+          '<span class="cube" style="--c:' + (S.stateColors[s.state] || '#b9b4a8') + '"></span>').join('') +
+        '</span><span>' + doc.done + '/' + doc.total + '</span><span>' + escape_(doc.state) + '</span>';
+      if (!drag || drag.el !== el) {
+        el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
+      }
+    }
+  }
+
+  function renderCubes() {
+    const want = [];
+    for (const a of S.agents) {
+      let inst = instancesOf(a.name);
+      if (releasing && releasing.agent === a.name)
+        inst = inst.filter((i) => i.flowId !== releasing.flowId);
+      if (pending && pending.agent === a.name && !inst.some((i) => i.flowId === pending.flowId))
+        inst = inst.concat([{ flowId: pending.flowId, steps: 1 }]);
+      if (inst.length) for (const i of inst) want.push({ a: a, flowId: i.flowId, steps: i.steps });
+      else want.push({ a: a, flowId: null, steps: 0 });
+    }
+    const keys = new Set(want.map((w) => cubeKey(w.a.name, w.flowId)));
+
+    // An instance whose work is gone walks back into a surviving instance of the
+    // same agent. With nowhere to walk to, it just goes.
+    for (const el of document.querySelectorAll('.acube:not(.merging)')) {
+      if (keys.has(el.dataset.key) || (drag && drag.el === el)) continue;
+      let sib = null;
+      for (const o of document.querySelectorAll('.acube:not(.merging)'))
+        if (o !== el && o.dataset.id === el.dataset.id && keys.has(o.dataset.key)) sib = o;
+      if (sib && painted) mergeInto(el, sib); else el.remove();
+    }
+
+    for (const w of want) {
+      const key = cubeKey(w.a.name, w.flowId);
+      let el = cubeAt(key);
+      if (!el) el = makeCube(w.a, key);
+      if (drag && drag.el === el) continue;   // the hand owns it
+
+      const host = w.flowId
+        ? surface.querySelector('[data-stack="' + CSS.escape(w.flowId) + '"]')
+        : surface;
+      if (el.parentElement !== host) host.appendChild(el);
+      if (w.flowId) {
+        el.classList.add('instack');
+        el.style.left = el.style.top = el.style.position = '';
+      } else {
+        const c = layout.cubes[w.a.name] || { x: 20, y: 40 };
+        const d = drift[w.a.name] || { dx: 0, dy: 0 };
+        el.classList.remove('instack');
+        el.style.left = (c.x + d.dx) + 'px';
+        el.style.top = (c.y + d.dy) + 'px';
+      }
+      el.classList.toggle('pinned', !!(layout.cubes[w.a.name] || {}).pinned);
+
+      const doing = doingOf(w.a.name, w.flowId);
+      el.classList.toggle('busy', !!doing);
+      el.querySelector('.doing').textContent = doing ? 'step ' + doing.step.index + ' · running' : '';
+      el.querySelector('.mult').textContent = w.steps > 1 ? '×' + w.steps : '';
+    }
+  }
+
+  /**
+   * FLIP, second half: whatever ended up somewhere else walks there.
+   *
+   * The element is put back where it was with a transform and then released, so
+   * the browser animates the difference. It is the only way to move a creature
+   * between a document's stack and the open desk -- those are different layout
+   * modes, and no transition on a left offset can cross that gap.
+   */
+  function walkEverythingThatMoved(was) {
+    for (const el of document.querySelectorAll('.acube:not(.merging)')) {
+      const before = was.get(el.dataset.key);
+      if (!before) {
+        // New: it grew out of its own kind rather than appearing.
+        el.classList.add('splitting');
+        setTimeout(() => el.classList.remove('splitting'), 440);
+        continue;
+      }
+      const now = el.getBoundingClientRect();
+      const dx = before.left - now.left, dy = before.top - now.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+      el.classList.remove('moving', 'walking');
+      el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+      requestAnimationFrame(() => {
+        el.classList.add('moving', 'walking');
+        el.style.transform = '';
+        setTimeout(() => { el.classList.remove('moving', 'walking'); }, 480);
+      });
+    }
+  }
+
+  /**
+   * Idle agents drift.
+   *
+   * Only the ones nobody has placed, only inside the shelf, only a few pixels,
+   * and never saved: it is the difference between a rack of icons and a shelf of
+   * things that are waiting. A creature the person put somewhere stays exactly
+   * where they put it -- drifting off a chosen spot would be the surface moving
+   * the user's objects, which is the one thing it may never do.
+   */
+  setInterval(() => {
+    if (drag) return;
+    const free = [];
+    for (const el of surface.querySelectorAll('.acube:not(.instack):not(.merging)'))
+      if (!(layout.cubes[el.dataset.id] || {}).pinned) free.push(el);
+    if (!free.length) return;
+    const el = free[Math.floor(Math.random() * free.length)];
+    const name = el.dataset.id;
+    const c = layout.cubes[name] || { x: 20, y: 40 };
+    const d = drift[name] || { dx: 0, dy: 0 };
+    const step = (n) => n + Math.round((Math.random() - 0.5) * 22);
+    const nx = Math.min(Math.max(c.x + d.dx + (Math.random() < 0.5 ? -6 : 6), 8), 120) - c.x;
+    const ny = Math.min(Math.max(step(c.y + d.dy), 30), 1400) - c.y;
+    drift[name] = { dx: nx, dy: ny };
+    render();
+  }, 5200);
 
   // The memory drawer. Every card is dashed and the drawer is hatched, because
   // ai-storage does not exist and none of this is stored -- the notes are
@@ -753,6 +1050,8 @@ const DESK_JS = String.raw`
     const next = await r.json();
     S.docs = next.docs; S.agents = next.agents; S.busy = next.busy; S.notes = next.notes;
     layout = next.layout;
+    // The optimistic halves are only good until the truth arrives.
+    pending = null; releasing = null;
     document.getElementById('stamp').textContent = new Date(next.at).toISOString();
     render();
   }
@@ -811,7 +1110,7 @@ export function renderDeskHtml(view: DeskView): string {
   return `<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ai-os — the desk</title>
-<style>${CHROME_CSS}${DESK_CSS}${view.simulate ? TOUR_CSS : ""}</style>
+<style>${CHROME_CSS}${DESK_CSS}${view.simulate ? TOUR_CSS + MASCOT_CSS : ""}</style>
 <div class="menubar">
   <span class="apple">ai-os</span>
   ${view.simulate ? `<span class="sim">Simulated — no core, no model, nothing stored</span><span class="dim">reloading starts over</span>` : ""}
@@ -849,5 +1148,6 @@ export function renderDeskHtml(view: DeskView): string {
 ${view.simulate ? `<script>${SIMULATION_JS}</script>` : ""}
 ${view.simulate ? `<script>${TOUR_JS}</script>` : ""}
 <script>${DESK_JS}</script>
+${view.simulate ? `<script>${MASCOT_JS}</script>` : ""}
 </html>`;
 }

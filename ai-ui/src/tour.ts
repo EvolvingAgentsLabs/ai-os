@@ -39,7 +39,9 @@ export const TOUR_JS = String.raw`
   const $ = (s) => document.querySelector(s);
   const docs = () => [...document.querySelectorAll('.docnode')];
   const docByTitle = (t) => docs().find((d) => d.innerText.includes(t));
-  const cubeNamed = (n) => [...document.querySelectorAll('.acube')].find((c) => c.innerText.trim() === n);
+  // By id, not by text: a creature's label now carries what it is doing next to
+  // its name, so matching innerText found nothing the moment an agent was busy.
+  const cubeNamed = (n) => [...document.querySelectorAll('.acube')].find((c) => c.dataset.id === n);
 
   const bar = document.createElement('div');
   bar.className = 'tourbar';
@@ -55,6 +57,10 @@ export const TOUR_JS = String.raw`
   document.body.appendChild(hand);
 
   let running = false, stop = false;
+  // Published because the mascot ([mascot.ts](mascot.ts)) reacts to the same
+  // events the tour dispatches, and two voices narrating one gesture is worse
+  // than either alone. It stays quiet while this is true.
+  window.__TOUR__ = { running: false };
   const cap = (t) => { $('#tourcap').textContent = t; };
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -185,12 +191,14 @@ export const TOUR_JS = String.raw`
   $('#tourgo').onclick = async () => {
     if (running) { halt(); return; }
     running = true; stop = false;
+    window.__TOUR__.running = true;
     $('#tourgo').textContent = '■ Stop';
     for (const beat of beats) {
       if (stop) break;
       try { await beat(); } catch (e) { cap('The tour hit something the desk did not expect: ' + e.message); break; }
     }
     running = false; stop = false;
+    window.__TOUR__.running = false;
     hand.style.opacity = '0';
     $('#tourgo').textContent = '▶ Play again';
   };

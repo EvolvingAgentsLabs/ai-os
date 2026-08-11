@@ -221,6 +221,76 @@ flow's steps *yet*, because the step it just created has not run. Re-deriving
 would snap the cube back and undo the assignment in front of the person who made
 it. So a pinned cube keeps its document.
 
+### The agents are creatures now — 2026-08-11 [ran]
+
+An agent used to be a coloured square with a name. It was placed by the layout,
+which could only ever hold it in **one** place — so an agent with steps in two
+flows was drawn standing on whichever flow the layout named. The picture said "it
+is here", the trace said "it is in both", and people believe the picture.
+
+Three changes, all of them in the product rather than the demo:
+
+**One creature per document an agent has work in**, derived from the steps
+([creatures.ts](../ai-ui/src/creatures.ts)). Two flows is two of it, and the
+second grows out of the first where you can watch it happen; when the work goes,
+the extra one walks back into the one that remains. Several steps in a single
+flow stay one creature with a multiplier, because a queue is not a crowd.
+
+**The body answers "is this one working" without opening anything.** Eyes that
+blink while idle, narrow while running, and stay shut on an agent declared with
+no file behind it — plus what it is doing, on the agent: *step 2 · running*.
+
+**Nothing jumps.** The render used to empty the surface and draw it again every
+five seconds, which is why nothing could ever move: no element survived long
+enough to be moved, and every change of place was a new node appearing where the
+old one had been. It reconciles now, and everything that ends up somewhere else
+walks there — in whole pixels, `steps()` timing, never a glide.
+
+Two defects fell out of building it, and only running it found either. The
+simulated backend was appending steps with **no `agent` field**, where the server
+sets `agent: agentOfIntent(s.intent)` on every step — so the demo's data shape had
+quietly drifted from the API's, and the first thing to read that field found it
+missing. And the client's `String.raw` had to survive: injecting the new rules by
+interpolation turned it into a plain template, where `\s` collapses to `s` and the
+markdown stripper's regex would have shipped matching the letter.
+
+### The demo, and the companion that only lives there — 2026-08-11 [ran]
+
+The website's playable desk is the real client with `window.fetch` replaced
+([simulate.ts](../ai-ui/src/simulate.ts)), so it inherits everything above. Two
+things are added there and gated so the product cannot ship them: the tour that
+drives itself, and **Cubi** — the agent cube at twice the size, with eyes.
+
+Cubi reacts to what you touch, and every line it says carries the fact it came
+from: *0 attempts across 1 step*, *carried 0% of 14 distinctive tokens*. The
+remarks are selected by the state rather than by a timer, which is the whole
+difference from the 1991 assistant it is quoting. It also says nothing while the
+tour is talking, and steps aside rather than covering the document it is
+discussing.
+
+**The optional brain.** Pressing one button downloads a language model **into the
+visitor's browser** (WebLLM over WebGPU) and lets Cubi answer freely. The rungs,
+with the VRAM figures from WebLLM's own `prebuiltAppConfig` [read]:
+
+| rung | VRAM | when |
+|---|---|---|
+| `SmolLM2-360M-Instruct-q4f16_1` | 376 MB | English, and a phone or ≤4 GB reported |
+| `Qwen2.5-0.5B-Instruct-q4f16_1` | 945 MB | Spanish always, and desktop by default |
+
+Chrome's built-in Prompt API is not a rung: Chrome 148 has it on by default, and
+it is desktop-only and wants 22 GB of disk and 4 GB of VRAM [read].
+
+Two rules keep this from contradicting the page it sits on. **The facts never come
+from the model** — it is handed a sheet built from the trace and told it may not
+add to it, exactly as `/ask` is answered from the trace and never from the goal.
+And because a 360M model invents numbers anyway, every answer is checked against
+that sheet: digits and agent-shaped names that are not in it are printed under
+the answer, in red, as ungrounded. The demo therefore argues its own thesis in
+public — you can watch a small model stay grounded, or watch it fail to.
+
+This is also the one place the desk reaches the network for something other than
+its own state, and only after a press that states the size first.
+
 ### What it deliberately does not do
 
 **Reading the desk never spends a model call.** `POST /assign` writes a step and
