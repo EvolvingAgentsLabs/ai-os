@@ -2,7 +2,7 @@
 
 The OS-level interface: a desk you arrange, not a chat log.
 
-> **Status: built and running — 61 tests, `npm test`. Unproven.** The design is
+> **Status: built and running — 103 tests, `npm test`. Unproven.** The design is
 > [`../doc/04-ai-ui.md`](../doc/04-ai-ui.md); the seam it talks over is
 > [ADR-0006](../doc/adr/0006-ai-flows-lives-outside-core.md).
 >
@@ -54,6 +54,9 @@ One package: a layout model, a layout store, a render and a server. It talks to
 | `server.ts` | `GET /` and `/state`, `PUT /layout`, `POST /assign` `/unassign` `/advance` |
 | `desk.ts` | the whole page — inline CSS, inline JS, no external requests |
 | `trace.ts` | what actually happened: attempts, contribution, observability drift |
+| `zoom.ts` | semantic zoom — fifteen attempts become one object, and the fifteen survive |
+| `actions.ts` | the menu that reveals itself: proposed actions for *this* flow, each with its cost |
+| `projection.ts` | the cache that lets a model write a projection without a render ever spending |
 | `memory.ts` | **a drawing of software that does not exist** — see below |
 | `flows-http.ts` | the signed client for `ai-flows` |
 | `simulate.ts` | `window.fetch` replaced in-page, so the demo is the real client |
@@ -109,6 +112,10 @@ field there comes from the flow store.
 - Multi-pointer drag. One `drag` at a time is a deliberate v1 bound —
   simultaneous multi-user canvas editing is out of scope until the desk is worth
   sharing.
+- **Phase 5** of [15 · Generated interaction](../doc/15-generated-interaction.md):
+  the gesture that edits the markdown defining the system. Specified, not built —
+  it is the one item there where being wrong edits the system rather than a
+  record of it.
 
 ## Rules
 

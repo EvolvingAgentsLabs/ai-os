@@ -156,6 +156,7 @@ jobs:
         run: |
           npm ci
           npm run typecheck
+          npm run typecheck:scripts
       - name: Tests
         run: npm test
 

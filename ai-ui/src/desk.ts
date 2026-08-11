@@ -48,6 +48,16 @@ export interface DeskDoc {
   state: string;
   /** What actually happened. Real: every field comes from the flow store. */
   trace: import("./trace.ts").FlowTrace;
+  /**
+   * The flow at a glance, aggregated so nothing is silently dropped
+   * ([zoom.ts](zoom.ts)). This is what a person standing back reads.
+   */
+  digest: import("./zoom.ts").Digest;
+  /**
+   * What it makes sense to do with *this* flow right now
+   * ([actions.ts](actions.ts)). Computed from state; every entry states its cost.
+   */
+  actions: import("./actions.ts").Action[];
   steps: Array<{
     index: number;
     state: string;
@@ -220,6 +230,66 @@ select{font:inherit;font-size:11px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:300;
   background:var(--paper);border:1px solid #000;box-shadow:3px 3px 0 rgba(0,0,0,.4);
   padding:7px 14px;font-size:12px;display:none}
+
+/* The digest: what this flow is, from across the room. Recessed, because it is
+   a container for the whole rather than one more thing on the list. */
+.digest{margin-top:8px;padding:6px 8px;background:#cfcbc2;
+  box-shadow:inset 2px 2px 0 var(--dark),inset -2px -2px 0 var(--lite)}
+.digest .dh{font-size:12px;font-weight:700;line-height:1.35}
+.digest .dc{font-size:10px;color:#3b3f44;margin-top:2px}
+.digest .flag{font-size:10px;color:#7d2419;margin-top:3px}
+
+/* The menu. A raised button per proposal, the cost beside it, the evidence
+   under it -- never a bare verb. */
+.menu{margin-top:10px;border-top:1px solid #ded9d0;padding-top:8px}
+.menu .mh{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#3b3f44;margin-bottom:5px}
+.menu .mi{margin-bottom:7px}
+.menu .ml{font-size:11px;padding:2px 8px;max-width:100%;text-align:left;white-space:normal}
+.menu .mc{font-size:9px;margin-left:6px;padding:1px 5px;letter-spacing:.04em;text-transform:uppercase}
+.menu .mc.spends{background:#f6e6c8;color:#7a4a00;border:1px solid #e0a020}
+.menu .mc.free{background:#e6efe6;color:#2c6b2c;border:1px solid #9cc09c}
+.menu .mw{font-size:10px;color:var(--dim);margin-top:3px;line-height:1.4}
+/* A model's suggestion is marked as one. It sits beside proposals that are not. */
+.menu .mi.model{border-left:3px solid #6b4fa8;padding-left:6px}
+.menu .mi.model .ml::after{content:" · proposed by a model";font-size:9px;color:#6b4fa8}
+
+/* Ask. The selection is the noun, so the field only needs the verb. */
+.ask{margin-top:10px;border-top:1px solid #ded9d0;padding-top:8px}
+.ask input{font:inherit;font-size:11px;width:100%;padding:3px 6px;border:1px solid #000;
+  background:var(--paper);box-shadow:inset 1px 1px 0 var(--dark)}
+.ask button{font-size:11px;padding:2px 10px;margin-top:5px}
+.ask .answer{margin-top:6px;padding:6px 8px;background:#f0ece4;border:1px solid #ded9d0;
+  font-size:11px;white-space:pre-wrap;line-height:1.45}
+
+/* ---- Motion that carries information -----------------------------------
+   Every rule here answers a question. None of it is decoration, and the test
+   in desk.test.ts asserts the load-bearing one.
+
+   The load-bearing one: **what the system proposed settles into place; what you
+   pinned never moves.** That is the hardest rule in layout.ts and today it is
+   invisible -- you cannot see that your arrangement is safe, you can only fail
+   to notice it being destroyed. Motion teaches it without a legend: a proposed
+   document slides to where the system put it, a pinned one has no transition at
+   all and therefore cannot be seen to move. */
+.docnode{transition:left .22s cubic-bezier(.2,.7,.3,1),top .22s cubic-bezier(.2,.7,.3,1)}
+.docnode.pinned,.acube.pinned{transition:none}
+.docnode.dragging,.acube.dragging{transition:none}
+
+/* A step that finished did something. The pulse travels the cube rather than
+   recolouring it in place, so "what did this produce" is answerable by looking. */
+@keyframes settled{0%{box-shadow:0 0 0 0 rgba(63,143,63,.55)}100%{box-shadow:0 0 0 9px rgba(63,143,63,0)}}
+.cube.justdone{animation:settled .7s ease-out 1}
+
+/* Opening the trace grows it out of the document, so you never lose track of
+   what you are inside of. The Mac's zoom rectangle, for the same reason. */
+@keyframes fromdoc{from{transform:scale(.94);opacity:.25}to{transform:none;opacity:1}}
+.tr{animation:fromdoc .18s ease-out 1}
+
+@media (prefers-reduced-motion: reduce){
+  .docnode{transition:none}
+  .cube.justdone{animation:none}
+  .tr{animation:none}
+}
 `;
 
 /**
@@ -396,6 +466,82 @@ const DESK_JS = String.raw`
         '</div>').join('') + '</div>';
   };
 
+  /**
+   * Wire the proposed menu.
+   *
+   * Each action names the route it takes, so this is a dispatch table rather
+   * than a branch per label -- a menu whose behaviour is decided by matching
+   * strings drifts from the module that produced it on the first rename.
+   *
+   * A model-proposed action has a null route and is rendered disabled. It is a
+   * suggestion to press something, never a licence to spend.
+   */
+  const wireActions = (p, doc) => {
+    p.querySelectorAll('.ml[data-act]').forEach((b) => {
+      const a = doc.actions[Number(b.dataset.act)];
+      if (!a || !a.route) return;
+      b.onclick = async () => {
+        const was = b.textContent;
+        b.disabled = true; b.textContent = 'Working…';
+        try {
+          if (a.route === '/fork') {
+            // Fork copies records. It spends nothing, and the copy does not run
+            // until somebody advances it -- its own click, its own stated cost.
+            const at = Math.max(0, (a.step == null ? doc.steps.length : a.step) - 1);
+            const r = await post('/fork', { flowId: doc.id, atStep: at });
+            say('Forked at step ' + at + '. The original keeps its history; the fork is yours to change.', 5000);
+            void r;
+          } else if (a.route === '/advance') {
+            await post('/advance', { flowId: doc.id });
+            say('Advanced.');
+          } else if (a.route === '/ask') {
+            const q = p.querySelector('#q');
+            if (q) { q.value = a.label; q.focus(); }
+            b.disabled = false; b.textContent = was;
+            return;
+          } else {
+            b.disabled = false; b.textContent = was;
+            return;
+          }
+          await refresh();
+        } catch (e) {
+          say('That did not work: ' + e.message, 5000);
+          b.disabled = false; b.textContent = was;
+        }
+      };
+    });
+  };
+
+  /**
+   * Wire the question box.
+   *
+   * The answer reports whether a turn was bought. A surface that spends quietly
+   * teaches the person using it to stop counting, which is the habit this whole
+   * repository is trying to keep.
+   */
+  const wireAsk = (p, doc) => {
+    const q = p.querySelector('#q');
+    const go = p.querySelector('#qgo');
+    const out = p.querySelector('#qa');
+    if (!q || !go || !out) return;
+    const ask = async () => {
+      const question = (q.value || '').trim();
+      if (!question) return;
+      go.disabled = true; out.innerHTML = '<div class="dim">Reading the trace…</div>';
+      try {
+        const r = await post('/ask', { flowId: doc.id, question });
+        out.innerHTML = '<div class="answer">' + escape_(r.answer) + '</div>' +
+          '<div class="dim">' + (r.spent ? 'Cost: one model call' : 'Answered without a model call') +
+          ' · ' + r.evidence + ' piece(s) of evidence in the trace</div>';
+      } catch (e) {
+        out.innerHTML = '<div class="err">' + escape_(e.message) + '</div>';
+      }
+      go.disabled = false;
+    };
+    go.onclick = ask;
+    q.onkeydown = (ev) => { if (ev.key === 'Enter') ask(); };
+  };
+
   const renderPanel = () => {
     const p = document.getElementById('panel');
     if (!selected) { p.style.display = 'none'; return; }
@@ -418,6 +564,16 @@ const DESK_JS = String.raw`
         '<div class="tabs"><button id="tab-state" aria-selected="true">State</button>' +
         '<button id="tab-trace">Trace</button></div>' +
         '<div class="dim">' + escape_(doc.state) + ' · ' + doc.done + '/' + doc.total + ' steps done</div>' +
+        // Semantic zoom, at the top because it is the answer to the question the
+        // desk exists for. It states how many attempts it stands for and what
+        // window it covers -- a projection that says neither invites the reader
+        // to read a trend out of noise (doc/04, the sampling argument).
+        (doc.digest
+          ? '<div class="digest"><div class="dh">' + escape_(doc.digest.headline) + '</div>' +
+            '<div class="dc">' + escape_(doc.digest.covering) + '</div>' +
+            doc.digest.flags.map((f) => '<div class="flag">' + escape_(f) + '</div>').join('') +
+            '</div>'
+          : '') +
         '<p style="margin:6px 0 0">' + escape_(doc.goal) + '</p>' +
         '<ul class="steps">' + doc.steps.map((s) =>
           '<li><span class="cube sm" style="--c:' + (S.stateColors[s.state] || '#b9b4a8') + '"></span>' +
@@ -433,8 +589,30 @@ const DESK_JS = String.raw`
             ? '<div class="note">Every step is settled. The flow is still <strong>' + escape_(doc.state) +
               '</strong> because nothing has closed it. This spends nothing — there is no step left to run.</div>' +
               '<div class="act"><button id="adv">Mark the flow finished</button></div>'
-            : '<div class="note">Nothing left to do.</div>');
+            : '<div class="note">Nothing left to do.</div>') +
+        // The menu that reveals itself. Every entry carries the evidence that
+        // produced it and says whether pressing it spends -- an action offered
+        // without a reason is a guess the reader has to audit.
+        ((doc.actions || []).length
+          ? '<div class="menu"><div class="mh">What people do here</div>' +
+            doc.actions.map((a, i) =>
+              '<div class="mi' + (a.source === 'model' ? ' model' : '') + '">' +
+              '<button class="ml" data-act="' + i + '"' + (a.route ? '' : ' disabled') + '>' +
+              escape_(a.label) + '</button>' +
+              '<span class="mc ' + (a.spends ? 'spends' : 'free') + '">' +
+              (a.spends ? 'spends a model call' : 'free') + '</span>' +
+              '<div class="mw">' + escape_(a.why) + '</div></div>').join('') +
+            '</div>'
+          : '') +
+        // Deixis: the selection is the noun, so the question can be three words.
+        '<div class="ask"><input id="q" placeholder="Ask about this flow — e.g. why did it stop?" ' +
+        'aria-label="Ask about this flow">' +
+        '<button id="qgo">Ask</button>' +
+        '<div class="dim" style="margin-top:4px">Answered from the trace, not the goal. Spends a model call.</div>' +
+        '<div id="qa"></div></div>';
       p.querySelector('#tab-trace').onclick = () => { tab = 'trace'; renderPanel(); };
+      wireActions(p, doc);
+      wireAsk(p, doc);
       const b = p.querySelector('#adv');
       if (b) {
         const label = b.textContent;
@@ -466,7 +644,11 @@ const DESK_JS = String.raw`
     for (const doc of S.docs) {
       const p = layout.docs[doc.id] || { x: 200, y: 40 };
       const el = document.createElement('div');
-      el.className = 'docnode'; el.dataset.id = doc.id;
+      // The pinned class is not styling -- it removes the transition. A document the
+      // person placed must not animate, because an object that slides after you
+      // let go of it reads as the system having moved it.
+      el.className = 'docnode' + (p.pinned ? ' pinned' : '');
+      el.dataset.id = doc.id;
       el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
       const strip = doc.steps.map((s) =>
         '<span class="cube" style="--c:' + (S.stateColors[s.state] || '#b9b4a8') + '"></span>').join('');

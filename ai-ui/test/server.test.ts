@@ -22,6 +22,8 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
   const advanced: string[] = [];
   const removed: Array<{ flowId: string; index: number }> = [];
   const resumed: string[] = [];
+  const forked: Array<{ flowId: string; atStep: number }> = [];
+  const asked: Array<{ flowId: string; question: string; step?: number }> = [];
   const client: FlowsClient = {
     async conformation() {
       return {
@@ -108,9 +110,17 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
       advanced.push(flowId);
       return { kind: "advanced" };
     },
+    async fork(flowId, atStep) {
+      forked.push({ flowId, atStep });
+      return { id: `${flowId}-fork`, title: "fork" };
+    },
+    async ask(flowId, question, step) {
+      asked.push({ flowId, question, step });
+      return { answer: `about ${flowId}: ${question}`, spent: true, evidence: 3 };
+    },
     ...over,
   };
-  return { client, appended, advanced, removed, resumed };
+  return { client, appended, advanced, removed, resumed, forked, asked };
 }
 
 async function serve(flows: FlowsClient) {

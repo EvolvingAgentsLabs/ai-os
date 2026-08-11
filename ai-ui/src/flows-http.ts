@@ -186,5 +186,33 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
       );
       return { kind: r.outcome?.kind ?? "unknown" };
     },
+
+    async fork(flowId: string, atStep: number) {
+      const r = await call<{ id: string; title?: string }>(
+        "POST",
+        `/flows/${encodeURIComponent(flowId)}/fork`,
+        { atStep },
+      );
+      return { id: r.id, title: r.title ?? "fork" };
+    },
+
+    async ask(flowId: string, question: string, step?: number) {
+      const r = await call<{
+        answer?: string;
+        spent?: boolean;
+        evidence?: number;
+      }>("POST", `/flows/${encodeURIComponent(flowId)}/ask`, {
+        question,
+        ...(step === undefined ? {} : { step }),
+      });
+      return {
+        answer: r.answer ?? "",
+        // Defaulting `spent` to true is the safe direction: reporting a spend
+        // that did not happen costs a person nothing, and hiding one costs them
+        // the habit of counting.
+        spent: r.spent ?? true,
+        evidence: r.evidence ?? 0,
+      };
+    },
   };
 }

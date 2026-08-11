@@ -32,7 +32,11 @@ function stubCore(mode: "ok" | "pending" = "ok"): CoreClient {
   } as unknown as CoreClient;
 }
 
-function serverOn(mode: "ok" | "pending" = "ok", secret: string | undefined = SECRET) {
+function serverOn(
+  mode: "ok" | "pending" = "ok",
+  secret: string | undefined = SECRET,
+  extra: { ask?: (prompt: string) => Promise<string> } = {},
+) {
   const store = createMemoryFlowStore();
   const engine = createEngine({
     store,
@@ -48,6 +52,7 @@ function serverOn(mode: "ok" | "pending" = "ok", secret: string | undefined = SE
     store,
     engine,
     ...(secret ? { signingSecret: secret } : { allowUnauthenticated: true }),
+    ...extra,
   });
   return { store, server };
 }
@@ -258,5 +263,98 @@ describe("the flow routes", () => {
     const again = await signed(server, "POST", `/flows/${created.body.id}/advance`, {});
     assert.equal(again.body.outcome.kind, "complete");
     assert.equal(again.status, 200);
+  });
+});
+
+/**
+ * Asking about a flow — the route behind the desk's selection.
+ *
+ * The assertions that matter are about money and about honesty: it must not buy
+ * a turn when the trace holds nothing, it must say whether it bought one, and
+ * with no model wired it must refuse rather than answer from the goal.
+ */
+describe("asking about a flow", () => {
+  const signed = (s: ReturnType<typeof createFlowServer>, m: string, p: string, b?: unknown) =>
+    call(s, m, p, b, { secret: SECRET });
+
+  async function flowThatRan(server: ReturnType<typeof createFlowServer>) {
+    const created = await signed(server, "POST", "/flows", {
+      scopeId: "personal:U1",
+      actorId: "U1",
+      goal: "rewrite the ledger",
+      steps: ["first"],
+    });
+    await signed(server, "POST", `/flows/${created.body.id}/advance`, {});
+    return created.body.id as string;
+  }
+
+  it("answers from the trace, and says it spent", async () => {
+    const asked: string[] = [];
+    const { server } = serverOn("ok", SECRET, {
+      ask: async (p) => {
+        asked.push(p);
+        return "it stopped on a constraint violation";
+      },
+    });
+    const id = await flowThatRan(server);
+    const r = await signed(server, "POST", `/flows/${id}/ask`, { question: "why did this stop?" });
+    assert.equal(r.status, 200);
+    assert.equal(r.body.spent, true);
+    assert.match(r.body.answer, /constraint violation/);
+    assert.match(asked[0]!, /RECORD:/);
+  });
+
+  it("does not buy a turn when there is nothing in the trace", async () => {
+    let calls = 0;
+    const { server } = serverOn("ok", SECRET, {
+      ask: async () => {
+        calls++;
+        return "should not happen";
+      },
+    });
+    const created = await signed(server, "POST", "/flows", {
+      scopeId: "personal:U1",
+      actorId: "U1",
+      goal: "not started",
+      steps: ["first"],
+    });
+    const r = await signed(server, "POST", `/flows/${created.body.id}/ask`, { question: "what happened?" });
+    assert.equal(r.status, 200);
+    assert.equal(r.body.spent, false);
+    assert.equal(calls, 0);
+    assert.match(r.body.answer, /nothing in the trace/);
+  });
+
+  it("501s with no model wired, rather than answering from the goal", async () => {
+    const { server } = serverOn();
+    const id = await flowThatRan(server);
+    const r = await signed(server, "POST", `/flows/${id}/ask`, { question: "why?" });
+    assert.equal(r.status, 501);
+    assert.equal(r.body.error, "not_configured");
+  });
+
+  it("refuses an empty question before it looks anything up", async () => {
+    const { server } = serverOn("ok", SECRET, { ask: async () => "x" });
+    const id = await flowThatRan(server);
+    assert.equal((await signed(server, "POST", `/flows/${id}/ask`, { question: "   " })).status, 400);
+    assert.equal((await signed(server, "POST", `/flows/${id}/ask`, {})).status, 400);
+  });
+
+  it("404s an unknown flow", async () => {
+    const { server } = serverOn("ok", SECRET, { ask: async () => "x" });
+    assert.equal((await signed(server, "POST", "/flows/nope/ask", { question: "why?" })).status, 404);
+  });
+
+  it("marks the selected step in the prompt when one is given", async () => {
+    let prompt = "";
+    const { server } = serverOn("ok", SECRET, {
+      ask: async (p) => {
+        prompt = p;
+        return "ok";
+      },
+    });
+    const id = await flowThatRan(server);
+    await signed(server, "POST", `/flows/${id}/ask`, { question: "why?", step: 0 });
+    assert.match(prompt, /^>> step 0 /m);
   });
 });

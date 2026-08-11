@@ -26,6 +26,7 @@ changes kind gets its banner rewritten the same day.
 | [02 · ai-base](02-ai-base.md) | What QM actually provides — verified against the source, not its README — and the seams built on |
 | [03 · ai-flows](03-ai-flows.md) | The flow model: goal, steps, attempts, observations. **`Open` runs; the other five shapes are specification** |
 | [04 · ai-ui](04-ai-ui.md) | The desk: documents, agent cubes, the trace face. Built; its own falsification has not been run |
+| [15 · Generated interaction](15-generated-interaction.md) | Semantic zoom, the self-revealing menu, deixis and fork — what a model can do that a GUI could not. Phases 1–4 built, phase 5 specified |
 | [09 · Scales](09-scales.md) | Individual, collective, project, system — one axis for flows and memory, and it is `scopeId` |
 | [10 · Observability](10-observability.md) | Whether a flow's progress can be read at all. Drift versus unreadable, and the measured noise floor between them |
 | [12 · Conformation](12-conformation.md) | Projects, agents and folders: what the layered workspace is, and why membership never lives in it |
