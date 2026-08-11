@@ -2,7 +2,8 @@
  * The canvas's server: state in, layout out, and two actions that cost money.
  *
  * It owns no flows and no conformation. Both come from `ai-flows`, over its
- * signed HTTP seam, for the reason [ADR-0006](../../doc/adr/0006-signed-seam.md)
+ * signed HTTP seam, for the reason
+ * [ADR-0006](../../doc/adr/0006-ai-flows-lives-outside-core.md)
  * gives: a second process reaching into the first one's tables is a coupling
  * nobody can see and nobody can revoke. The canvas is a client.
  *
