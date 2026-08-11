@@ -364,3 +364,86 @@ describe("the new panel cannot be a way in", () => {
     assert.ok(!html.includes("<b>why</b>"));
   });
 });
+
+/**
+ * The panel's own poll must not destroy what the panel is for.
+ *
+ * The desk re-reads every five seconds and re-renders the selection panel, which
+ * rebuilds its innerHTML. An answer somebody **paid a model call for** therefore
+ * vanished within five seconds of arriving, and a question typed slower than that
+ * was erased mid-sentence — which makes the feature unusable rather than merely
+ * annoying.
+ *
+ * Found by using it against a live core, not by reading the code. These assert
+ * the shipped client keeps the state across a re-render.
+ */
+describe("an answer survives the five-second poll", () => {
+  const client = () => {
+    const html = renderDeskHtml(view());
+    return [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]!).join("\n");
+  };
+
+  it("keeps answers per flow rather than in the DOM it rebuilds", () => {
+    const js = client();
+    assert.match(js, /const asked = \{\}/);
+    // Restored on render, or the rebuild wins.
+    assert.match(js, /const kept = asked\[doc\.id\]/);
+    assert.match(js, /q\.value = kept\.q/);
+  });
+
+  it("keeps a half-typed question too", () => {
+    // The worse half of the bug: you could not type a question slowly enough to
+    // finish it.
+    assert.match(client(), /q\.oninput/);
+  });
+
+  it("records the answer at the same moment it is shown", () => {
+    // A `show` that writes the DOM without recording would pass the two tests
+    // above and still lose every answer.
+    assert.match(client(), /asked\[doc\.id\] = \{ q: question, html: html \}/);
+  });
+});
+
+/**
+ * The answer is displayed as text, and the model does not always cooperate.
+ *
+ * The prompt asks for plain prose and the model mostly complies — but "mostly"
+ * means the page is correct at a *rate*, and the failure lands as literal
+ * asterisks and backticks in front of the reader. Seen on a live instance after
+ * the prompt constraint was already in place, which is why the fix is on this
+ * side and deterministic.
+ */
+describe("markup the panel does not render is removed, not hoped away", () => {
+  /** Evaluate the helper exactly as the page ships it, escaping included. */
+  const shippedPlain = () => {
+    const js = [...renderDeskHtml(view()).matchAll(/<script>([\s\S]*?)<\/script>/g)]
+      .map((m) => m[1]!)
+      .join("\n");
+    const m = js.match(/const plain = \(s\) => String[\s\S]*?;\n/);
+    assert.ok(m, "the page must ship a plain() helper");
+    return eval(
+      "(" + m[0]!.replace(/^const plain = /, "").replace(/;\n$/, "") + ")",
+    ) as (s: string) => string;
+  };
+
+  it("removes emphasis markers and code ticks", () => {
+    const plain = shippedPlain();
+    assert.equal(plain("a **bold** word"), "a bold word");
+    assert.equal(plain("path `/root/x.txt` here"), "path /root/x.txt here");
+    assert.equal(plain("**b** and `c`"), "b and c");
+  });
+
+  it("leaves the text between the markers untouched", () => {
+    // The distinction from parsing markdown: no structure is interpreted and
+    // nothing becomes HTML. Only the markers go.
+    const plain = shippedPlain();
+    assert.equal(plain("plain text"), "plain text");
+    assert.equal(plain("2 * 3 * 4"), "2 * 3 * 4");
+  });
+
+  it("still escapes what it stripped markers from", () => {
+    // Stripping must not become a way in: the result is escaped afterwards.
+    const html = renderDeskHtml(view());
+    assert.match(html, /escape_\(plain\(r\.answer\)\)/);
+  });
+});

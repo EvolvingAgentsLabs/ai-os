@@ -182,6 +182,37 @@ desk does not currently have, and it is the one item on this list where being
 wrong edits the system rather than a record of it. It should follow the stopwatch,
 not precede it.
 
+## What running it found — 2026-08-11 [ran]
+
+Phases 1–4 were built, tested and merged before anything ran them against a live
+core. Doing that took an afternoon and found **four defects that every test
+passed over**, which is the whole argument for the distinction this repository
+draws between [read] and [ran].
+
+| | Found | Why no test caught it |
+|---|---|---|
+| **The `ask` seam was never wired.** `POST /flows/:id/ask` took an injected capability that `scripts/serve.ts` never supplied, so a real deployment answered 501 | starting the stack | Every test injects its own stub. The runner is the one caller nobody stubs |
+| **The five-second poll destroyed the answer.** Re-rendering the panel rebuilt its innerHTML, so an answer somebody *paid a model call for* vanished within five seconds — and a question typed slower than that was erased mid-sentence | asking a question and waiting | The panel renders correctly. It is the *second* render that loses, and no test rendered twice |
+| **The model answered in markdown**, so the panel showed literal asterisks and backticks | reading the answer | Nothing asserted what the text looked like, and asserting the model's compliance would have been measuring phrasing |
+| **The markdown stripper matched nothing.** The client is a `String.raw` template, so `\\*` shipped an escaped backslash rather than an escaped asterisk | the test written for the fix | The fix looked right in the source. The test evaluates the helper **as the page ships it**, which is why it failed |
+
+The last one is worth keeping. It was a defect *in the repair for the third one*,
+caught within a minute because the test extracts the function from the rendered
+page and runs it, rather than testing the TypeScript that produces it. A test
+written against the source would have passed and shipped a stripper that silently
+did nothing.
+
+**And the fix for the markup is on the display side, not in the prompt.** The
+prompt does ask for plain prose and the model mostly complies — but *mostly* means
+the page is correct at a rate, and depending on a sampler to obey a formatting
+instruction is how a surface becomes intermittently wrong. Constraining the output
+is a hint; stripping the markers is a guarantee.
+
+**Deixis verified end to end** against `pi` on the real core: asked *what did this
+actually produce?*, and the answer named the file `MigrationAgent` wrote and what
+`ReviewAgent` confirmed — neither of which appears in the flow's goal. The
+no-evidence path answered `spent: false` without buying a turn. Both **[ran]**.
+
 ## How all of this gets falsified
 
 **No new instrument.** The measurement is the one `04` already specifies: a

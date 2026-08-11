@@ -22,6 +22,7 @@ import { scopeStorageKey } from "../../ai-base/src/util/scope-storage-key.ts";
 import { parseAgentDefinition } from "../../ai-base/src/agents/agent-definition.ts";
 import { parseFrontmatter } from "../../ai-base/src/skills/frontmatter.ts";
 import { isProjectGroupRef } from "../../ai-base/src/projects/project-store.ts";
+import { randomUUID } from "node:crypto";
 import { createCoreClient } from "../src/core-client.ts";
 import { carryPriorResults, createEngine } from "../src/engine.ts";
 import { createPostgresFlowStore } from "../src/postgres-flow-store.ts";
@@ -204,6 +205,27 @@ const server = createFlowServer({
   // its own. Two projections would be two answers to "what does this system
   // look like", and the desk would draw cubes the explorer does not have.
   conformation,
+  /**
+   * The model seam behind `POST /flows/:id/ask` ([ask.ts](../src/ask.ts)).
+   *
+   * A synchronous turn rather than the queued one a step uses: a person is
+   * waiting for this answer, and there is nothing to resume if they close the
+   * tab. It is the same shape `scripts/*-smoke.ts` use.
+   *
+   * The conversation ref is per-question rather than per-flow, so one question
+   * never inherits the last one's context. Answering "why did this stop?" from
+   * a thread that already contains a summary of the flow is how the answer
+   * stops coming from the trace.
+   */
+  async ask(prompt: string) {
+    const r = await core.turn({
+      surface: "ai-flows-ask",
+      actor: { externalId: "desk", displayName: "the desk" },
+      conversation: { kind: "dm", threadRef: `ask-${randomUUID()}` },
+      text: prompt,
+    });
+    return r.reply ?? "The core answered with no reply.";
+  },
   ...(process.env.FLOWS_SIGNING_SECRET
     ? { signingSecret: process.env.FLOWS_SIGNING_SECRET }
     : { allowUnauthenticated: process.env.FLOWS_ALLOW_UNAUTHENTICATED === "1" }),

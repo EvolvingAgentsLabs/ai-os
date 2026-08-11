@@ -191,6 +191,38 @@ camino que el escritorio hoy no tiene, y es el único ítem de esta lista donde
 equivocarse edita el sistema en vez de un registro del sistema. Tiene que ir
 después del cronómetro, no antes.
 
+## Lo que encontró correrlo — 2026-08-11 [ran]
+
+Las fases 1–4 se construyeron, testearon y mergearon antes de que nada las corriera
+contra un core vivo. Hacerlo llevó una tarde y encontró **cuatro defectos que todos
+los tests pasaron por alto**, que es exactamente el argumento de la distinción que
+este repositorio hace entre [read] y [ran].
+
+| | Encontrado | Por qué ningún test lo agarró |
+|---|---|---|
+| **El seam de `ask` nunca estuvo cableado.** `POST /flows/:id/ask` tomaba una capacidad inyectada que `scripts/serve.ts` nunca proveía, así que un despliegue real contestaba 501 | al levantar la stack | Todos los tests inyectan su propio stub. El runner es el único llamador que nadie stubea |
+| **El poll de cinco segundos destruía la respuesta.** Re-renderizar el panel reconstruía su innerHTML, así que una respuesta por la que alguien *pagó una llamada de modelo* desaparecía en cinco segundos — y una pregunta tipeada más lento que eso se borraba a mitad | al preguntar y esperar | El panel renderiza bien. Lo que pierde es el *segundo* render, y ningún test renderizaba dos veces |
+| **El modelo contestaba en markdown**, así que el panel mostraba asteriscos y backticks literales | al leer la respuesta | Nada verificaba cómo se veía el texto, y verificar que el modelo obedezca habría sido medir fraseo |
+| **El limpiador de markdown no matcheaba nada.** El cliente es un template `String.raw`, así que `\\*` enviaba un backslash escapado en vez de un asterisco escapado | el test escrito para el arreglo | El arreglo se veía bien en el fuente. El test evalúa el helper **tal como lo envía la página**, y por eso falló |
+
+El último vale la pena conservarlo. Fue un defecto *en la reparación del tercero*,
+cazado en un minuto porque el test extrae la función de la página renderizada y la
+corre, en vez de testear el TypeScript que la produce. Un test escrito contra el
+fuente habría pasado y habría enviado un limpiador que en silencio no hacía nada.
+
+**Y el arreglo del markup va del lado del display, no del prompt.** El prompt sí
+pide prosa plana y el modelo mayormente obedece — pero *mayormente* significa que
+la página es correcta a una *tasa*, y depender de un sampler para que cumpla una
+instrucción de formato es cómo una superficie se vuelve intermitentemente
+incorrecta. Restringir la salida es una sugerencia; sacar los marcadores es una
+garantía.
+
+**Deixis verificada de punta a punta** contra `pi` en el core real: pregunté *what
+did this actually produce?*, y la respuesta nombró el archivo que escribió
+`MigrationAgent` y lo que confirmó `ReviewAgent` — nada de eso aparece en el goal
+del flow. El camino sin evidencia contestó `spent: false` sin comprar un turno.
+Los dos **[ran]**.
+
 ## Cómo se falsea todo esto
 
 **Sin instrumento nuevo.** La medición es la que `04` ya especifica: una persona,

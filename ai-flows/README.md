@@ -3,7 +3,7 @@
 Declarative, resumable, inspectable units of work above the turn — and the
 instruments that say whether any of it helped.
 
-> **Status: built and proven live (2026-08-06) — 266 tests without a database,
+> **Status: built and proven live (2026-08-06) — 267 tests without a database,
 > more with one.** One
 > shape (`open`), persisted, resumable, executing against the real core over the
 > signed seam. The design is [`../doc/03-ai-flows.md`](../doc/03-ai-flows.md);
@@ -71,9 +71,9 @@ core — `flow-smoke`, `recovery-probe`, `compaction-smoke`, `delegate-smoke`,
 
 ## What holds today
 
-`npm test` — **266 pass** with no `DATABASE_URL` **[ran]**. Set it and the same
+`npm test` — **267 pass** with no `DATABASE_URL` **[ran]**. Set it and the same
 suite also runs `flow-store.test.ts` against the Postgres backend, which is where
-durability is actually asserted rather than modelled — so 266 is the floor, not
+durability is actually asserted rather than modelled — so 267 is the floor, not
 the figure. The published total is in the root [README](../README.md) and
 [`scripts/check-test-count.sh`](../scripts/check-test-count.sh) fails CI when it
 drifts from what the suites report.

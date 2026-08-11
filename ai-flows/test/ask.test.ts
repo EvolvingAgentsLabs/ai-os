@@ -103,3 +103,14 @@ describe("how much there was to answer from", () => {
     assert.match(p.text, /\(no steps\)/);
   });
 });
+
+describe("the shape of the answer, not just its source", () => {
+  it("asks for plain prose, because the panel renders text and not markup", () => {
+    // Found on a live instance: the model returned markdown and the desk showed
+    // literal asterisks and backticks. Constraining the output is cheaper than
+    // giving this panel a markdown parser it has not earned.
+    const t = askPrompt(input()).text;
+    assert.match(t, /No markdown, no asterisks, no backticks/);
+    assert.match(t, /Answer in plain prose/);
+  });
+});

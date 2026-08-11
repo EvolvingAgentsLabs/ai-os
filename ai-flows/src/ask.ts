@@ -78,6 +78,13 @@ const INSTRUCTION = [
   "reconstruct a plausible history, and do not restate the INTENT as an outcome.",
   "",
   "Be brief. Three sentences is usually too many.",
+  "",
+  // The desk renders this as text, deliberately: a markdown parser is surface
+  // area this panel has not earned. So asking for markdown produces literal
+  // asterisks and backticks on screen. Constrain the output rather than build
+  // the renderer.
+  "Answer in plain prose. No markdown, no asterisks, no backticks, no bullet",
+  "points — the surface showing this renders text, not markup.",
 ].join("\n");
 
 function stepLines(s: AskStep, focused: boolean): string[] {

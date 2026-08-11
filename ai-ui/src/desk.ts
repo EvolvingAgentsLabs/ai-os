@@ -308,6 +308,9 @@ const DESK_JS = String.raw`
   const toast = document.getElementById('toast');
   let layout = S.layout;
   let selected = null;
+  // Questions asked and answers received, per flow. Not a cache -- it is what
+  // keeps the panel's own poll from destroying them. See wireAsk.
+  const asked = {};
 
   const say = (msg, ms) => {
     toast.textContent = msg; toast.style.display = 'block';
@@ -524,22 +527,35 @@ const DESK_JS = String.raw`
     const go = p.querySelector('#qgo');
     const out = p.querySelector('#qa');
     if (!q || !go || !out) return;
+
+    // Survive the poll. The desk re-reads every five seconds and re-renders this
+    // panel, which rebuilds its innerHTML -- so without this, an answer you paid
+    // for vanishes within five seconds of arriving, and a question typed slower
+    // than that is erased mid-sentence. Found by using it, not by reading it.
+    const kept = asked[doc.id];
+    if (kept) { q.value = kept.q; out.innerHTML = kept.html; }
+
     const ask = async () => {
       const question = (q.value || '').trim();
       if (!question) return;
-      go.disabled = true; out.innerHTML = '<div class="dim">Reading the trace…</div>';
+      const show = (html) => { out.innerHTML = html; asked[doc.id] = { q: question, html: html }; };
+      go.disabled = true; show('<div class="dim">Reading the trace…</div>');
       try {
         const r = await post('/ask', { flowId: doc.id, question });
-        out.innerHTML = '<div class="answer">' + escape_(r.answer) + '</div>' +
+        show('<div class="answer">' + escape_(plain(r.answer)) + '</div>' +
           '<div class="dim">' + (r.spent ? 'Cost: one model call' : 'Answered without a model call') +
-          ' · ' + r.evidence + ' piece(s) of evidence in the trace</div>';
+          ' · ' + r.evidence + ' piece(s) of evidence in the trace</div>');
       } catch (e) {
-        out.innerHTML = '<div class="err">' + escape_(e.message) + '</div>';
+        show('<div class="err">' + escape_(e.message) + '</div>');
       }
       go.disabled = false;
     };
     go.onclick = ask;
     q.onkeydown = (ev) => { if (ev.key === 'Enter') ask(); };
+    // Keep what is being typed, for the same reason.
+    q.oninput = () => {
+      asked[doc.id] = { q: q.value, html: (asked[doc.id] || {}).html || '' };
+    };
   };
 
   const renderPanel = () => {
@@ -633,6 +649,26 @@ const DESK_JS = String.raw`
                    : '<div class="note">Drag this onto a document to give it a step in that flow.</div>');
     }
   };
+
+  /**
+   * Strip the markup this panel does not render.
+   *
+   * The prompt asks for plain prose and the model mostly complies -- but "mostly"
+   * is the problem. Depending on a sampler to obey a formatting instruction means
+   * the page is correct at a rate, and the failure shows up as literal asterisks
+   * and backticks in front of whoever is reading. This removes the emphasis
+   * markers deterministically, which is a different thing from parsing markdown:
+   * no structure is interpreted, nothing is turned into HTML, and the text
+   * between the markers is untouched.
+   */
+  // NOTE: this block lives inside String.raw, so a backslash here is one
+  // backslash in the shipped page. Writing \\* would ship an escaped backslash
+  // and the rule would silently match nothing -- which is exactly what the first
+  // version of it did.
+  const plain = (s) => String(s == null ? '' : s)
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\`([^\`]+)\`/g, '$1')
+    .replace(/(^|\s)__(.+?)__(?=\s|$)/g, '$1$2');
 
   const escape_ = (s) => String(s == null ? '' : s).replace(/[&<>"']/g,
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

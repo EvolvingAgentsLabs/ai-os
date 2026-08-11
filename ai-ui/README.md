@@ -2,7 +2,7 @@
 
 The OS-level interface: a desk you arrange, not a chat log.
 
-> **Status: built and running — 103 tests, `npm test`. Unproven.** The design is
+> **Status: built and running — 109 tests, `npm test`. Unproven.** The design is
 > [`../doc/04-ai-ui.md`](../doc/04-ai-ui.md); the seam it talks over is
 > [ADR-0006](../doc/adr/0006-ai-flows-lives-outside-core.md).
 >
