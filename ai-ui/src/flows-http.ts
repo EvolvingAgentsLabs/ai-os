@@ -3,7 +3,7 @@
  *
  * The desk server takes a `FlowsClient` interface so it can be tested without a
  * core; this is the implementation that talks to a real one. It signs exactly
- * the way [ADR-0006](../../doc/adr/0006-signed-seam.md) specifies and
+ * the way [ADR-0006](../../doc/adr/0006-ai-flows-lives-outside-core.md) specifies and
  * `core-client.ts` implements — same canonical string, same headers — because
  * two signing schemes in one system is one scheme and one bug.
  */
