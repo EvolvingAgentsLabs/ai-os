@@ -805,15 +805,23 @@ ${BRAIN_JS}
    * record. A single balloon summarising both would have made Cubi a narrator
    * of other agents, which is the thing this desk is trying not to build.
    */
+  // Found by node, never held as one: the desk reconciles under this, and an
+  // element captured before the walk can be detached by the time the answer is
+  // due -- which measured as a zero rect and threw both the walker and the
+  // balloon into the top-left corner of the screen.
+  const creatureNamed = (name) =>
+    document.querySelector('.acube:not(.merging)[data-id="' + CSS.escape(name) + '"]');
+
   const askAgent = (name) => {
-    const el = document.querySelector('.acube:not(.merging)[data-id="' + CSS.escape(name) + '"]');
-    if (!el) return;
+    const el = creatureNamed(name);
+    const r = el && el.getBoundingClientRect();
+    if (!r || !r.width) return;
     talkingTo = name;
-    const r = el.getBoundingClientRect();
     walkTo(r.left - 46, r.top - 10);
     const line = agentSays(S, name);
     setTimeout(() => {
-      if (talkingTo !== name || !line) return;
+      const el2 = creatureNamed(name);
+      if (talkingTo !== name || !line || !el2) return;
       const t = line[lang] || line.en;
       theirs.className = 'crtsay on' + (line.tone === 'alert' ? ' alert' : '');
       theirs.innerHTML = '<p class="who"></p><p class="said"></p><p class="why"></p>';
@@ -821,12 +829,13 @@ ${BRAIN_JS}
         (lang === 'es' ? ' responde' : ' answers');
       theirs.querySelector('.said').textContent = t.say;
       theirs.querySelector('.why').textContent = t.why;
-      placeTheirs(el);
+      placeTheirs(el2);
     }, 620);
   };
 
   const placeTheirs = (el) => {
     const r = el.getBoundingClientRect();
+    if (!r.width) { theirs.classList.remove('on'); return; }
     const w = theirs.offsetWidth || 252, h = theirs.offsetHeight || 80;
     const x = Math.min(Math.max(r.left + 24, 8), Math.max(8, window.innerWidth - 330 - w));
     const y = Math.min(Math.max(r.bottom + 10, 44), Math.max(44, window.innerHeight - 166 - h));
@@ -1025,37 +1034,34 @@ ${BRAIN_JS}
     }, 24000);
   };
 
-  let downAt = null;
-  window.addEventListener('pointerup', (ev) => {
-    if (!ev.isTrusted || !downAt) return;
-    const d = downAt; downAt = null;
-    if (Math.abs(ev.clientX - d.x) + Math.abs(ev.clientY - d.y) > 6) return; // a drag
-    react('select-agent', { agentName: d.name });
-    askAgent(d.name);
+  /**
+   * The desk says what was selected; Cubi reacts to that.
+   *
+   * This used to be worked out here, from pointer events, and it disagreed with
+   * the desk: an agent standing inside a document was a document to one of them
+   * and an agent to the other, so clicking a working agent answered about its
+   * flow. Reading the product's own decision is both less code and the only way
+   * the two can never drift.
+   */
+  window.addEventListener('desk:select', (ev) => {
+    const d = ev.detail || {};
+    if (d.kind === 'cube') {
+      react('select-agent', { agentName: d.id });
+      askAgent(d.id);
+      return;
+    }
+    if (d.kind === 'doc') {
+      talkingTo = null;
+      theirs.classList.remove('on');
+      sitOn(d.id);
+      setTimeout(() => react('select-doc', { docId: d.id }), 420);
+    }
   });
 
   document.addEventListener('pointerdown', (ev) => {
     if (!ev.isTrusted) return;                       // the tour drives itself; let it
     armIdle();
-    if (bubble.contains(ev.target) || wrap.contains(ev.target)) return;
-    // The agent first, then the document under it. Every creature with work is
-    // standing *inside* a document, so asking about the document first meant an
-    // agent on a desk could never be clicked as an agent -- the one gesture the
-    // whole conversation depends on. Found by clicking ReviewAgent and being
-    // told about the ledger flow.
-    //
-    // A cube is answered on release, not on press: pressing one is how a drag
-    // starts, and a companion that starts talking about an agent the moment you
-    // pick it up is talking over the gesture it is meant to explain.
-    const cube = ev.target.closest && ev.target.closest('.acube');
-    if (cube) { downAt = { x: ev.clientX, y: ev.clientY, name: cube.dataset.id }; return; }
-    const doc = ev.target.closest && ev.target.closest('.docnode');
-    if (doc) {
-      talkingTo = null; theirs.classList.remove('on');
-      sitOn(doc.dataset.id);
-      setTimeout(() => react('select-doc', { docId: doc.dataset.id }), 420);
-      return;
-    }
+    if (bubble.contains(ev.target) || theirs.contains(ev.target) || wrap.contains(ev.target)) return;
     if (ev.target.id === 'tab-trace' && sitting) {
       setTimeout(() => react('trace', { docId: sitting }), 60);
     }
