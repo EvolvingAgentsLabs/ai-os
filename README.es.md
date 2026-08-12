@@ -37,7 +37,7 @@ cd ai-ui    && node scripts/serve.ts                         # escritorio  :8098
 
 ## Estado
 
-`ai-base`, `ai-flows` y `ai-ui` corren — **483 tests propios**, arriba de los
+`ai-base`, `ai-flows` y `ai-ui` corren — **487 tests propios**, arriba de los
 3.768 que `ai-base` trae de upstream. `ai-storage` está especificado y no
 construido, aunque la primera pieza de su argumento ya corre dentro de
 `ai-flows`: una base de conocimiento de proyecto que una ventana de ocho mil
