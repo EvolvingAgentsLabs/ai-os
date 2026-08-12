@@ -665,3 +665,55 @@ describe("a step's numbers", () => {
     assert.match(html, /distinctive tokens it was handed/);
   });
 });
+
+/**
+ * The living documents.
+ *
+ * The claim the panel makes is that read-only is a property of the document
+ * rather than of the renderer, so these check the projection the desk ships
+ * rather than the markup it draws from it.
+ */
+describe("living documents", () => {
+  const channels = (html: string) =>
+    JSON.parse(html.match(/window\.__DESK__ = (.*?);<\/script>/s)![1]!).channels;
+
+  it("projects a running flow as a work document that is live", () => {
+    const chs = channels(renderDeskHtml(view()));
+    const work = chs.find((c: { kind: string }) => c.kind === "work");
+    assert.equal(work.live, true, "a flow with a running step is live");
+    assert.equal(work.writable, false);
+  });
+
+  it("gives the scope a chat and a log, and only the chat takes writing", () => {
+    const chs = channels(renderDeskHtml(view()));
+    const byKind = Object.fromEntries(
+      chs.map((c: { kind: string; writable: boolean }) => [c.kind, c.writable]),
+    );
+    assert.equal(byKind.chat, true);
+    assert.equal(byKind["project-log"], false);
+  });
+
+  it("uses ai-flows' own projection rather than a second one in the client", () => {
+    // A second implementation of "who may write to this" is a second answer to
+    // it, and the one on screen would be the untested one.
+    const html = renderDeskHtml(view());
+    assert.ok(
+      !html.includes("kind === 'chat'"),
+      "the client must not re-derive writability",
+    );
+    assert.match(html, /renderLive/);
+  });
+});
+
+describe("the living documents are actually live", () => {
+  it("takes writability from the module and liveness from the poll", () => {
+    // The payload is built before the first poll, so a panel that took `live`
+    // from it would list living documents that never come alive -- which is what
+    // it did until somebody advanced a step and watched nothing happen.
+    const html = renderDeskHtml({ ...view(), simulate: true });
+    assert.match(html, /Policy from the module, liveness from the poll/);
+    assert.match(html, /x\.state === 'running'/);
+    // And the policy is still not re-derived.
+    assert.ok(!html.includes("kind === 'chat'"));
+  });
+});
