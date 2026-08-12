@@ -47,3 +47,15 @@ export function model(): LanguageModel {
 
   return google(name);
 }
+
+/**
+ * Declared, because a model reached through an OpenAI-compatible endpoint is not
+ * in the AI Gateway catalogue and eve refuses to compile compaction it cannot
+ * budget for. Refusing is the right call — a compaction threshold computed from
+ * a guessed window compacts at the wrong time and silently drops turns — so the
+ * number is stated here rather than inferred.
+ *
+ * The floor of the models this tree is run against, not the ceiling: too small
+ * only compacts sooner than necessary, too large overruns the window.
+ */
+export const CONTEXT_WINDOW_TOKENS = 128_000;

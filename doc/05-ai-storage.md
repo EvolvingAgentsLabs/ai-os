@@ -314,6 +314,52 @@ finding nothing would read as though it worked. Any coverage measurement has to
 state its expected rate of absence *before* it runs — which is now the first
 instruction the CoverageAuditor is given.
 
+### Verified against two models, and what that comparison found — 2026-08-12 [ran]
+
+The tree in [`ai-memory`](../ai-memory/) was driven end to end against
+`google/gemini-3.5-flash` and `google/gemma-4-31b-it`, one message per step:
+delegate to the archivist, delegate to the indexer, run the lint. **Both
+completed**, and both wrote a real knowledge base to disk — `INDEX.md`, a shard,
+a note file, and the machine mirror.
+
+Both archivists reached the same decision from the same sample: a draft of notes,
+indexed by idea. Both notes carried concrete keywords rather than adjectives, and
+both linted clean.
+
+**And putting the two side by side found a defect neither would have shown
+alone.** On identical input, one reported the source range `0-98` for 98
+characters of text; the other reported `0-75` for the same 98. The second note
+therefore cannot be walked back to its source — follow the range and you land on
+different words, and the hash that was supposed to prove otherwise is a hash of
+text nobody can find. `chars` and `source` come from different places: one is
+measured from the text, the other is what the writer said it read.
+
+Nothing checked that they agreed. `lint` now does, which is the right home for it
+— it is decidable by code, and the whole division in this design is that code
+decides what is decidable.
+
+### Four failures of enforcement, and the lesson under all of them
+
+Getting that run to work took four fixes, and they were the same fix:
+
+| symptom | cause |
+|---|---|
+| 13-16 turns spent in `bash` before doing any work | the specialists had general-purpose tools |
+| the keeper inspecting files by hand | it had them too, against its own instructions |
+| a subagent retrying a project path forever | eve's file tools run in an isolated container; ours run in the server process |
+| the build refusing to compile | a model outside the gateway catalogue has no context-window metadata |
+
+The first three are one lesson: **an instruction is not an enforcement.** The
+keeper's own instructions say it is an orchestrator that writes nothing, and it
+wrote; the indexer had a purpose-built tool and reached for `bash`. What changed
+the behaviour was not better prose — it was deleting the tool file from the
+agent's directory. A specialist with a general-purpose escape hatch is a
+generalist, and the narrowing has to be structural to be real.
+
+The fourth is worth keeping for the opposite reason: the build was **right** to
+refuse. A compaction threshold computed from a guessed context window compacts at
+the wrong moment and drops turns silently, so the window is now declared.
+
 ## How this gets falsified
 
 **The harness:** extend `ai-base/src/memory/bench.ts` with a levelled strategy,

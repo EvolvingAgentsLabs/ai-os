@@ -33,8 +33,9 @@
  * particular one, and doc/11 is where a model choice has to be argued.
  */
 import { defineAgent } from "eve";
-import { model } from "./lib/model.ts";
+import { CONTEXT_WINDOW_TOKENS, model } from "./lib/model.ts";
 
 export default defineAgent({
   model: model(),
+  modelContextWindowTokens: CONTEXT_WINDOW_TOKENS,
 });
