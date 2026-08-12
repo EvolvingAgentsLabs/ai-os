@@ -9,7 +9,7 @@
  */
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { NOTE_STATES, shortHash } from "../../../../../ai-flows/src/wiki.ts";
+import { NOTE_STATES, shortHash, verifyNote } from "../../../../../ai-flows/src/wiki.ts";
 import { addNote, load, save } from "../../../lib/store.ts";
 
 export default defineTool({
@@ -26,6 +26,13 @@ export default defineTool({
     source: z.object({ file: z.string(), from: z.number().int(), to: z.number().int() }),
     duplicateOf: z.string().optional(),
     budget: z.number().int().min(1000).default(8000),
+    windowFrom: z
+      .number()
+      .int()
+      .min(0)
+      .default(0)
+      .describe("The offset wiki_step was called with, so the range can be checked against what you were shown."),
+    windowChars: z.number().int().min(1).default(4000),
   }),
   async execute(input) {
     const wiki = load(input.project);
@@ -44,9 +51,21 @@ export default defineTool({
       links: [],
       ...(input.duplicateOf ? { duplicateOf: input.duplicateOf } : {}),
     };
+    // Checked at the door. A note that fails has to be fixed by the writer while
+    // it still has the source in front of it; the same note caught by a lint a
+    // thousand notes later cannot be recovered, because nobody knows any more
+    // what it should have said.
+    const problems = verifyNote(note, {
+      text: "x".repeat(input.windowChars),
+      from: input.windowFrom,
+    });
+    if (problems.length)
+      return { written: false, problems, hint: "fix these and call wiki_write_note again" };
+
     const next = addNote(wiki, note, input.budget);
     save(input.project, next, note);
     return {
+      written: true,
       id,
       shards: next.shards.length,
       notes: Object.keys(next.notes).length,

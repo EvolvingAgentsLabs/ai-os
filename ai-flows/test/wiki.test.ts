@@ -35,6 +35,9 @@ import {
   shardMarkdown,
   stepContext,
   TWO_LEVEL_CEILING_NOTES,
+  progressOf,
+  prunedRather,
+  verifyNote,
 } from "../src/wiki.ts";
 
 /** A local model worth running on a laptop. The constraint, not a preference. */
@@ -284,5 +287,99 @@ describe("what a note carries back to its source", () => {
     const root = rootMarkdown(w);
     assert.ok(!root.includes("n000"), "the root must not name notes");
     assert.match(shardMarkdown(w, w.shards[0]!.id), /n000/);
+  });
+});
+
+
+describe("checking a note at the door", () => {
+  const window = { text: "x".repeat(4000), from: 0 };
+  const ok = () => ({ ...noteAt(1), source: { file: "draft.md", from: 0, to: 1800 } });
+
+  it("passes a note whose range matches the text it hashed", () => {
+    assert.deepEqual(verifyNote(ok(), window), []);
+  });
+
+  it("catches the failure two models actually produced", () => {
+    // Both classified the material correctly; one reported a range that did not
+    // match the text it had hashed, and nothing complained. The note looked
+    // exactly like a good one.
+    const n = { ...ok(), source: { file: "draft.md", from: 0, to: 75 } };
+    assert.match(verifyNote(n, window).join(" "), /75 characters but the text is 1800/);
+  });
+
+  it("catches a range invented rather than read", () => {
+    // Outside the window the writer was shown: the cheapest tell that the unit
+    // boundary was guessed.
+    const n = { ...ok(), source: { file: "draft.md", from: 9000, to: 10800 } };
+    assert.match(verifyNote(n, window).join(" "), /falls outside the window/);
+  });
+
+  it("refuses a note nothing can reach or ask anything of", () => {
+    assert.match(verifyNote({ ...ok(), keywords: [] }, window).join(" "), /no keywords/);
+    assert.match(verifyNote({ ...ok(), ideas: [] }, window).join(" "), /no ideas/);
+  });
+
+  it("refuses a summary that only repeats the title", () => {
+    const n = { ...ok(), summary: "  The Claim About Subject 1 " };
+    assert.match(verifyNote(n, window).join(" "), /only repeats the title/);
+  });
+});
+
+describe("knowing where the last run got to", () => {
+  const noteOver = (i: number, from: number, to: number): Note => ({
+    ...noteAt(i),
+    source: { file: "draft.md", from, to },
+  });
+
+  it("derives progress from the notes rather than from a counter", () => {
+    // A counter is a second record of the same fact, and when it disagrees the
+    // run either redoes work or skips material -- and skipping is silent.
+    let w = emptyWiki();
+    w = addNote(w, noteOver(0, 0, 500), BUDGET);
+    w = addNote(w, noteOver(1, 500, 1200), BUDGET);
+    const p = progressOf(w, "draft.md", 3000);
+    assert.equal(p.nextFrom, 1200);
+    assert.equal(p.covered, 1200);
+    assert.deepEqual(p.gaps, [{ from: 1200, to: 3000 }]);
+  });
+
+  it("reports a hole in the middle, which max(to) would hide", () => {
+    let w = emptyWiki();
+    w = addNote(w, noteOver(0, 0, 500), BUDGET);
+    w = addNote(w, noteOver(1, 900, 1200), BUDGET);
+    const p = progressOf(w, "draft.md", 1200);
+    assert.deepEqual(p.gaps, [{ from: 500, to: 900 }]);
+    assert.equal(p.covered, 800, "the gap is not counted as covered");
+  });
+
+  it("ignores notes from another source", () => {
+    let w = emptyWiki();
+    w = addNote(w, noteOver(0, 0, 500), BUDGET);
+    w = addNote(w, { ...noteOver(1, 0, 9000), source: { file: "other.md", from: 0, to: 9000 } }, BUDGET);
+    assert.equal(progressOf(w, "draft.md", 500).nextFrom, 500);
+  });
+});
+
+describe("an omission that is not a fault", () => {
+  it("calls a repetition pruned when its canonical survived", () => {
+    // The distinction that makes the report usable. An author prunes, and
+    // pruning is part of writing; reporting a correct cut as a loss trains the
+    // reader to ignore the report.
+    const w = build(30);
+    const dup = Object.values(w.notes).find((n) => n.duplicateOf)!;
+    assert.equal(prunedRather(w, dup, () => true), "pruned");
+  });
+
+  it("says nothing when the canonical did not survive either", () => {
+    const w = build(30);
+    const dup = Object.values(w.notes).find((n) => n.duplicateOf)!;
+    assert.equal(prunedRather(w, dup, () => false), null);
+  });
+
+  it("says nothing about a note that was never a repetition", () => {
+    // Not a guess dressed as a verdict: whether an original idea is absent or
+    // merely reworded is a judgement, and this returns null rather than decide.
+    const w = build(30);
+    assert.equal(prunedRather(w, w.notes["n002"]!, () => true), null);
   });
 });

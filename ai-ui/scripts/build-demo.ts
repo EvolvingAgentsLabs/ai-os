@@ -17,6 +17,8 @@ import { digestOf } from "../src/zoom.ts";
 import { actionsFor } from "../src/actions.ts";
 import { DEMO_AT, demoWorld } from "../src/simulate.ts";
 import { dspAgents, dspFlows } from "../src/dsp-demo.ts";
+import { memoryAgents, memoryFlows } from "../src/memory-demo.ts";
+import { channelsFor, workChannel } from "../../ai-flows/src/channels.ts";
 import { propose } from "../src/layout.ts";
 import { MEMORY_LEVELS } from "../src/memory.ts";
 import { traceOf } from "../src/trace.ts";
@@ -113,13 +115,25 @@ const layout = layoutFor(
   world.agents.map((a) => a["name"] as string),
 );
 
+/** The knowledge base being built: the same desk, pointed at reading. */
+const mem = {
+  scopeId: "group:memory-lab",
+  agents: memoryAgents(),
+  raw: memoryFlows(DEMO_AT) as unknown as Array<Record<string, unknown>>,
+};
+
 const dspNames = dsp.agents.map((a) => a.name);
 const dspDocs = projectDocs(dsp.raw, dspNames);
 const dspLayout = layoutFor(dsp.scopeId, dsp.raw, dspNames);
 
+const memNames = mem.agents.map((a) => a.name);
+const memDocs = projectDocs(mem.raw, memNames);
+const memLayout = layoutFor(mem.scopeId, mem.raw, memNames);
+
 const SCOPES = [
   { scopeId: "group:web-project-demo", label: "group:web-project-demo" },
   { scopeId: dsp.scopeId, label: dsp.scopeId },
+  { scopeId: mem.scopeId, label: mem.scopeId },
 ];
 
 const html = renderDeskHtml({
@@ -153,12 +167,33 @@ const marker = "<script>window.__DESK__ = ";
 if (!html.includes(marker)) {
   throw new Error("the embedded state moved; the second scope was not injected");
 }
+/**
+ * Each world carries its own living documents.
+ *
+ * They were shipped once for the first scope and not swapped, so every scope
+ * listed the first one's documents -- a panel of living documents that belonged
+ * to a project you were not looking at. Found by switching scope and reading the
+ * panel, which is the only way it could have been found.
+ */
+const channelsOf = (scopeId: string, docs: DeskDoc[]) => [
+  ...docs.map((d) => workChannel({ id: d.id, title: d.title, scopeId, steps: d.steps })),
+  ...channelsFor(scopeId, scopeId),
+];
+
 const worlds = {
   [dsp.scopeId]: {
     docs: dspDocs,
     agents: dsp.agents,
     layout: dspLayout,
     notes: [],
+    channels: channelsOf(dsp.scopeId, dspDocs),
+  },
+  [mem.scopeId]: {
+    docs: memDocs,
+    agents: mem.agents,
+    layout: memLayout,
+    notes: [],
+    channels: channelsOf(mem.scopeId, memDocs),
   },
 };
 const withWorlds = html.replace(
@@ -174,5 +209,8 @@ console.log(
   `  ${world.docs.length} document(s), ${world.agents.length} agent(s) in the web project`,
 );
 console.log(
-  `  ${dspDocs.length} document(s), ${dsp.agents.length} agent(s) in the signal lab, no server`,
+  `  ${dspDocs.length} document(s), ${dsp.agents.length} agent(s) in the signal lab`,
+);
+console.log(
+  `  ${memDocs.length} document(s), ${mem.agents.length} agent(s) in the memory lab, no server`,
 );

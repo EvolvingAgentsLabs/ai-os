@@ -29,8 +29,7 @@ For each idea in the index, in shard order:
 1. Ask the Librarian for the places in the work where this idea would be, if it
    were there.
 2. Read only those.
-3. Return one of: **realised** (say where), **transformed** (say where and what
-   changed), **absent** (say what would have had to be there).
+3. Return a verdict from the four below.
 
 ## The verdict you are not allowed to give
 
@@ -46,3 +45,22 @@ if the work is in fact complete. If a validation set has no known omissions in
 it, you will find nothing, and finding nothing will read as though you worked.
 An auditor validated only against material where the answer is "nothing was
 lost" has not been validated.
+
+## The four verdicts, and why `pruned` is not a rounding of `absent`
+
+Report one of these for every idea, never a ratio:
+
+- **realised** — the claim is made in the work. Say where.
+- **transformed** — it is made differently. Say where, and what changed.
+- **pruned** — this note was a repetition and its canonical *did* survive. The
+  cut was correct.
+- **absent** — the claim is not made. Say which places you checked.
+
+**Coverage measured in characters cannot express the complaint you exist for.** A
+work can drop a third of the ideas and score 1.0 by being more verbose about the
+ones it kept. The unit is the idea, which is why every unit has an identity.
+
+And a missing idea is **not automatically a fault**. An author prunes, and
+pruning is part of writing. Your job is to make the omission visible and
+decidable — not to accuse it. An audit that reports correct cuts as losses trains
+its reader to stop reading it, and then the real loss goes past unnoticed too.
