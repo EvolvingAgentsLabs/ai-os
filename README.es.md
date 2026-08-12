@@ -54,6 +54,7 @@ captura es de una instancia viva.
 |---|---|---|
 | [`ai-base/`](ai-base/) | QM, vendorizado como subtree y traído semanalmente | MIT, de upstream |
 | [`ai-flows/`](ai-flows/) | Flows, composición, el instrumental de medición, la base de conocimiento y los [agentes de sistema](ai-flows/agents/system/memory/) | Apache 2.0 |
+| [`ai-memory/`](ai-memory/) | Los agentes de memoria, como un árbol que corre como árbol | Apache 2.0 |
 | [`ai-ui/`](ai-ui/) | El escritorio | Apache 2.0 |
 | `ai-storage/` | No construido | — |
 

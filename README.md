@@ -55,6 +55,7 @@ every screenshot is from a live instance.
 |---|---|---|
 | [`ai-base/`](ai-base/) | QM, vendored as a subtree and pulled weekly | MIT, upstream's |
 | [`ai-flows/`](ai-flows/) | Flows, composition, the measurement harness, the knowledge base and the [system agents](ai-flows/agents/system/memory/) | Apache 2.0 |
+| [`ai-memory/`](ai-memory/) | The memory agents, as a tree that runs as a tree | Apache 2.0 |
 | [`ai-ui/`](ai-ui/) | The desk | Apache 2.0 |
 | `ai-storage/` | Not built | — |
 
