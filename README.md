@@ -39,8 +39,12 @@ Español: [Correr ai-os](doc/es/manual.md).
 
 ## State
 
-`ai-base`, `ai-flows` and `ai-ui` run — **453 tests of our own**, on top of the
-3,768 `ai-base` carries from upstream. `ai-storage` is specified and not built.
+`ai-base`, `ai-flows` and `ai-ui` run — **487 tests of our own**, on top of the
+3,768 `ai-base` carries from upstream. `ai-storage` is specified and not built,
+though the first piece of its argument now runs inside `ai-flows`: a project
+knowledge base an eight-thousand-token window can navigate — a flat file of the
+same material stops fitting at 16 units, the index is still at 4,523 of 8,000
+tokens at 2,000 ([05](doc/05-ai-storage.md)).
 
 Nothing in this repository describes software that exists unless it says so, and
 every screenshot is from a live instance.
@@ -50,7 +54,7 @@ every screenshot is from a live instance.
 | | | |
 |---|---|---|
 | [`ai-base/`](ai-base/) | QM, vendored as a subtree and pulled weekly | MIT, upstream's |
-| [`ai-flows/`](ai-flows/) | Flows, composition, and the measurement harness | Apache 2.0 |
+| [`ai-flows/`](ai-flows/) | Flows, composition, the measurement harness, the knowledge base and the [system agents](ai-flows/agents/system/memory/) | Apache 2.0 |
 | [`ai-ui/`](ai-ui/) | The desk | Apache 2.0 |
 | `ai-storage/` | Not built | — |
 

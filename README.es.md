@@ -37,9 +37,13 @@ cd ai-ui    && node scripts/serve.ts                         # escritorio  :8098
 
 ## Estado
 
-`ai-base`, `ai-flows` y `ai-ui` corren — **453 tests propios**, arriba de los
+`ai-base`, `ai-flows` y `ai-ui` corren — **487 tests propios**, arriba de los
 3.768 que `ai-base` trae de upstream. `ai-storage` está especificado y no
-construido.
+construido, aunque la primera pieza de su argumento ya corre dentro de
+`ai-flows`: una base de conocimiento de proyecto que una ventana de ocho mil
+tokens puede navegar — un archivo plano del mismo material deja de entrar a las
+16 unidades; el índice sigue en 4.523 de 8.000 tokens con 2.000
+([05](doc/es/05-ai-storage.md)).
 
 Nada en este repositorio describe software que exista salvo que lo diga, y toda
 captura es de una instancia viva.
@@ -49,7 +53,7 @@ captura es de una instancia viva.
 | | | |
 |---|---|---|
 | [`ai-base/`](ai-base/) | QM, vendorizado como subtree y traído semanalmente | MIT, de upstream |
-| [`ai-flows/`](ai-flows/) | Flows, composición y el instrumental de medición | Apache 2.0 |
+| [`ai-flows/`](ai-flows/) | Flows, composición, el instrumental de medición, la base de conocimiento y los [agentes de sistema](ai-flows/agents/system/memory/) | Apache 2.0 |
 | [`ai-ui/`](ai-ui/) | El escritorio | Apache 2.0 |
 | `ai-storage/` | No construido | — |
 

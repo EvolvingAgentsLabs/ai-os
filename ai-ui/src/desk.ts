@@ -39,6 +39,7 @@ import {
   statesByColor,
 } from "../../ai-flows/src/vocabulary.ts";
 import { AGENT_COLOR, SUBAGENT_COLOR } from "../../ai-flows/src/vocabulary.ts";
+import { channelsFor, workChannel } from "../../ai-flows/src/channels.ts";
 import { SIMULATION_JS } from "./simulate.ts";
 import { TOUR_CSS, TOUR_JS } from "./tour.ts";
 import { MASCOT_CSS, MASCOT_JS } from "./mascot.ts";
@@ -241,6 +242,17 @@ button[disabled]{opacity:.5;cursor:default}
   white-space:pre-wrap;font-size:10px;max-height:96px;overflow:auto}
 .tr .att{margin:3px 0 0 16px;font-size:10px;color:var(--dim);font-family:var(--mono)}
 .tr .flag{margin:4px 0 0 16px;font-size:10px;color:#7d2419}
+
+/* The living documents. The dot is the whole point of the panel: something is
+   writing to this one right now and nobody asked it to. */
+.docs{list-style:none;margin:0;padding:0;font-size:11px}
+.docs li{display:flex;align-items:center;gap:6px;padding:2px 0;border-top:1px solid #e4dfd6}
+.docs li:first-child{border-top:0}
+.docs .k{font-family:var(--mono);font-size:9px;color:var(--dim);flex:0 0 76px}
+.docs .t{flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.docs .dot{width:7px;height:7px;flex:0 0 7px;border:1px solid rgba(0,0,0,.5);background:#cfcbc2}
+.docs li.live .dot{background:#e0a020;animation:pulse 1.1s ease-in-out infinite}
+.docs .rw{font-family:var(--mono);font-size:9px;color:var(--dim);flex:0 0 auto}
 
 /* The memory drawer. Hatched, because none of it is built. */
 .drawer{position:fixed;left:0;bottom:0;right:318px;height:150px;
@@ -1089,6 +1101,7 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
     noticeSettled();
     painted = true;
     renderDrawer();
+    renderLive();
     renderPanel();
   }
 
@@ -1290,6 +1303,41 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
       '</div>';
   }
 
+  /**
+   * The living documents.
+   *
+   * Four kinds, and the two marks that matter: whether something is writing to it
+   * without being asked, and whether you are allowed to write back. Both come off
+   * the projection rather than off the renderer -- a document that is read-only
+   * because this function drew no input box is read-only until somebody adds one.
+   */
+  function renderLive() {
+    const el = document.getElementById('live');
+    if (!el) return;
+    // Policy from the module, liveness from the poll.
+    //
+    // kind, title and writable are shipped once by ai-flows' channels.ts:
+    // they are structure, and re-deriving them here would be a second answer to
+    // "who may write to this". Whether something is writing *right now* is not
+    // structure -- it changes every five seconds -- and the payload is built
+    // before the first poll, so a panel that trusted it was a panel of living
+    // documents that never came alive. Found by advancing a step and watching
+    // nothing happen.
+    const running = {};
+    for (const d of S.docs) if ((d.steps || []).some((x) => x.state === 'running')) running[d.id] = true;
+    const chs = (S.channels || []).map((c) =>
+      c.kind === 'work' ? { ...c, live: !!running[c.id.replace(/\/work$/, '')] } : c);
+    el.querySelector('.win-body').innerHTML =
+      '<ul class="docs">' + chs.map((c) =>
+        '<li class="' + (c.live ? 'live' : '') + '"><span class="dot"></span>' +
+        '<span class="k">' + escape_(c.kind) + '</span>' +
+        '<span class="t">' + escape_(c.title) + '</span>' +
+        '<span class="rw">' + (c.writable ? 'you + agents' : 'read-only') + '</span></li>').join('') +
+      '</ul>' +
+      '<div class="dim" style="margin-top:6px;font-size:10px">A dot means something is ' +
+      'writing to it with nobody waiting. Read-only is a property of the document, not of this panel.</div>';
+  }
+
   async function refresh() {
     const r = await fetch('/state?scope=' + encodeURIComponent(S.scopeId));
     if (!r.ok) return;
@@ -1339,8 +1387,25 @@ export function renderDeskHtml(view: DeskView): string {
     for (const s of d.steps)
       if (s.state === "running" && s.agent) busy[s.agent] = true;
   }
+  /**
+   * The living documents, projected rather than stored.
+   *
+   * Built here with `ai-flows`' own `channels.ts` rather than re-derived in the
+   * client, because a second implementation of "who may write to this" is a
+   * second answer to it, and the one on screen would be the untested one. A
+   * running flow becomes a `work` document; the scope gets its chat and its log
+   * whether or not anything has happened in them yet.
+   */
+  const channels = [
+    ...view.docs.map((d) =>
+      workChannel({ id: d.id, title: d.title, scopeId: view.scopeId, steps: d.steps }),
+    ),
+    ...channelsFor(view.scopeId, view.scopeLabel),
+  ];
+
   const client = {
     scopeId: view.scopeId,
+    channels,
     docs: view.docs,
     agents: view.agents,
     layout: view.layout,
@@ -1381,6 +1446,10 @@ export function renderDeskHtml(view: DeskView): string {
 <div class="rail">
   <div class="win panel" id="panel" style="display:none">
     <div class="bar"><span class="box"></span><h2>Selected</h2><span class="box zoom"></span></div>
+    <div class="win-body"></div>
+  </div>
+  <div class="win panel" id="live">
+    <div class="bar"><span class="box"></span><h2>Documents</h2><span class="box zoom"></span></div>
     <div class="win-body"></div>
   </div>
   <div class="spacer"></div>
