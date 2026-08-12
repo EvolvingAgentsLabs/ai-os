@@ -717,3 +717,30 @@ describe("the living documents are actually live", () => {
     assert.ok(!html.includes("kind === 'chat'"));
   });
 });
+
+describe("the tour crossing a real scope change", () => {
+  it("navigates rather than faking the switch, and resumes on the other side", () => {
+    // Changing scope reloads, because that is what changing scope does against a
+    // server. A tour that faked it to keep its own state would be the recording
+    // this file exists not to be.
+    const html = renderDeskHtml({ ...view(), simulate: true });
+    assert.match(html, /sel\.dispatchEvent\(new Event\('change'/);
+    assert.match(html, /sessionStorage/);
+    assert.match(html, /ai-os\.tour\.resumeAt/);
+  });
+
+  it("uses sessionStorage, so yesterday's half-tour does not play at somebody", () => {
+    // Use, not mention: the comment beside the code says why it is not
+    // localStorage, and a test that banned the word would ban the explanation.
+    const html = renderDeskHtml({ ...view(), simulate: true });
+    assert.ok(!/localStorage\s*\./.test(html), "a tour must not outlive the tab");
+    assert.match(html, /sessionStorage\.setItem/);
+  });
+
+  it("ends the tour gracefully when there is no memory scope to switch to", () => {
+    // The product ships one scope at a time; a beat that assumed a second one
+    // would throw on the desk it is most likely to run against.
+    const html = renderDeskHtml({ ...view(), simulate: true });
+    assert.match(html, /if \(!wanted\) return;/);
+  });
+});

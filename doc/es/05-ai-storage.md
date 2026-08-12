@@ -395,6 +395,16 @@ está construido, y bajo la regla vigente de doc/05 no se embarca hasta tener un
 benchmark que el filtro por keywords pueda perder — dicho para que el hueco sea
 una decisión y no un descuido.
 
+### El tour cruza el cambio de scope en vez de fingirlo
+
+La regla del tour es que conduce el cliente real y nunca reproduce una grabación,
+y cambiar de scope **navega** — contra un servidor eso es una lectura nueva. Así
+que el tour lo cambia de verdad, deja su posición en `sessionStorage` y sigue del
+otro lado: dos flows, los dos verdes, y el que está mal. Es `sessionStorage` y no
+`localStorage` porque un tour dejado a medias ayer no debe arrancarle solo a
+alguien mañana, y termina con elegancia en un escritorio de un solo scope, que es
+el que embarca el producto.
+
 ### El laboratorio de memoria, en el demo
 
 Un tercer scope, `group:memory-lab`, con un proyecto inventado que lo declara.
