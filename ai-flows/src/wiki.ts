@@ -422,6 +422,21 @@ export function lint(wiki: Wiki): string[] {
       problems.push(`${note.id} has no keywords, so no filter can ever reach it`);
     if (note.source.to <= note.source.from)
       problems.push(`${note.id} has an empty source range`);
+    // The range and the text must describe the same thing. They come from
+    // different places -- `chars` is measured from the text the note was built
+    // from, `source` is what the writer said it read -- and two models disagreed
+    // here on the same input: one reported 0-98 for 98 characters, the other
+    // 0-75 for the same 98. A note whose range does not match its text cannot be
+    // walked back to its source: you land on different words, and the hash that
+    // was supposed to prove otherwise is a hash of the text nobody can find.
+    // Slack of one for an exclusive-vs-inclusive end, which is a real ambiguity
+    // rather than an error.
+    else if (Math.abs(note.source.to - note.source.from - note.chars) > 1)
+      problems.push(
+        `${note.id} says it read ${note.source.to - note.source.from} characters ` +
+          `(${note.source.from}-${note.source.to}) but carries ${note.chars}, ` +
+          `so it cannot be walked back to its source`,
+      );
   }
 
   // A note in no shard is unreachable by navigation, which is the only way the

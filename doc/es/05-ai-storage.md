@@ -314,6 +314,52 @@ Toda medición de cobertura tiene que declarar su tasa esperada de ausencia
 *antes* de correr — que es hoy la primera instrucción que recibe el
 CoverageAuditor.
 
+### Verificado contra dos modelos, y qué encontró esa comparación — 2026-08-12 [ran]
+
+El árbol de [`ai-memory`](../../ai-memory/) se condujo de punta a punta contra
+`google/gemini-3.5-flash` y `google/gemma-4-31b-it`, un mensaje por paso:
+delegar al archivista, delegar al indexer, correr el lint. **Los dos
+completaron**, y los dos escribieron una base de conocimiento real en disco —
+`INDEX.md`, un shard, un archivo de nota y el espejo de máquina.
+
+Los dos archivistas llegaron a la misma decisión desde la misma muestra: un
+borrador de notas, indexado por idea. Las dos notas llevaron keywords concretas y
+no adjetivos, y las dos pasaron el lint limpias.
+
+**Y poner las dos lado a lado encontró un defecto que ninguna habría mostrado
+sola.** Con entrada idéntica, una reportó el rango de origen `0-98` para 98
+caracteres de texto; la otra reportó `0-75` para esos mismos 98. La segunda nota
+entonces no se puede caminar de vuelta a su fuente — seguís el rango y caés sobre
+otras palabras, y el hash que debía probar lo contrario es el hash de un texto
+que nadie encuentra. `chars` y `source` vienen de lugares distintos: uno se mide
+del texto, el otro es lo que el escritor dijo que leyó.
+
+Nada verificaba que coincidieran. Ahora `lint` sí, que es donde corresponde: es
+decidible por código, y toda la división de este diseño es que el código decide
+lo decidible.
+
+### Cuatro fallas de enforcement, y la lección debajo de todas
+
+Hacer andar esa corrida costó cuatro arreglos, y eran el mismo arreglo:
+
+| síntoma | causa |
+|---|---|
+| 13-16 turnos gastados en `bash` antes de trabajar | los especialistas tenían tools de propósito general |
+| el keeper inspeccionando archivos a mano | también las tenía, contra sus propias instrucciones |
+| un subagente reintentando una ruta del proyecto sin parar | las tools de archivo de eve corren en un contenedor aislado; las nuestras en el proceso del servidor |
+| la build negándose a compilar | un modelo fuera del catálogo del gateway no tiene metadata de ventana de contexto |
+
+Los primeros tres son una sola lección: **una instrucción no es una restricción.**
+Las instrucciones del keeper dicen que orquesta y no escribe nada, y escribía; el
+indexer tenía una tool hecha a medida y agarraba `bash`. Lo que cambió el
+comportamiento no fue redactar mejor — fue **borrar el archivo de la tool del
+directorio del agente**. Un especialista con una escotilla de propósito general
+es un generalista, y el acotamiento tiene que ser estructural para ser real.
+
+El cuarto vale por lo contrario: la build tenía **razón** en negarse. Un umbral de
+compactación calculado sobre una ventana adivinada compacta a destiempo y tira
+turnos en silencio, así que la ventana ahora se declara.
+
 ## Recuperación
 
 Deliberadamente aburrida en el v1, dado el resultado previo:

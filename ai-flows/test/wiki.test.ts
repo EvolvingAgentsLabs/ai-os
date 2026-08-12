@@ -221,6 +221,20 @@ describe("what code can decide, and does", () => {
     assert.match(lint(w).join(" "), /n002 is in no shard/);
   });
 
+  it("catches a note whose range does not match the text it hashed", () => {
+    // Found by running two models over one input: one reported 0-98 for 98
+    // characters, the other 0-75 for the same 98. The note that lies about its
+    // range cannot be walked back -- you land on different words, and the hash
+    // that was supposed to prove otherwise is of text nobody can find.
+    const w = build(3);
+    w.notes["n001"]!.source = { file: "draft.md", from: 0, to: 75 };
+    assert.match(lint(w).join(" "), /cannot be walked back to its source/);
+
+    // An exclusive-vs-inclusive end is a real ambiguity, not an error.
+    w.notes["n001"]!.source = { file: "draft.md", from: 0, to: 1801 };
+    assert.deepEqual(lint(w), []);
+  });
+
   it("catches a note no filter can reach", () => {
     const w = build(3);
     w.notes["n001"]!.keywords = [];
