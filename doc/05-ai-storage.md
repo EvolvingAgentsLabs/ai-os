@@ -395,6 +395,16 @@ model call. It is not built here, and under doc/05's standing rule it does not
 ship until it has a benchmark the keyword filter could lose — stated so the gap
 is a decision rather than an oversight.
 
+### The tour crosses the scope change rather than faking it
+
+The tour's rule is that it drives the real client and never plays a recording,
+and changing scope **navigates** — against a server that is a fresh read. So the
+tour really changes it, leaves its position in `sessionStorage`, and picks up on
+the other side: two flows, both green, and the one that is wrong. It is
+`sessionStorage` rather than `localStorage` because a tour half-finished
+yesterday must not start playing at somebody tomorrow, and it ends gracefully on
+a desk that has only one scope, which is the desk the product ships.
+
 ### The memory lab, on the demo
 
 A third scope, `group:memory-lab`, and an invented project that says so. Two

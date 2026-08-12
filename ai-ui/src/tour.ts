@@ -182,19 +182,79 @@ export const TOUR_JS = String.raw`
       await sleep(4200);
     },
     async () => {
+      // The scope selector navigates -- against a real server that is a fresh
+      // read, and the tour is not allowed to fake it. So it really does change
+      // the scope, and picks up on the other side.
+      cap('One more scope. Memory here is not a store: it is agents, building a knowledge base a small window can navigate. Switching scope reloads, and the tour continues there.');
+      const sel = document.getElementById('scope');
+      const wanted = [...sel.options].find((o) => o.value.indexOf('memory') >= 0);
+      if (!wanted) return;                       // no memory scope: end here
+      await pointAt(sel, 700);
+      await sleep(1400);
+      sel.value = wanted.value;
+      resumeAt(MEMORY_BEAT);
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      await sleep(6000);                         // the navigation takes it from here
+    },
+    // --- the memory lab, after the reload ------------------------------------
+    async () => {
+      cap('Two flows index the same notes, with the same five agents. Both are green, and one of them is wrong.');
+      const d = docByTitle('the index that drifted');
+      if (d) await select(d);
+      await sleep(3400);
+    },
+    async () => {
+      cap('The digest says a step used nothing it was given — on a flow where every step reported cleanly and every strip is green.');
+      await sleep(3600);
+    },
+    async () => {
+      cap('The Trace face names the instrument that caught it: this note claims 663 characters of a passage that is 1,105, so following its range lands on different words.');
+      await press(document.getElementById('tab-trace'));
+      await sleep(5200);
+    },
+    async () => {
+      cap('It looks exactly like the notes around it — written by a model that got the judgement right and the mechanics wrong. That is why the check is code and not a prompt.');
+      hand.style.opacity = '0';
+      await sleep(2200);
+    },
+    async () => {
       cap('That is the desk. Everything you just watched was a real gesture against a real client — drag anything, it is yours now.');
       hand.style.opacity = '0';
       await sleep(1500);
     },
   ];
 
-  $('#tourgo').onclick = async () => {
+  /** The index of the first beat that runs after the scope change. */
+  const MEMORY_BEAT = beats.length - 5;
+
+  /**
+   * Carry the tour across a real navigation.
+   *
+   * Changing scope reloads the page, because that is what changing scope does
+   * against a server -- and a tour that faked it to keep its own state would be
+   * the recording this file exists not to be. So the position is left in
+   * sessionStorage and picked up on the other side. sessionStorage rather than
+   * localStorage: a tour half-finished yesterday must not start playing at somebody
+   * tomorrow.
+   */
+  const RESUME = 'ai-os.tour.resumeAt';
+  const resumeAt = (i) => { try { sessionStorage.setItem(RESUME, String(i)); } catch (e) {} };
+  const takeResume = () => {
+    try {
+      const v = sessionStorage.getItem(RESUME);
+      sessionStorage.removeItem(RESUME);
+      return v === null ? -1 : Number(v);
+    } catch (e) { return -1; }
+  };
+
+  const play = async (from) => {
     if (running) { halt(); return; }
     running = true; stop = false;
     window.__TOUR__.running = true;
     $('#tourgo').textContent = '■ Stop';
-    for (const beat of beats) {
+    for (let i = from; i < beats.length; i += 1) {
       if (stop) break;
+      const beat = beats[i];
       try { await beat(); } catch (e) { cap('The tour hit something the desk did not expect: ' + e.message); break; }
     }
     running = false; stop = false;
@@ -202,6 +262,13 @@ export const TOUR_JS = String.raw`
     hand.style.opacity = '0';
     $('#tourgo').textContent = '▶ Play again';
   };
+
+  $('#tourgo').onclick = () => play(0);
+
+  // Landed here mid-tour. The documents have to exist before a beat can point at
+  // one, and the desk draws them on its first render.
+  const resume = takeResume();
+  if (resume >= 0 && resume < beats.length) setTimeout(() => play(resume), 1200);
 })();
 `;
 
