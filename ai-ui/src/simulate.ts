@@ -66,6 +66,11 @@ export const SIMULATION_JS = String.raw`
     const w = worlds[wanted];
     S.scopeId = wanted;
     S.docs = w.docs; S.agents = w.agents; S.layout = w.layout; S.notes = w.notes || [];
+    // The living documents belong to the scope too. Without this every scope
+    // listed the first one's -- a panel about a project you are not looking at,
+    // asserting "read-only" about it with total confidence. Found by switching
+    // scope and reading the panel.
+    if (w.channels) S.channels = w.channels;
     const sel = document.getElementById('scope');
     if (sel) sel.value = wanted;
     // By id. Counting spans found the banner instead and wrote the new counts

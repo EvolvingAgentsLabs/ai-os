@@ -563,9 +563,16 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
     const t = doc.trace || { steps: [], movement: '', detail: '', ignoredCount: 0, movementTone: 'muted' };
     return '<div class="' + (t.movementTone === 'ok' ? 'ok' : t.movementTone === 'warn' ? 'warn' : 'dim') + '">' +
       escape_(t.movement) + '</div><div class="dim">' + escape_(t.detail) + '</div>' +
+      // The banner names the instrument that spoke, like the per-step flag does.
+      // It used to assert distinctive-word overlap whatever had been measured,
+      // which reads as nonsense over a flow whose steps produced numbers or
+      // source ranges -- and a summary that misdescribes its own evidence is
+      // worse than no summary, because the detail below it then looks wrong.
       (t.ignoredCount
         ? '<div class="note alert"><strong>' + t.ignoredCount + ' step(s) used nothing they were given.</strong> ' +
-          'Each ran, settled and reported. None carried a distinctive word out of its predecessor.</div>'
+          'Each ran, settled and reported. ' +
+          escape_((t.steps.find((s) => s.ignoredInput && s.ignoredInput.note) || {}).ignoredInput?.note
+            || 'None carried a distinctive word out of its predecessor.') + '</div>'
         : '') +
       '<div class="tr">' + t.steps.map((s) =>
         '<div class="st"><div class="hd">' +

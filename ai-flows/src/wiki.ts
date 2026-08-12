@@ -477,3 +477,129 @@ export function candidates(
     .slice(0, limit)
     .map((r) => r.n);
 }
+
+/**
+ * Check a note before it is written, not after.
+ *
+ * The division of labour in this design assumes the model supplies judgement and
+ * code supplies mechanics — and the failure mode that assumption creates is
+ * specific: **the model gets the judgement right and the mechanics wrong, without
+ * erroring.** Two models were run over one input; both classified the material
+ * correctly and one reported a source range that did not match the text it had
+ * hashed. Nothing complained, and the note it wrote looked exactly like a good
+ * one.
+ *
+ * So every note is verified at the door. A note that fails is a note the writer
+ * has to be told about while it still has the source in front of it; a note that
+ * fails *after* it is written is a note somebody finds in a lint report a
+ * thousand notes later, with no way to recover what it should have said.
+ *
+ * Returns the reasons it is not writable. Empty means write it.
+ */
+export function verifyNote(
+  note: Note,
+  window: { text: string; from: number },
+): string[] {
+  const bad: string[] = [];
+
+  if (note.source.to <= note.source.from) bad.push("the source range is empty");
+  else if (Math.abs(note.source.to - note.source.from - note.chars) > 1)
+    bad.push(
+      `the source range is ${note.source.to - note.source.from} characters but the text is ${note.chars}`,
+    );
+
+  // The range has to point inside what the writer was actually shown. A range
+  // outside the window is a range invented rather than read, and it is the
+  // cheapest possible tell that the unit boundary was guessed.
+  const windowEnd = window.from + window.text.length;
+  if (note.source.from < window.from || note.source.to > windowEnd + 1)
+    bad.push(
+      `the source range ${note.source.from}-${note.source.to} falls outside the window ${window.from}-${windowEnd}`,
+    );
+
+  if (!note.keywords.length) bad.push("no keywords, so no filter can reach it");
+  if (!note.ideas.length) bad.push("no ideas, so a coverage question cannot be asked of it");
+  // The summary is the only thing the index carries. One that restates the title
+  // costs budget and says nothing the card did not already say.
+  if (note.summary.trim().toLowerCase() === note.title.trim().toLowerCase())
+    bad.push("the summary only repeats the title");
+
+  return bad;
+}
+
+/**
+ * How far through a source the wiki already is, derived from the wiki itself.
+ *
+ * Indexing a large source is hours of work and will be interrupted. The obvious
+ * way to survive that is a counter of where the last run got to, and the obvious
+ * way is wrong: a counter is a second record of the same fact, and the moment it
+ * disagrees with the notes the run either redoes work or skips material — and
+ * skipping is silent.
+ *
+ * So progress is read off the notes' own provenance. It cannot disagree with the
+ * wiki because it *is* the wiki. `nextFrom` is where the next window starts;
+ * `gaps` are stretches nothing claims to have read, which is the failure a naive
+ * `max(to)` would hide.
+ */
+export function progressOf(
+  wiki: Wiki,
+  file: string,
+  sourceChars: number,
+): { nextFrom: number; covered: number; gaps: Array<{ from: number; to: number }> } {
+  const ranges = Object.values(wiki.notes)
+    .filter((n) => n.source.file === file)
+    .map((n) => ({ from: n.source.from, to: n.source.to }))
+    .sort((a, b) => a.from - b.from);
+
+  const gaps: Array<{ from: number; to: number }> = [];
+  let cursor = 0;
+  let covered = 0;
+  for (const r of ranges) {
+    if (r.from > cursor) gaps.push({ from: cursor, to: r.from });
+    covered += Math.max(0, r.to - Math.max(r.from, cursor));
+    cursor = Math.max(cursor, r.to);
+  }
+  if (cursor < sourceChars) gaps.push({ from: cursor, to: sourceChars });
+  return { nextFrom: cursor, covered, gaps };
+}
+
+/**
+ * Whether an idea in the index survived into a second document.
+ *
+ * The verdict a coverage question needs, and the reason it is four values rather
+ * than a ratio.
+ *
+ * **Coverage measured in characters cannot express the complaint it exists for.**
+ * A derived work can drop a third of the ideas and score 1.0 by being more
+ * verbose about the ones it kept. The unit has to be the idea, which is what the
+ * wiki gave every unit an identity for.
+ *
+ * And `pruned` is not a rounding of `absent` — it is the distinction that makes
+ * the report usable. **A missing idea is not automatically a fault.** An author
+ * prunes, and pruning is part of writing; an idea marked `repeated` whose
+ * canonical note *did* survive was correctly cut, and reporting it as a loss
+ * trains the reader to ignore the report. What the audit owes is that the
+ * omission be visible and decidable, not that it be treated as an error.
+ */
+export const COVERAGE = ["realised", "transformed", "pruned", "absent"] as const;
+export type Coverage = (typeof COVERAGE)[number];
+
+/**
+ * The verdict for a note whose text was not found, decided by code where code
+ * can decide it.
+ *
+ * Only the `pruned` case is decidable without reading: a repetition whose
+ * canonical survived is a correct cut, and that is a fact about the wiki rather
+ * than about the work. Everything else is a judgement and belongs to the agent,
+ * so this returns null and says nothing rather than guessing.
+ */
+export function prunedRather(
+  wiki: Wiki,
+  note: Note,
+  survived: (id: string) => boolean,
+): Coverage | null {
+  if (!note.duplicateOf) return null;
+  const canon = wiki.notes[note.duplicateOf];
+  if (!canon) return null;
+  return survived(canon.id) ? "pruned" : null;
+}

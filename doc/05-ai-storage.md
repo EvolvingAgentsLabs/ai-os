@@ -360,6 +360,63 @@ The fourth is worth keeping for the opposite reason: the build was **right** to
 refuse. A compaction threshold computed from a guessed context window compacts at
 the wrong moment and drops turns silently, so the window is now declared.
 
+### Three improvements adopted, one named and not built — 2026-08-12 [ran]
+
+**Check the note at the door, not in a lint report.** The division of labour here
+assumes the model supplies judgement and code supplies mechanics, and that
+assumption has a specific failure: the model gets the judgement right and the
+mechanics wrong, *without erroring*. `verifyNote` runs before a note is written
+and hands the reasons back to the writer while it still has the source in front
+of it. A note caught a thousand notes later cannot be recovered, because by then
+nobody knows what it should have said.
+
+**Resumability is derived, never counted.** Indexing a large source is hours and
+will be interrupted. The obvious fix is a counter of where the last run got to,
+and it is wrong: a counter is a second record of the same fact, and when it
+disagrees the run either repeats work or skips material — and skipping is
+silent. `progressOf` reads the notes' own provenance instead, and reports the
+**gaps**, which a naive `max(to)` hides.
+
+**Coverage is counted in ideas, and a prune is not a loss.** Coverage measured in
+characters cannot express the complaint it exists for: a work can drop a third of
+the ideas and score 1.0 by being more verbose about the ones it kept. And a
+missing idea is not automatically a fault — an author prunes, and pruning is part
+of writing. A repetition whose canonical survived was correctly cut, so the
+verdicts are `realised · transformed · pruned · absent` rather than a ratio. An
+audit that reports correct cuts as losses trains its reader to stop reading it,
+and then the real loss goes past too.
+
+**Named, not built: a semantic similarity primitive.** Three places ask "is this
+like that" — the indexer avoiding a duplicate, the reconciler grouping variants,
+the librarian choosing what to open — and all three answer it by word overlap
+today. The measurement above says why that is not enough: the same idea in other
+words resembles nothing. An embedding pass would answer it for a fraction of a
+model call. It is not built here, and under doc/05's standing rule it does not
+ship until it has a benchmark the keyword filter could lose — stated so the gap
+is a decision rather than an oversight.
+
+### The memory lab, on the demo
+
+A third scope, `group:memory-lab`, and an invented project that says so. Two
+flows index the same heap of field notes with the same five agents; both are
+green. One built an index where every note can be walked back to its source. The
+other contains one note that cannot: it claims 663 characters of a passage that
+is 1,105, so following the range lands on different words and the hash that was
+supposed to prove otherwise is of text nobody can find.
+
+It looks exactly like the others in the list, because that is the point — it was
+written by a model that got the judgement right and the mechanics wrong. The desk
+finds it with the instruments it already had, and the flag says which instrument
+spoke: *cannot be walked back to its source — the source range is 663 characters
+but the text is 1105*.
+
+Two defects the scope found in the desk itself, both by switching to it and
+reading: the living-documents panel listed the **first scope's** documents in
+every scope, asserting read-only about a project nobody was looking at; and the
+trace banner claimed distinctive-word overlap whatever had actually been
+measured. Both now follow the same rule the per-step flag already did — name the
+instrument that spoke.
+
 ## How this gets falsified
 
 **The harness:** extend `ai-base/src/memory/bench.ts` with a levelled strategy,

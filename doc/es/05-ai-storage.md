@@ -360,6 +360,62 @@ El cuarto vale por lo contrario: la build tenía **razón** en negarse. Un umbra
 compactación calculado sobre una ventana adivinada compacta a destiempo y tira
 turnos en silencio, así que la ventana ahora se declara.
 
+### Tres mejoras adoptadas, una nombrada y no construida — 2026-08-12 [ran]
+
+**Chequear la nota en la puerta, no en un reporte de lint.** El reparto de tareas
+supone que el modelo aporta criterio y el código aporta mecánica, y esa suposición
+tiene una falla específica: el modelo acierta el criterio y falla lo mecánico *sin
+dar error*. `verifyNote` corre antes de escribir y le devuelve los motivos a quien
+escribe, mientras todavía tiene la fuente delante. Una nota detectada mil notas
+después no se recupera, porque para entonces nadie sabe qué debía decir.
+
+**La reanudación se deriva, no se cuenta.** Indexar una fuente grande son horas y
+se va a interrumpir. El arreglo obvio es un contador de dónde quedó la corrida, y
+está mal: un contador es un segundo registro del mismo hecho, y cuando difiere la
+corrida repite trabajo o saltea material — y saltear es silencioso. `progressOf`
+lee la procedencia de las notas y reporta los **huecos**, que un `max(to)` ingenuo
+esconde.
+
+**La cobertura se cuenta en ideas, y una poda no es una pérdida.** Medida en
+caracteres no puede expresar el reclamo por el que existe: una obra puede perder
+un tercio de las ideas y sacar 1.0 siendo más verbosa en lo que conservó. Y que
+una idea falte no es automáticamente una falla — un autor poda, y podar es parte
+de escribir. Una repetición cuya canónica sobrevivió fue bien cortada, así que los
+veredictos son `realised · transformed · pruned · absent` y no un cociente. Una
+auditoría que reporta cortes correctos como pérdidas entrena a su lector a dejar
+de leerla, y ahí también pasa de largo la pérdida real.
+
+**Nombrada y no construida: un primitivo de similitud semántica.** Tres lugares
+preguntan "¿esto se parece a aquello?" —el indexer evitando un duplicado, el
+conciliador agrupando variantes, el bibliotecario eligiendo qué abrir— y los tres
+responden hoy por superposición de palabras. La medición de más arriba dice por
+qué no alcanza: la misma idea dicha con otras palabras no se parece a nada. Un
+paso de embeddings lo respondería por una fracción de una llamada al modelo. No
+está construido, y bajo la regla vigente de doc/05 no se embarca hasta tener un
+benchmark que el filtro por keywords pueda perder — dicho para que el hueco sea
+una decisión y no un descuido.
+
+### El laboratorio de memoria, en el demo
+
+Un tercer scope, `group:memory-lab`, con un proyecto inventado que lo declara.
+Dos flows indexan el mismo montón de notas de campo con los mismos cinco agentes;
+los dos están verdes. Uno construyó un índice donde toda nota se puede caminar de
+vuelta a su fuente. El otro tiene una que no: declara 663 caracteres de un pasaje
+que tiene 1.105, así que seguir el rango cae sobre otras palabras y el hash que
+debía probar lo contrario es de un texto que nadie encuentra.
+
+Se ve igual a las demás en la lista, y ése es el punto — la escribió un modelo que
+acertó el criterio y falló lo mecánico. El escritorio la encuentra con los
+instrumentos que ya tenía, y la bandera dice cuál habló: *cannot be walked back to
+its source — the source range is 663 characters but the text is 1105*.
+
+Dos defectos que este scope encontró en el propio escritorio, los dos por cambiar
+de scope y leer: el panel de documentos vivos listaba los del **primer** scope en
+todos, afirmando "solo lectura" sobre un proyecto que nadie estaba mirando; y el
+cartel del trace afirmaba superposición de palabras distintivas fuera lo que fuera
+lo medido. Los dos siguen ahora la regla que la bandera por paso ya cumplía:
+nombrar el instrumento que habló.
+
 ## Recuperación
 
 Deliberadamente aburrida en el v1, dado el resultado previo:
