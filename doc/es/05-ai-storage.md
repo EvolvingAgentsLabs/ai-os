@@ -215,6 +215,105 @@ roster. `team:` sale de `Principal.teamIds` — equipos del proveedor de identid
 no rosters de proyecto. El eje de escalas y sus consecuencias están en
 [09](09-scales.md). **[read]**
 
+## Lo primero realmente construido: un índice que una ventana chica puede navegar — 2026-08-12 [ran]
+
+Todo lo de arriba es especificación. Esta sección no: `ai-flows/src/wiki.ts`
+corre, y está ahí y no en `ai-storage/` porque `ai-storage` no tiene paquete e
+inventar uno para sostener cuatrocientas líneas sería la forma cara de progresar.
+
+### El problema, que no es precisión de recuperación
+
+El material de un proyecto excede la ventana mucho antes que el disco.
+Trescientos kilobytes de notas son unos ochenta mil tokens; un modelo local que
+valga la pena correr en una laptop tiene ocho mil. El trabajo no se puede hacer
+leyendo el material, y tampoco resumiéndolo — la pregunta que motiva esto es *qué
+hay en el material que falta en la obra*, y un resumen es una lista de lo que
+alguien ya notó.
+
+Así que la recuperación deja de ser una búsqueda sobre texto y pasa a ser
+**navegación sobre un índice que el modelo sí puede sostener**. El índice es un
+directorio, no un resumen: una línea por unidad, cada línea nombrando el archivo
+de nota que contiene la unidad. El modelo lee el directorio, que entra, y abre
+las dos notas que necesita, que también entran.
+
+### El benchmark, nombrado antes de construir el eje
+
+La regla vigente de arriba dice que ningún eje de memoria se embarca sin un
+benchmark que la línea base pueda perder, nombrado primero. La línea base es el
+`MEMORY.md` plano de `ai-base`. El benchmark **no** es precisión de recuperación
+—el buque insignia anterior ya compró 80% → 80% → 80% ahí—. Es capacidad:
+
+> ¿A qué tamaño de corpus lo que el modelo debe leer deja de entrar en la ventana?
+
+Medido, con ventana de 8.000 tokens y notas de ~1.800 caracteres:
+
+| | qué debe leer el modelo | veredicto |
+|---|---|---|
+| archivo plano (base) | el material | **16 unidades**, y deja de entrar |
+| índice (el eje) | raíz + un shard | 500 notas → **3.940 tok**, 21 shards |
+| | | 2.000 notas → **4.523 tok**, 87 shards |
+
+El eje aguanta dos órdenes de magnitud más allá del punto donde la línea base ya
+falló. Es una afirmación de *capacidad* y es a propósito la barata: es
+determinista, no necesita modelo, y es el riesgo que realmente mata el diseño. Si
+un modelo chico **usa** bien un índice bien formado es otra pregunta, más cara, y
+ni siquiera se puede formular hasta saber que el índice entra.
+
+### Dónde se acaba, escrito ahora en vez de descubierto después
+
+Acotado no es infinito. Dos niveles —una raíz de shards sobre un shard de notas—
+compran unas **15.000 notas**, y lo que falla ahí es la raíz: 624 shards son 6.011
+tokens de índice general antes de nombrar una sola nota. Más allá, la respuesta es
+un tercer nivel, no una máquina más grande. Es una constante del módulo y una
+aserción de la suite, porque un límite que nadie escribió se describe como
+inexistente.
+
+### Toda decisión es un agente; toda mecánica es código
+
+Hashear, partir, contar, presupuestar, enlazar, renderizar y validar son código:
+baratos, reproducibles, auditables — y una llamada al modelo en el camino de
+ensamblado es una llamada que puede truncar justo lo que se está ensamblando. En
+un modelo local a una docena de tokens por segundo, una llamada que podía ser un
+regex son minutos.
+
+Lo que queda es juicio, y vive en `ai-flows/agents/system/memory/` como seis
+archivos markdown en el formato que upstream ya parsea:
+
+| agente | qué decide |
+|---|---|
+| **MemoryKeeper** | el orden, y nada más — no escribe nada |
+| **Archivist** | qué es este material, cuál es una unidad, qué metadata pide el caso |
+| **Indexer** | el paso iterativo: raíz + shard + ventana → una nota |
+| **Reconciler** | ¿son la misma idea?, ¿cuál es canónica?, ¿qué aporta cada variante? |
+| **CoverageAuditor** | qué hay en el índice que no tiene realización en la obra |
+| **Librarian** | dada una tarea, qué notas abrir |
+
+Son agentes de **sistema**, así que el hallazgo de alcance de doc/12 les aplica
+directo: un scope de proyecto no puede delegarles —montan en
+`global/agents/<name>.md` y los nombres de agente no pueden contener `/`— y el
+compositor marca esos pasos como `inline`, que es estrictamente peor. Es un
+defecto conocido del harness, no de estos archivos, y se nombra acá para que
+nadie lea la tabla de arriba como una delegación que funciona.
+
+### Dos fallas de instrumento, encontradas midiendo y no leyendo
+
+**La superposición de palabras no puede responder una pregunta de cobertura.**
+Medido sobre una fuente real de 300 kilobytes contra una obra derivada: ninguna
+sección bajó de la mitad de sus palabras distintivas sobrevivientes, y la mediana
+conservaba cuatro quintos — en material donde claramente se habían caído ideas.
+La superposición dice *estas palabras siguen dando vueltas*; la pregunta es si la
+*afirmación* sigue estando hecha. `contribution.ts` tiene razón sobre traspasos y
+no la tiene sobre cobertura, y las instrucciones del CoverageAuditor lo dicen con
+sus propias palabras.
+
+**Un conjunto de validación puede tener cero positivos.** Se verificó palabra por
+palabra un registro de supresiones que afirmaba "no se perdió nada": los 23
+bloques suprimidos efectivamente sobrevivían. Un auditor validado sólo contra ese
+material no encontraría nada, y no encontrar nada se leería como que funcionó.
+Toda medición de cobertura tiene que declarar su tasa esperada de ausencia
+*antes* de correr — que es hoy la primera instrucción que recibe el
+CoverageAuditor.
+
 ## Recuperación
 
 Deliberadamente aburrida en el v1, dado el resultado previo:

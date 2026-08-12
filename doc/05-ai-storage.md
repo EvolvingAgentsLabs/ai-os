@@ -217,6 +217,103 @@ Deliberately boring in v1, given the prior result:
 
 Inverting this order is exactly the mistake the 80/80 result recorded.
 
+## The first thing actually built: an index a small window can navigate — 2026-08-12 [ran]
+
+Everything above is specification. This section is not: `ai-flows/src/wiki.ts`
+runs, and it is here rather than in `ai-storage/` because `ai-storage` has no
+package and inventing one to hold four hundred lines would be the expensive kind
+of progress.
+
+### The problem, which is not retrieval accuracy
+
+A project's material outgrows the window long before it outgrows the disk. Three
+hundred kilobytes of notes is roughly eighty thousand tokens; a local model worth
+running on a laptop has eight. The work cannot be done by reading the material,
+and it cannot be done by summarising it either — the question that motivates this
+is *what is in the material that is missing from the work*, and a summary is a
+list of what somebody already noticed.
+
+So retrieval stops being a search over text and becomes **navigation over an
+index the model can hold**. The index is a directory, not a summary: one line per
+unit, each line naming a note file that holds the unit. The model reads the
+directory, which fits, and opens the two notes it needs, which also fit.
+
+### The benchmark, named before the axis was built
+
+The standing rule above says no memory axis ships without a benchmark the
+baseline could lose, named first. The baseline is `ai-base`'s flat `MEMORY.md`.
+The benchmark is deliberately **not** retrieval accuracy — the previous flagship
+already bought 80% → 80% → 80% there. It is capacity:
+
+> At what corpus size does the thing the model must read stop fitting the window?
+
+Measured, at an 8,000-token window, notes of ~1,800 characters:
+
+| | what the model must read | verdict |
+|---|---|---|
+| flat file (baseline) | the material | **16 units**, then it stops fitting |
+| index (the axis) | root + one shard | 500 notes → **3,940 tok**, 21 shards |
+| | | 2,000 notes → **4,523 tok**, 87 shards |
+
+The axis holds two orders of magnitude past the point where the baseline has
+already failed. This is a *capacity* claim and it is deliberately the cheap one:
+it is deterministic, needs no model, and is the risk that actually kills the
+design. Whether a small model **uses** a well-formed index well is a separate and
+more expensive question, and it cannot even be asked until the index is known to
+fit.
+
+### Where it runs out, which is written down rather than discovered later
+
+Bounded is not unbounded. Two levels — a root of shards over a shard of notes —
+buy about **15,000 notes**, and what fails there is the root: 624 shards is 6,011
+tokens of table of contents before a single note is named. Past that the answer
+is a third level, not a bigger machine. It is a constant in the module and an
+assertion in the suite, because a limit nobody wrote down gets described as
+absent.
+
+### Every decision is an agent; every mechanic is code
+
+Hashing, splitting, counting, budgeting, linking, rendering and linting are code:
+cheap, reproducible, auditable, and a model call in the assembly path is a model
+call that can truncate the thing being assembled. On a local model at a dozen
+tokens a second, a call that could have been a regex is minutes.
+
+What is left is judgement, and it lives in `ai-flows/agents/system/memory/` as
+six markdown files in the format upstream already parses:
+
+| agent | what it decides |
+|---|---|
+| **MemoryKeeper** | the order, and nothing else — it writes nothing |
+| **Archivist** | what this material is, what one unit of it is, which metadata this case needs |
+| **Indexer** | the iterative step: root + shard + window → one note |
+| **Reconciler** | are these the same idea, which is canonical, what does each variant add |
+| **CoverageAuditor** | what is in the index that has no realisation in the work |
+| **Librarian** | given a task, which notes to open |
+
+They are **system** agents, so doc/12's reachability finding applies to them
+directly: a project scope cannot delegate to them — they mount at
+`global/agents/<name>.md` and agent names cannot contain `/` — and the composer
+marks such steps `inline`, which is strictly worse. That is a known defect of the
+harness, not of these files, and it is named here so nobody reads the table above
+as a working delegation.
+
+### Two failures of instrument, found by measuring rather than by reading
+
+**Word overlap cannot answer a coverage question.** Measured over a real
+300-kilobyte source against a derived work: no section fell below half its
+distinctive words surviving, and the median section had four fifths of them
+present — in material where ideas had plainly been dropped. Overlap says *these
+words are still around*; the question is whether the *claim* is still made.
+`contribution.ts` is right about handoffs and wrong about coverage, and the
+CoverageAuditor's instructions say so in its own words.
+
+**A validation set can have zero positives.** A suppression log asserting
+"nothing was lost" was checked word-for-word: all 23 suppressed blocks did
+survive. An auditor validated only against that material would find nothing, and
+finding nothing would read as though it worked. Any coverage measurement has to
+state its expected rate of absence *before* it runs — which is now the first
+instruction the CoverageAuditor is given.
+
 ## How this gets falsified
 
 **The harness:** extend `ai-base/src/memory/bench.ts` with a levelled strategy,
