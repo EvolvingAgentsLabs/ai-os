@@ -407,12 +407,23 @@ el que embarca el producto.
 
 ### El laboratorio de memoria, en el demo
 
+<img src="../assets/05-memory-lab-flows.jpg" alt="" width="100%">
+
+<sub>Dos flows indexan las mismas notas de campo con los mismos cinco agentes.
+Los dos están verdes; uno está mal. De una instancia viva.</sub>
+
 Un tercer scope, `group:memory-lab`, con un proyecto inventado que lo declara.
 Dos flows indexan el mismo montón de notas de campo con los mismos cinco agentes;
 los dos están verdes. Uno construyó un índice donde toda nota se puede caminar de
 vuelta a su fuente. El otro tiene una que no: declara 663 caracteres de un pasaje
 que tiene 1.105, así que seguir el rango cae sobre otras palabras y el hash que
 debía probar lo contrario es de un texto que nadie encuentra.
+
+<img src="../assets/05-memory-lab-flag.jpg" alt="" width="100%">
+
+<sub>El panel es la respuesta a "cómo se inspecciona esto". El digest cuenta el
+paso marcado, el menú lo ofrece como lugar donde mirar, y el trace nombra el
+instrumento que lo agarró. De una instancia viva.</sub>
 
 Se ve igual a las demás en la lista, y ése es el punto — la escribió un modelo que
 acertó el criterio y falló lo mecánico. El escritorio la encuentra con los
