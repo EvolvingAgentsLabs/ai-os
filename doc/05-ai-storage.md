@@ -407,12 +407,23 @@ a desk that has only one scope, which is the desk the product ships.
 
 ### The memory lab, on the demo
 
+<img src="assets/05-memory-lab-flows.jpg" alt="" width="100%">
+
+<sub>Two flows index the same field notes with the same five agents. Both are
+green; one of them is wrong. From a live instance.</sub>
+
 A third scope, `group:memory-lab`, and an invented project that says so. Two
 flows index the same heap of field notes with the same five agents; both are
 green. One built an index where every note can be walked back to its source. The
 other contains one note that cannot: it claims 663 characters of a passage that
 is 1,105, so following the range lands on different words and the hash that was
 supposed to prove otherwise is of text nobody can find.
+
+<img src="assets/05-memory-lab-flag.jpg" alt="" width="100%">
+
+<sub>The panel is the answer to "how do you inspect this". The digest counts the
+flagged step, the menu offers it as somewhere to look, and the trace names the
+instrument that caught it. From a live instance.</sub>
 
 It looks exactly like the others in the list, because that is the point — it was
 written by a model that got the judgement right and the mechanics wrong. The desk
