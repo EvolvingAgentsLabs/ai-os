@@ -153,6 +153,59 @@ digest que discrepara cruzando la frontera reportaría "este artefacto cambió" 
 todo lo que la cruzara, y una alarma que se equivoca siempre es una alarma que se
 apaga.
 
+## La corrida sobre una instancia viva, 2026-08-14 — [ran]
+
+`ai-flows/scripts/seed-cochlea.ts` siembra los mismos ocho agentes como markdown
+en un scope de proyecto real y corre un flow de tres pasos sobre los **reportes
+de gate reales**. Nueve archivos escritos a través de un turn y releídos del
+store; tres pasos avanzados contra DeepSeek V4 Flash por el core en ejecución.
+
+**Qué es real y qué no.** El proyecto, el scope, los archivos de agente, los
+datos de gate, el flow y las llamadas al modelo son reales. Los agentes **no**
+corren pytest: `execute` llega al workspace del sandbox, que no es el checkout
+donde vive el proyecto, así que los números entran como datos y no se producen
+dentro del loop. Montar el proyecto en el sandbox es el paso siguiente y no está
+hecho.
+
+### La primera corrida se contradijo a sí misma, y la culpa fue del seed
+
+`VERIFICADOR-MATH` leyó el resumen, encontró un valor medido para un gate y
+booleanos para los otros siete, y llamó a esos siete **UNKNOWN** — correctamente,
+por su propia regla de que un veredicto sin número es una opinión. Dos pasos
+después `AUDITOR` leyó el mismo archivo y contestó **FREEZE**, citando
+`mayFreeze: true`.
+
+Los dos tenían razón sobre lo que leyeron. El seed había escrito un campo
+`freeze_verdict` en los datos, así que el agente que sostiene la compuerta pudo
+tomar el atajo salteándose la evidencia — **el mismo defecto que un gate que no
+puede fallar**, un nivel más arriba. Darle a un verificador la respuesta que
+existe para derivar no es una comodidad.
+
+### La segunda corrida, sin el veredicto y con la evidencia en su lugar
+
+| | primera corrida | segunda corrida |
+|---|---|---|
+| gates llamados verdes con un número | 1 de 8 | **8 de 8** |
+| gates llamados UNKNOWN | 7 | **0** |
+| decisión de `AUDITOR` | FREEZE, citando un campo precalculado | FREEZE, derivado, nombrando A12 |
+
+Cada cifra que citaron los agentes se verificó contra los reportes en disco y es
+real: A01 `9.28e-6`, A02 `2.22e-15`, A04 `3.99e-7`, A07 `0.0086`, A08 `2.31e-6`,
+A11 `0`, A12 `1.999`. Ninguna inventada.
+
+Y la segunda corrida produjo un argumento mejor para A02 del que este repositorio
+tenía escrito. Donde `test_A02_orthogonality.py` dice que el Gram estructural es
+la identidad por cómo normaliza `eigenmodes`, el agente dio la razón general:
+*"los autovectores de un haz simétrico son M-ortogonales por construcción, sin
+importar qué haya en M."* Por eso el gate no puede ver un defecto de masa — el
+defecto está en `M`.
+
+**La lección barata, que es el motivo de correrlo:** una topología de
+verificación multi-agente vale lo que vale lo que el seed le entrega. Un campo en
+un archivo JSON convirtió a un verificador en un sello de goma, y nada en el
+estado del flow, su traza o su señal de contribución lo habría mostrado. Lo que
+lo mostró fueron dos agentes leyendo el mismo archivo y discrepando.
+
 ## Qué argumenta que se construya después
 
 **Una flow shape `Gated`.** Hoy `FLOW_SHAPES = ["open"]`, y

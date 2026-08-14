@@ -144,6 +144,56 @@ invisible to any number a person would test with. A digest that disagreed across
 the boundary would report "this artefact changed" on everything that crossed it,
 and an alarm that is wrong every time is an alarm that gets switched off.
 
+## The run on a live instance, 2026-08-14 — [ran]
+
+`ai-flows/scripts/seed-cochlea.ts` seeds the same eight agents as markdown into a
+real project scope and runs a three-step flow over the **actual gate reports**.
+Nine files written through a turn and read back from the store; three steps
+advanced against DeepSeek V4 Flash through the running core.
+
+**What is real and what is not.** The project, the scope, the agent files, the
+gate data, the flow and the model calls are real. The agents do **not** run
+pytest: `execute` reaches the sandbox workspace, which is not the checkout the
+project lives in, so the numbers are carried in as data rather than produced
+in-loop. Mounting the project into the sandbox is the next step and is not done.
+
+### The first run contradicted itself, and the seed was why
+
+`VERIFICADOR-MATH` read the summary, found a measured value for one gate and
+booleans for the other seven, and called those seven **UNKNOWN** — correctly, by
+its own rule that a verdict with no number is an opinion. Two steps later
+`AUDITOR` read the same file and answered **FREEZE**, quoting `mayFreeze: true`.
+
+Both were right about what they read. The seed had written a `freeze_verdict`
+field into the data, so the agent holding the gate could take the shortcut past
+the evidence — **the same defect as a gate that cannot fail**, one level up.
+Handing a verifier the answer it exists to derive is not a convenience.
+
+### The second run, with the verdict removed and the evidence carried instead
+
+| | first run | second run |
+|---|---|---|
+| gates called green with a number | 1 of 8 | **8 of 8** |
+| gates called UNKNOWN | 7 | **0** |
+| `AUDITOR`'s decision | FREEZE, quoting a precomputed field | FREEZE, derived, naming A12 |
+
+Every figure the agents quoted was checked against the reports on disk and is
+real: A01 `9.28e-6`, A02 `2.22e-15`, A04 `3.99e-7`, A07 `0.0086`, A08 `2.31e-6`,
+A11 `0`, A12 `1.999`. None fabricated.
+
+And the second run produced a better argument for A02 than this repository had
+written down. Where `test_A02_orthogonality.py` says the structural Gram is the
+identity because of how `eigenmodes` normalises, the agent gave the general
+reason: *"eigenvectors of a symmetric pencil are M-orthogonal by construction,
+regardless of what is in M."* That is why the gate cannot see a mass defect —
+the defect is in `M`.
+
+**The cheap lesson, which is the point of running it at all:** a multi-agent
+verification topology is only as good as what the seed hands it. One field in one
+JSON file turned a verifier into a rubber stamp, and nothing in the flow's state,
+trace or contribution signal would have shown it. What showed it was two agents
+reading the same file and disagreeing.
+
 ## What this argues should be built next
 
 **A `Gated` flow shape.** `FLOW_SHAPES = ["open"]` today, and
