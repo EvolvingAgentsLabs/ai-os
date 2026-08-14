@@ -1,0 +1,12 @@
+{
+  "energy_share_beyond_mode_5": {
+    "gaussian_bump": 0.013715372088662038,
+    "localised": 0.004259205147140817,
+    "smoothstep": 1.3734151134708106e-05
+  },
+  "failure": null,
+  "gate": "A04",
+  "passed": true,
+  "spec": "2.3 property 4 / 2.6",
+  "test": "test_the_test_functions_are_not_finite_modal_sums"
+}

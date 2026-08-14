@@ -1,0 +1,13 @@
+{
+  "failure": null,
+  "gate": "A04",
+  "passed": true,
+  "spec": "2.3 property 4 / 2.6",
+  "test": "test_more_modes_reconstruct_better",
+  "truncation_curve": {
+    "25": 4.2661104206794815e-05,
+    "50": 8.188359356447423e-06,
+    "100": 1.4764031794891507e-06,
+    "200": 2.622234486860789e-07
+  }
+}

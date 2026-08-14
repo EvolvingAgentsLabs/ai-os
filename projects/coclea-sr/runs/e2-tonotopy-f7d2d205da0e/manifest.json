@@ -1,0 +1,24 @@
+{
+  "at": 1786715591.8555892,
+  "environment": {
+    "machine": "arm64",
+    "numpy": "2.5.2",
+    "omp_num_threads": "(unset)",
+    "platform": "macOS-15.7.7-arm64-arm-64bit",
+    "python": "3.12.13",
+    "scipy": "1.18.0"
+  },
+  "gates": {
+    "A01": true,
+    "A02": true,
+    "A03": true,
+    "A04": true,
+    "A07": true,
+    "A08": true,
+    "A11": true,
+    "A12": true
+  },
+  "git_commit": "0b7aba8e0a95061fb14a3d190f6db7dd5c8a8bb2",
+  "result_sha256": "f7d2d205da0e771ed5d788a7c285146d02998f887bad65145bd49277cf3253c5",
+  "run_id": "e2-tonotopy"
+}

@@ -33,6 +33,7 @@ documento que cambia de clase se reescribe el cartel el mismo día.
 | [09 · Escalas](09-scales.md) | Individual, colectiva, proyecto, sistema — un solo eje para flows y memoria, y es `scopeId` |
 | [10 · Observabilidad](10-observability.md) | Si el progreso de un flow se puede leer siquiera. Deriva contra ilegible, y el piso de ruido medido entre las dos |
 | [12 · Conformación](12-conformation.md) | Proyectos, agentes y carpetas: qué es el workspace en capas, y por qué la membresía nunca vive ahí |
+| [16 · Una carga de trabajo con oráculo](16-a-workload-with-an-oracle.md) | La primera carga de trabajo con métrica declarada, la costura que la lee entre lenguajes, y las tres formas en que mintieron sus instrumentos. **La shape `Gated` que argumenta no está construida** |
 
 ## Especificación — no construido
 

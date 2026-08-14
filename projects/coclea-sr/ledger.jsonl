@@ -1,0 +1,2 @@
+{"actor":"EXPLORADOR","artifact":"runs/e2-tonotopy-f7d2d205da0e/result.json","gates_passed":["A01","A02","A03","A04","A07","A08","A11","A12"],"prev_hash":null,"sha256":"f7d2d205da0e771ed5d788a7c285146d02998f887bad65145bd49277cf3253c5","state":"recorded","ts":1786715591.8555892}
+{"actor":"EXPLORADOR","artifact":"runs/e2-tonotopy-f7d2d205da0e/manifest.json","gates_passed":[],"prev_hash":"146e7f783604d87a2fa52ab6c00456f01940f7638764f7e3c63ebd85915be33b","sha256":"b589fa67d31bca00309856b9c1574a3a68e2530aa2c0a2855734dab07fffc5b2","state":"recorded","ts":1786715591.8555892}

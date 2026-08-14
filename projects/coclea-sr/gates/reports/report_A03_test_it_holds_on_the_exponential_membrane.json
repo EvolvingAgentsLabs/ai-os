@@ -1,0 +1,33 @@
+{
+  "alpha": 3.0,
+  "case": "exponential",
+  "counts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "expected": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "failure": null,
+  "gate": "A03",
+  "passed": true,
+  "spec": "2.3 property 3",
+  "test": "test_it_holds_on_the_exponential_membrane"
+}

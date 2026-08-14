@@ -1,0 +1,35 @@
+{
+  "case": "deliberate-defect",
+  "counts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "discriminates": false,
+  "expected": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "failure": null,
+  "gate": "A03",
+  "note": "A3 cannot see an O(dx) boundary mass error. GATE-A12 can.",
+  "passed": true,
+  "scheme": "lumped-full-cell",
+  "spec": "2.3 property 3",
+  "test": "test_the_deliberate_defect_passes_this_gate"
+}

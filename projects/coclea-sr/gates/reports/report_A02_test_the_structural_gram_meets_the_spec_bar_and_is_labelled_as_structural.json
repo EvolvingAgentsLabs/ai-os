@@ -1,0 +1,10 @@
+{
+  "failure": null,
+  "gate": "A02",
+  "passed": true,
+  "spec": "2.3 property 2",
+  "structural": true,
+  "structural_gram_offdiagonal": 2.220446049250313e-15,
+  "test": "test_the_structural_gram_meets_the_spec_bar_and_is_labelled_as_structural",
+  "tolerance": 1e-08
+}

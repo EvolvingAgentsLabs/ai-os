@@ -1,0 +1,16 @@
+{
+  "N": 2000,
+  "failure": null,
+  "gate": "A04",
+  "n_modes": 200,
+  "passed": true,
+  "relative_L2_error": {
+    "gaussian_bump": 2.622234486860789e-07,
+    "localised": 3.989198748980532e-07,
+    "smoothstep": 3.549024715175176e-07
+  },
+  "spec": "2.3 property 4 / 2.6",
+  "test": "test_projection_and_reconstruction_round_trip",
+  "tolerance": 1e-06,
+  "worst": 3.989198748980532e-07
+}

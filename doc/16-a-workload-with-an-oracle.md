@@ -1,0 +1,185 @@
+# 16 · A workload with an oracle
+
+> **Reference for the seam, specification for the shape.** `ai-flows/src/gates.ts`
+> runs and is tested against gate reports that Python produced — 18 tests, and
+> six of them read the real files off disk. The `Gated` flow shape it argues for
+> is **not built**: `FLOW_SHAPES` still has one entry.
+>
+> The workload it describes, [`projects/coclea-sr/`](../projects/coclea-sr/),
+> runs: 45 gates green **[ran]**, one hypothesis falsified by its own control arm
+> **[ran]**.
+
+## The hole this closes, quoted from the code that left it
+
+[`ai-flows/src/types.ts`](../ai-flows/src/types.ts) defines what an attempt
+observed, and then explains why half of it is always empty:
+
+> `value` — *"Present only where the shape declares a metric. `null` for
+> `open`."* … *"defined only where a shape declares a metric, and today no shape
+> does."*
+
+[`engine.ts`](../ai-flows/src/engine.ts) refuses to fill it in, and is right to:
+
+> *"`value` is null because `open` declares no metric; inventing a score here is
+> how a shape acquires a number nobody defined."*
+
+The reason no shape declared a metric was never that nobody wrote the code.
+**Every workload this repository had ran on prose.** For prose, "did this step
+succeed" has no answer outside somebody's judgement, and
+[13-degradation](13-degradation.md) is the record of what happens when a number
+is derived anyway: `contribution.ts`, built and falsified the same day, because
+with no notion of a right answer there is nothing to be right or wrong about.
+
+What was missing was not a field. It was **a workload with an external oracle**.
+
+## What a cochlea has that a migration proposal does not
+
+The eigenvalues of a fixed-free string have a closed form. GATE-A01 is not an
+opinion about whether the numbers look right:
+
+    |w_numeric - w_analytic| / w_analytic < 1e-4
+
+where the analytic value is produced by a module *forbidden to import the code
+under test* — the project's specification §6.4 rule 4, enforced by the
+directory layout. The tolerance was written before the solver, by somebody who
+was not the solver. That is a declared metric in the sense `types.ts` meant.
+
+The measured value, for the record: **9.2784e-6**, a factor of ten inside the
+bar.
+
+## Three things this workload taught the OS
+
+### 1. Green is not correct, and neither is a green *suite*
+
+The [signal lab](../ai-ui/src/dsp-demo.ts) already argued that a step can run,
+settle, report and carry nothing. The cochlea argues one level up, about a
+*result*, and it does it with a defect kept in the solver on purpose.
+
+The apex node of the membrane owns **half a cell** of mass. Give it a whole one
+and every eigenvalue is wrong by `O(dx)`. Measured, on the same run:
+
+| gate | what it checks | verdict on the defect |
+|---|---|---|
+| A02 | orthogonality under weight `mu` | **green** |
+| A03 | mode `n` has `n-1` interior zeros | **green** |
+| A11 | stiffness is symmetric, mass positive | **green** |
+| A01 | eigenvalues against the closed form | red — `2.5921e-4` vs `1.0e-4` |
+| A12 | convergence order | red — **0.9996** instead of 2 |
+
+Three of five gates pass a solver that is wrong in every number it reports. The
+obvious sanity check on a mass matrix — *does it integrate to the continuum
+mass* — **prefers the defect**, which sums to exactly 1.0 while the correct
+assembly sums to `1 - dx/2`.
+
+And the two gates that do catch it say different things. A01 says *how far off*.
+A12 says *where*: first order is a boundary error, and the free end is the
+helicotrema. **The gate that trips first is not the gate that localises.**
+
+The general lesson for `ai-flows`: a suite of green gates is evidence only if it
+is known which of them can go red. `gates.ts` exports `nonDiscriminating()` for
+exactly this, and the project keeps a known-wrong artefact so the question has an
+answer rather than an assumption.
+
+### 2. "Did not run" is not "passed"
+
+`freezeVerdict` returns `blockers` and `unknown` as separate lists and refuses on
+either. Merging them means the freeze gate opens widest exactly when the suite is
+most broken — the run that failed to start is indistinguishable from the run
+where nothing objected. This is the same distinction `attest.py` enforces on the
+producing side: a gate with no report is absent from the state map, never assumed
+green.
+
+### 3. The instrument's own floor moves
+
+GATE-A12 fits a convergence order across grids. A second-order scheme's error
+falls like `N^-2` while the matrix norm — and so the eigensolver's precision
+floor — rises like `N^2`. **Every convergence study eventually measures the
+solver instead of the discretisation.**
+
+Measured on the fundamental: error ratios of 4.000, 3.997, 4.017, and then
+**4.423** on the last refinement, where the error (5.8e-9) is barely twice the
+floor (2.9e-9). The fitted order came out 2.0306 instead of 2.0000 — *inside the
+gate's band*, and clean-looking, and about the wrong thing.
+
+It was caught because two independent implementations disagreed: the TypeScript
+solver in the demo reported 1.9841 for the same quantity. Both were inside the
+band. Neither was measuring what it claimed. The gate now computes its own floor
+and drops the contaminated points, **naming which** — a silently truncated fit
+reads as full coverage.
+
+## The seam, and the language question
+
+`projects/coclea-sr/` is Python. `ai-os` is TypeScript. That is not a problem to
+be solved; it is the thing to be demonstrated.
+
+**An operating system does not require its workloads to be written in its own
+language.** If it did, it would be a library. The kernel here is TypeScript, the
+work is numpy and mpmath, and three seams carry it — none of them a port:
+
+1. **Agents are markdown**, so they were already language-agnostic. `VERIFICADOR-MATH`
+   is a file with a `tools:` line; the Python is what it *runs*, not what it *is*.
+2. **The gate report is the interchange format.** Python writes JSON, TypeScript
+   reads it as an `Observation` with a real `value`. `gates.ts` is pure — parse,
+   summarise, decide — with no filesystem, no clock and no execution, because the
+   seam that matters is the format, not the transport.
+3. **`ai-base` already has the execution primitive.** `sandbox/local-sandbox.ts`
+   spawns `docker exec`; `aws-sandbox.ts` and `sprites-sandbox.ts` sit beside it.
+   A Python process under that sandbox *is* the OS running a process. Recompiling
+   the workload to WebAssembly would add a second execution substrate next to the
+   one the kernel already has and CI already tests — new surface area where the
+   answer already exists.
+
+### The mismatch the seam found
+
+Digests must be taken over the **artefact's bytes**, never over a
+re-serialisation. Python and JavaScript do not agree on floats:
+
+    python  {"gate":"A01","max_relative_error":9.278e-06,"passed":true}
+    node    {"gate":"A01","max_relative_error":0.000009278,"passed":true}
+
+Same value, different bytes: the two runtimes switch to exponent notation at
+`1e-5` and `1e-7` respectively, and gate measurements live in that band. `1e+21`
+and `0.30000000000000004` agree, which makes it the worst kind of mismatch —
+invisible to any number a person would test with. A digest that disagreed across
+the boundary would report "this artefact changed" on everything that crossed it,
+and an alarm that is wrong every time is an alarm that gets switched off.
+
+## What this argues should be built next
+
+**A `Gated` flow shape.** `FLOW_SHAPES = ["open"]` today, and
+[NEXT.md](../NEXT.md) lists the missing shapes without a reason to pick one
+first. This is the reason: a `Gated` flow declares its required gates at
+creation, its steps carry observations with real values, and it **cannot reach
+`done` while a required gate is red or missing**. The freeze logic exists and is
+tested; what is unbuilt is the wiring in `engine.ts` and the shape in
+`types.ts`.
+
+The deliberate order matters. `gates.ts` was written and tested first, against a
+workload that exists, so the shape is being argued for from a measured need
+rather than from the list of shapes somebody wrote down in `03-ai-flows`.
+
+## What this workload is not evidence for
+
+It is one project, in one domain, whose oracle is a closed-form solution. **The
+whole argument depends on that oracle existing**, and most work does not have
+one — which is the situation `contribution.ts` was built for and failed in. This
+document claims that a workload with an oracle exposes a shape `ai-flows` is
+missing. It does not claim the shape helps work that has no oracle, and the
+stopwatch that would decide anything about the desk ([NEXT.md § 1](../NEXT.md))
+is still unrun.
+
+The physics result is likewise bounded and negative:
+[ADR-0002](../projects/coclea-sr/decisions/0002-the-place-code-needs-fluid-coupling-not-a-ground-spring.md)
+records that the model of the specification cannot produce a cochlear traveling
+wave, that the reason is analytic, and that the replacement operator is specified
+and not built. The passive string is validated. It is simply not a cochlea.
+
+## Where to read the code
+
+| | |
+|---|---|
+| [`ai-flows/src/gates.ts`](../ai-flows/src/gates.ts) | The seam: parse, summarise, freeze verdict, observation |
+| [`ai-flows/test/gates.test.ts`](../ai-flows/test/gates.test.ts) | 18 tests, six of them against the real Python reports |
+| [`ai-ui/src/cochlea-demo.ts`](../ai-ui/src/cochlea-demo.ts) | The demo scope, and a third independent eigensolver |
+| [`ai-ui/test/cochlea-demo.test.ts`](../ai-ui/test/cochlea-demo.test.ts) | The anti-drift test between the demo and the project |
+| [`projects/coclea-sr/`](../projects/coclea-sr/) | The workload, its gates, its ledger and its decisions |

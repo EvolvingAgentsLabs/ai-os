@@ -30,6 +30,7 @@ changes kind gets its banner rewritten the same day.
 | [09 · Scales](09-scales.md) | Individual, collective, project, system — one axis for flows and memory, and it is `scopeId` |
 | [10 · Observability](10-observability.md) | Whether a flow's progress can be read at all. Drift versus unreadable, and the measured noise floor between them |
 | [12 · Conformation](12-conformation.md) | Projects, agents and folders: what the layered workspace is, and why membership never lives in it |
+| [16 · A workload with an oracle](16-a-workload-with-an-oracle.md) | The first workload with a declared metric, the seam that reads it across languages, and the three ways its instruments lied. **The `Gated` shape it argues for is not built** |
 
 ## Specification — not built
 

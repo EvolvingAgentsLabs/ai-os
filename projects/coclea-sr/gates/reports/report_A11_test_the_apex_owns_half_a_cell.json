@@ -1,0 +1,13 @@
+{
+  "apex_volume": 0.00125,
+  "continuum_mass": 1.0,
+  "expected_total_mass": 0.99875,
+  "failure": null,
+  "gate": "A11",
+  "interior_volume": 0.0025,
+  "passed": true,
+  "spec": "5.1",
+  "test": "test_the_apex_owns_half_a_cell",
+  "total_mass": 0.9987499999999998,
+  "total_mass_defect_scheme": 0.9999999999999998
+}
