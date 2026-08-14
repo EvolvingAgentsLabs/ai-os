@@ -172,3 +172,77 @@ def test_the_curve_is_an_inverted_u_and_not_a_ramp(report):
     assert verdict["significant_interior_maximum"], (
         "the peak does not clear both ends with non-overlapping 95% intervals"
     )
+
+
+def test_the_rice_inversion_round_trips(report):
+    """Forward then inverse must return the ratio it started from.
+
+    Cheap, and it only tests the algebra against itself — which is why the next
+    test exists.
+    """
+    import math
+
+    from truth import rice_inverse
+
+    omega_eff = 2.0 * math.pi * 1000.0
+    ratios = [1.5, 2.0, 2.5, 3.0, 3.9]
+    recovered = [
+        rice_inverse.threshold_over_sigma(rice_inverse.rate_from_ratio(r, omega_eff), omega_eff)
+        for r in ratios
+    ]
+    report(ratios=ratios, recovered=recovered,
+           worst=max(abs(a - b) for a, b in zip(ratios, recovered)))
+    assert max(abs(a - b) for a, b in zip(ratios, recovered)) < 1e-12
+
+
+def test_the_inversion_recovers_the_ratio_from_a_simulated_spontaneous_rate(report):
+    """The validation that matters: invert a rate the **simulator** produced.
+
+    E4's entire verdict is `θ/σ` inferred from a spontaneous firing rate. If that
+    inference is wrong, the verdict is wrong in a way no amount of physiology
+    would reveal — so it is checked here against a system whose `θ/σ` is known by
+    construction, with the signal switched **off** so what is measured is a
+    genuine spontaneous rate.
+
+    ``ω_eff = ω₀`` exactly for a single mode
+    (`truth/lyapunov_variance.crossing_rate_ratio`), so the inversion has nothing
+    fitted in it.
+    """
+    import math
+
+    from truth import lyapunov_variance, rice_inverse
+
+    omega_eff = OMEGA0 * lyapunov_variance.crossing_rate_ratio(OMEGA0) / OMEGA0
+    rows = []
+    for ratio in (2.0, 2.5, 3.0):
+        sigma = THETA / ratio
+        D = float(sigma**2 * 2 * GAMMA * OMEGA0**2)
+        ms = stochastic.toy_modal_system(OMEGA0, GAMMA, D)
+        # No drive at all: a spontaneous rate is what a fibre does with no sound.
+        ps = stochastic.simulate_ou_modal(
+            ms, None, T=250_000.0, dt=(2 * np.pi / OMEGA0) / 200,
+            rng=np.random.default_rng(97), n_paths=6,
+        )
+        ev = detector.threshold_events(ps.disp, ps.t, THETA, tau_ref=0.0)
+        measured_rate = float(ev.rates().mean())
+        inferred = rice_inverse.threshold_over_sigma(measured_rate, OMEGA0)
+        rows.append({
+            "theta_over_sigma_true": ratio,
+            "sigma": sigma,
+            "measured_rate": measured_rate,
+            "rice_predicted_rate": rice_inverse.rate_from_ratio(ratio, OMEGA0),
+            "theta_over_sigma_inferred": inferred,
+            "relative_error": abs(inferred - ratio) / ratio,
+        })
+
+    report(omega_eff=OMEGA0, rows=rows,
+           worst_relative_error=max(r["relative_error"] for r in rows))
+
+    # 5%: the inference is through a logarithm, so even a 20% error in the
+    # measured rate moves the ratio by only a few percent. A looser bar would
+    # not distinguish a working inversion from a broken one.
+    for r in rows:
+        assert r["relative_error"] < 0.05, (
+            f"inverted theta/sigma {r['theta_over_sigma_inferred']:.4f} from a measured "
+            f"rate of {r['measured_rate']:.5f}, true value {r['theta_over_sigma_true']}"
+        )

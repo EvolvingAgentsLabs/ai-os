@@ -1,0 +1,10 @@
+{
+  "early_window_drift": 4.999745601418935e-07,
+  "failure": null,
+  "gate": "A05",
+  "late_window_drift": 4.832907939676494e-07,
+  "passed": true,
+  "ratio": 0.9666307698345508,
+  "spec": "2.4 / 5.3",
+  "test": "test_the_error_is_bounded_and_not_drifting"
+}

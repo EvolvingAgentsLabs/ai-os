@@ -1,0 +1,17 @@
+{
+  "N": 200,
+  "alpha": 3.0,
+  "case": "exponential",
+  "dt": 0.00045440325246628066,
+  "failure": null,
+  "gate": "A05",
+  "measured_over_predicted": 0.9893007542741037,
+  "n_steps": 523409,
+  "omega_1": 2.6417817805558537,
+  "passed": true,
+  "predicted_bound": 5e-07,
+  "relative_drift": 4.946503771370518e-07,
+  "spec": "2.4 / 5.3",
+  "test": "test_a_varying_profile_conserves_too",
+  "tolerance": 1e-06
+}

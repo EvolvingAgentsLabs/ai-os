@@ -1,0 +1,9 @@
+{
+  "N": 200,
+  "failure": null,
+  "gate": "A05",
+  "passed": true,
+  "spec": "2.4 / 5.3",
+  "stability_limit": 0.007071067811865475,
+  "test": "test_it_refuses_a_step_beyond_the_stability_limit"
+}

@@ -1,0 +1,21 @@
+{
+  "convention": "slope of log(residual) against log(dt); positive means falling",
+  "failure": null,
+  "gate": "A06",
+  "observed_order_in_dt": 2.00002195034833,
+  "passed": true,
+  "residuals": [
+    8.541311734849785e-06,
+    2.1353250314784334e-06,
+    5.338278772892737e-07,
+    1.3345150926544256e-07
+  ],
+  "spec": "2.4",
+  "steps": [
+    0.002,
+    0.001,
+    0.0005,
+    0.00025
+  ],
+  "test": "test_the_residual_falls_with_the_step"
+}

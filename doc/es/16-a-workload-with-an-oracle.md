@@ -265,6 +265,59 @@ distinguir "el productor no corrió" de "el productor produjo algo que no puedo
 leer" convierte cada rotura de intercambio en una pérdida de cobertura. Los dos
 lados de ésta ahora dicen cuál es.
 
+### E4, y qué puede decir del mundo una carga de trabajo con oráculo
+
+El proyecto emitió su veredicto fisiológico el 2026-08-14, y su forma vale
+registrarla acá y no solo en el proyecto: **el modelo es adimensional y el
+veredicto no lo es.**
+
+`σ_opt = θ/2` no se puede comparar contra nanómetros sin inventar una escala de
+desplazamiento, y cualquier comparación construida sobre una sería una afirmación
+sobre esa invención. Lo que hizo posible el veredicto fue **invertir la tasa de
+cruces de Rice** para que las unidades se cancelen — inferir el ruido de una
+**tasa de disparo espontánea**, que es medible, en vez de un desplazamiento, que
+no lo es.
+
+Esa inversión está verificada: GATE-A10 le da una tasa espontánea que produjo el
+*simulador* y recupera el cociente conocido con 0.25% de error. Recién después se
+la apunta a la fisiología.
+
+**El veredicto: el óptimo de resonancia estocástica es alcanzable por fibras del
+nervio auditivo hasta una frecuencia característica de ~1 kHz y no por encima.**
+Apoya la hipótesis de 1995 y la acota, que es una afirmación más filosa que la
+original.
+
+Dos cosas viajan con él y vale generalizarlas:
+
+* **Los números empíricos están marcados `[read]` y no se verificaron de forma
+  independiente**, porque esta pasada no tuvo acceso a literatura en el loop.
+  Citar un paper al lado de un número tomado de la propia especificación del
+  proyecto habría sido fabricar procedencia. La corrida registra la salvedad en
+  un campo, así que ninguna figura derivada puede citarse sin ella.
+* **El supuesto que sostiene todo está nombrado en la corrida**, no enterrado en
+  prosa: `ω_eff = 2π·CF`. Un resultado cuyo eslabón más débil se puede encontrar
+  es un resultado que alguien puede atacar; uno cuyo eslabón débil es implícito
+  es uno que se cita.
+
+### Figuras que llevan su propia procedencia
+
+La spec §8.4 pide que cada figura lleve su run id y el hash del manifiesto.
+Hacerlo en los propios chunks de texto del PNG y no en un pie significa que la
+procedencia sobrevive a que la figura se copie en una presentación — que es el
+único viaje que una figura hace de verdad.
+
+También detectó un defecto de inmediato. Los directorios de corrida acá están
+**direccionados por contenido**, así que ordenar sus nombres no da orden alguno;
+la primera versión del script tomó el último lexicográficamente y agarró una
+corrida **superada**. Falló ruidosamente solo porque el esquema de esa corrida
+había cambiado. Si no hubiera cambiado, la figura habría mostrado números viejos
+bajo un sello de procedencia de apariencia correcta — procedencia presente,
+legible por máquina, y equivocada.
+
+**La lección para cualquier almacén atestado: el direccionamiento por contenido
+elimina el orden del que no sabías que dependías.** Ordená por algo que signifique
+tiempo.
+
 ## Qué argumenta que se construya después
 
 **Una flow shape `Gated`.** Hoy `FLOW_SHAPES = ["open"]`, y

@@ -9,12 +9,14 @@ It is also the workload that gave `ai-flows` its first declared metric — see
 [`doc/16`](../../doc/16-a-workload-with-an-oracle.md) for what the OS learned
 from it, which is the other half of why the project is here.
 
-> **State, 2026-08-14.** The MVP is complete. **GATE-B2 — the specification's
-> main result — passes: 24 of 24 curves show a statistically significant interior
-> maximum in SNR against noise.** The passive layer, the place code and the whole
-> measurement pipeline are validated against closed forms. One hypothesis was
-> falsified on the way and its replacement was accepted against a condition
-> registered before it was built.
+> **State, 2026-08-14.** The MVP is complete and H3's debt is closed.
+> **GATE-B2 — the specification's main result — passes: 24 of 24 curves show a
+> statistically significant interior maximum in SNR against noise.** The passive
+> layer, its energy, the place code and the whole measurement pipeline are
+> validated against closed forms. **E4 has emitted its verdict**, figures carry
+> their provenance in their own bytes, and one hypothesis was falsified on the
+> way with its replacement accepted against a condition registered before it was
+> built.
 
 ## The result
 
@@ -41,6 +43,8 @@ rather than a fit.
 | **A02** | modes orthogonal to the *closed-form* family under weight `μ` | see below — the spec's own version cannot fail |
 | **A03** | mode `n` has `n−1` interior zeros | exact, modes 1–10 |
 | **A04** | project and reconstruct, 200 of 2000 modes | `3.99e-7`, tolerance `1e-6` |
+| **A05** | energy stays bounded over 100 periods | `5.0e-7`, and **1.00×** the integrator's predicted bound |
+| **A06** | energy lost = energy dissipated | `5.3e-7`, order **2.0000** in `dt` |
 | **A07** | WKB error falls with mode number | `0.0086` at mode 12, monotone |
 | **A08** | exponential profile against the roots of `tan βL = −2β/α` | `2.31e-6`, tolerance `1e-5` |
 | **A09** | stationary variance against the Lyapunov solution | within sampling error, 3 parameter sets |
@@ -54,6 +58,39 @@ rather than a fit.
 | **C03** | power in at the stapes = power dissipated | residual `4.3e-8` |
 | **B1** | the place map against Greenwood | `r = +0.9986` in shape |
 | **B2** | **a significant interior maximum in SNR(D)** | **24/24 curves** |
+| **E4** | is the auditory nerve near the optimum? | reachable to **~1 kHz**, not above |
+
+## The physiological verdict — E4, and what it says about 1995
+
+The model is dimensionless, so `σ_opt = θ/2` cannot be compared against
+nanometres without inventing a scale. §4.5 supplies the escape in one
+parenthesis: infer the noise from the **spontaneous rate** instead. Rice's
+crossing rate inverts to
+
+    θ/σ = sqrt( 2 ln( ω_eff / (2π r₀) ) )
+
+in which the displacement units cancel. GATE-A10 validates that inversion against
+a *simulated* spontaneous rate and recovers the true ratio to **0.25%**.
+
+**Verdict: the stochastic-resonance optimum is reachable by auditory-nerve fibres
+up to a characteristic frequency of about 1 kHz, and not above it.**
+
+| CF | spontaneous rate needed to sit at the optimum | within the empirical ceiling? |
+|---|---|---|
+| 125 Hz | 10.3 – 35.7 sp/s | yes, comfortably |
+| 500 Hz | 41.3 – 142.8 sp/s | yes, at the high-rate end |
+| 1 kHz | 82.6 – 285.6 sp/s | only at the very top |
+| 4 kHz | 331 – 1143 sp/s | **no** |
+
+This **supports the 1995 hypothesis and bounds it**. The mechanism is available
+to low-frequency hearing and unavailable to high-frequency hearing at the rates
+fibres actually show — a sharper claim than the original, and a testable one.
+
+Two things are stated rather than buried. The empirical ranges are **[read] from
+the specification's §4.5 and not independently verified**; the sensitivity is
+reported beside them (a tenfold error in `r₀` moves `θ/σ` by 34.8%). And the
+whole verdict rests on taking `ω_eff = 2π·CF` — **attack that number first**.
+Full working in [`literature/comparison.md`](literature/comparison.md).
 
 ## What was falsified, and it was the model
 
@@ -100,10 +137,12 @@ at 500 Hz, 3 kHz and 12 kHz.
 cd projects/coclea-sr
 python3.12 -m venv .venv && .venv/bin/pip install numpy scipy sympy mpmath pytest
 
-.venv/bin/python -m pytest gates/ -q                        # every gate
-PYTHONPATH=src .venv/bin/python experiments/e2_tonotopy.py  # the place map, 3 arms
-PYTHONPATH=src .venv/bin/python experiments/e3_sr_curve.py  # the SR curve — GATE-B2
-python3 verify_ledger.py                                    # re-derive the chain
+.venv/bin/python -m pytest gates/ -q                            # every gate
+PYTHONPATH=src .venv/bin/python experiments/e2_tonotopy.py      # the place map, 3 arms
+PYTHONPATH=src .venv/bin/python experiments/e3_sr_curve.py      # the SR curve — GATE-B2
+PYTHONPATH=src .venv/bin/python experiments/e4_physiological.py # the verdict
+PYTHONPATH=src .venv/bin/python experiments/figures.py          # report/, stamped
+python3 verify_ledger.py                                        # re-derive the chain
 ```
 
 `verify_ledger.py` uses the standard library only and imports nothing from
@@ -116,14 +155,16 @@ verifies checks self-consistency, not truth.
 |---|---|
 | [`COCLEA-SR-SPEC.md`](COCLEA-SR-SPEC.md) | The specification. Where code and spec disagree, the spec wins — and where the spec is wrong, an ADR says so |
 | [`truth/`](truth/) | Closed forms in sympy and mpmath. **Imports nothing from `src/`** (spec §6.4 rule 4) |
-| [`src/coclea/`](src/coclea/) | units, profiles, assembly, modal, forced, transmission, stochastic, detector, analysis, calibrate, sr, attest |
+| [`src/coclea/`](src/coclea/) | units, profiles, assembly, modal, forced, transmission, dynamics, stochastic, detector, analysis, calibrate, sr, attest |
 | [`gates/`](gates/) | One module per gate. Each writes `gates/reports/*.json` on **every** outcome |
 | [`experiments/`](experiments/) | E2 and E3, each with its control arms |
 | [`decisions/`](decisions/) | Three ADRs. The second says the first was wrong; the third says what the second left open |
+| [`literature/`](literature/) | The LITERATURA role's output: the verdict, its sensitivity, and what was **not** checked |
+| [`report/`](report/) | Figures. Each carries its run id, result hash and commit **in the PNG's own metadata** (§8.4) |
 | [`runs/`](runs/) | Content-addressed run directories with manifests |
 | `ledger.jsonl` | Hash-chained, one line per artefact transition |
 
-## Six ways the instrument lied
+## Nine ways the instrument lied
 
 None of them was found by reading. Kept because the workspace rules ask for it
 and because each first looked like a result.
@@ -163,6 +204,26 @@ tests reported themselves as skipped rather than failing.** An interchange break
 that presented as a quiet loss of coverage. Both writers now sanitise to `null`
 with `allow_nan=False`, and both readers now distinguish *absent* from
 *unreadable*.
+
+**A robustness claim written before it was measured.** `truth/rice_inverse.py`
+said a tenfold error in the spontaneous rate was worth "about 20%". Measured:
+**41%**, and only downward — upward it runs into the ceiling where the crossing
+picture stops applying. The first `sensitivity_to_rate` took the larger of the
+two arms and returned 97.9%, a figure produced entirely by that clamp.
+
+**A convergence order asserted with the wrong sign.** GATE-A6 fits the residual
+against `dt`, where a falling error has a *positive* slope; GATE-A12 fits against
+`N`, where it has a negative one. Copying A12's negation asserted that the
+residual must **grow** under refinement, and the measured `-2.000` read as a
+failure of the exact behaviour it was confirming. An order of precisely 2.000 is
+a strong hint that the code is right and the assertion is not.
+
+**A figure drawn from a superseded run.** Run directories are content-addressed,
+so `sorted()` on their names gives no ordering at all — `figures.py` took the
+lexically last one and reached for a *stale* E2 result. It failed with a
+`KeyError` only because the schema had changed in between; had it not, the figure
+would have shown old numbers under a correct-looking provenance stamp. Runs are
+now ordered by their manifest timestamp.
 
 ## The deliberate defect
 

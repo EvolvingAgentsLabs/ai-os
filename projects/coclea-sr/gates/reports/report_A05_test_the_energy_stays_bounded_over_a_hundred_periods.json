@@ -1,0 +1,23 @@
+{
+  "N": 200,
+  "dt": 0.0004838028943651966,
+  "energy_initial": 1.470625609268609,
+  "failure": null,
+  "gate": "A05",
+  "measured_over_predicted": 0.9999491202837866,
+  "modal_energy_share": [
+    0.8388907418922176,
+    0.11796415937193168,
+    0.028764994955199547,
+    0.010033082258650582,
+    0.00434702152200071
+  ],
+  "n_periods": 100,
+  "n_steps": 826783,
+  "passed": true,
+  "predicted_bound": 5.000000000000002e-07,
+  "relative_drift": 4.999745601418935e-07,
+  "spec": "2.4 / 5.3",
+  "test": "test_the_energy_stays_bounded_over_a_hundred_periods",
+  "tolerance": 1e-06
+}

@@ -253,6 +253,55 @@ producer has not run" from "the producer produced something I cannot read" will
 convert every interchange break into a coverage loss. Both sides of this one now
 say which.
 
+### E4, and what a workload with an oracle can say about the world
+
+The project emitted its physiological verdict on 2026-08-14, and the shape of it
+is worth recording here rather than only in the project: **the model is
+dimensionless, and the verdict is not.**
+
+`σ_opt = θ/2` cannot be compared against nanometres without inventing a
+displacement scale, and any comparison built on one would be a statement about
+that invention. What made the verdict possible was inverting Rice's crossing
+rate so the units cancel — inferring the noise from a **spontaneous firing rate**,
+which is measurable, instead of from a displacement, which is not.
+
+That inversion is itself checked: GATE-A10 feeds it a spontaneous rate the
+*simulator* produced and recovers the known ratio to 0.25%. Only then is it
+pointed at physiology.
+
+**The verdict: the stochastic-resonance optimum is reachable by auditory-nerve
+fibres up to a characteristic frequency of about 1 kHz and not above it.** It
+supports the 1995 hypothesis and bounds it, which is a sharper claim than the
+one it started from.
+
+Two things travel with it and are worth generalising:
+
+* **The empirical numbers are marked `[read]` and were not independently
+  verified**, because this pass had no literature access in the loop. Citing a
+  paper beside a number taken from the project's own specification would have
+  been manufacturing provenance. The run records the caveat in a field, so no
+  figure derived from it can be quoted without it.
+* **The load-bearing assumption is named in the run**, not buried in prose:
+  `ω_eff = 2π·CF`. A result whose weakest link is findable is a result somebody
+  can attack; one whose weakest link is implicit is one that gets quoted.
+
+### Figures that carry their own provenance
+
+Spec §8.4 asks that every figure carry its run id and manifest hash. Doing that
+in the PNG's own text chunks rather than in a caption means the provenance
+survives the figure being copied into a slide — which is the only journey a
+figure actually takes.
+
+It also caught a defect immediately. Run directories here are **content-addressed**,
+so sorting their names gives no ordering at all; the first version of the figure
+script took the lexically last directory and reached for a *superseded* run. It
+failed loudly only because that run's schema had changed. Had it not, the figure
+would have shown stale numbers under a correct-looking stamp — provenance that
+was present, machine-readable, and wrong.
+
+**The lesson for any attested store: content addressing removes the ordering you
+did not know you were relying on.** Sort by something that means time.
+
 ## What this argues should be built next
 
 **A `Gated` flow shape.** `FLOW_SHAPES = ["open"]` today, and

@@ -1,0 +1,11 @@
+{
+  "energy_dissipated": 0.0,
+  "energy_lost": 5.860809171309711e-09,
+  "failure": null,
+  "fraction_of_initial_energy_lost": 3.98524895416753e-09,
+  "gate": "A06",
+  "passed": true,
+  "relative_residual": 1.0,
+  "spec": "2.4",
+  "test": "test_undamped_dissipates_nothing"
+}
