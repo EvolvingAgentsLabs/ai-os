@@ -194,6 +194,65 @@ JSON file turned a verifier into a rubber stamp, and nothing in the flow's state
 trace or contribution signal would have shown it. What showed it was two agents
 reading the same file and disagreeing.
 
+## Completing the workload, and the gesture it exposed
+
+The project reached its own main result on 2026-08-14 — **GATE-B2, a
+statistically significant interior maximum in SNR against noise, at 24 of 24
+probe-and-frequency combinations**, with the measured optimum 11.6% from the
+parameter-free prediction `σ_opt = θ/2`. 80 gates green, up from 45.
+
+Two things about that run belong here rather than in the project.
+
+### The desk could not start work
+
+Every gesture the desk had — assign, unassign, advance, fork, ask, arrange —
+operates on a document that **already exists**. There was no way to create one.
+So beginning a project meant leaving the interface for a `curl` or a seed script,
+which is a strange shape for a surface whose whole claim is that work outlives
+the conversation.
+
+`POST /flow` and a `New document` form close it, and two choices in it are the
+same rules this workload has been enforcing everywhere else:
+
+* **`actorId` is required with no default** — ADR-0009's rule, that a flow with
+  no actor is not created rather than created and attributed to a service
+  account.
+* **The goal is required and is not defaulted from the title.** A document whose
+  goal restates its name declares nothing about what "done" means, which is the
+  first of the four things [03-ai-flows](03-ai-flows.md) says a session lacks and
+  a flow exists to supply.
+
+It was built with an inline form rather than `window.prompt`, and the second
+reason is the one worth recording: a native dialog blocks the page's event loop,
+so the gesture would have been **untestable by anything driving a browser** —
+including the check that it works at all. A product decision and a testability
+decision pointed the same way, which is usually a sign the idiom was wrong to
+begin with.
+
+### The interchange format broke, and the tests went green
+
+Python's `json.dumps` writes `Infinity` and `-Infinity`. **JSON has neither.**
+Two GATE-A10 reports carried an SNR of `-inf` at the noise level where the
+detector never fires, `JSON.parse` threw on the TypeScript side, and
+`realReports()` — which returned `[]` on any failure — handed back nothing. Four
+cross-language drift tests then **reported themselves as skipped**.
+
+The seam had broken and the suite was green. That is worse than the bug: a
+failing test is a message and a skipped test is silence.
+
+Both halves are fixed and the fix is in both directions. The writers sanitise
+non-finite values to `null` — which is JSON's absent value, and an SNR of minus
+infinity *is* "no signal was detectable", where a coerced `0` would be a
+fabricated measurement — and pass `allow_nan=False` so anything the sanitiser
+misses raises at write time. The readers now distinguish **absent** from
+**unreadable**: no directory is a legitimate skip, a directory of files that will
+not parse is a failure that names them.
+
+**The general rule for a cross-language seam:** a reader that cannot tell "the
+producer has not run" from "the producer produced something I cannot read" will
+convert every interchange break into a coverage loss. Both sides of this one now
+say which.
+
 ## What this argues should be built next
 
 **A `Gated` flow shape.** `FLOW_SHAPES = ["open"]` today, and

@@ -206,6 +206,65 @@ un archivo JSON convirtió a un verificador en un sello de goma, y nada en el
 estado del flow, su traza o su señal de contribución lo habría mostrado. Lo que
 lo mostró fueron dos agentes leyendo el mismo archivo y discrepando.
 
+## Completar la carga de trabajo, y el gesto que dejó a la vista
+
+El proyecto alcanzó su resultado principal el 2026-08-14 — **GATE-B2, un máximo
+interior estadísticamente significativo en SNR contra ruido, en 24 de 24
+combinaciones de sonda y frecuencia**, con el óptimo medido a 11.6% de la
+predicción sin parámetros libres `σ_opt = θ/2`. 80 gates verdes, contra 45.
+
+Dos cosas de esa corrida pertenecen acá y no al proyecto.
+
+### El escritorio no podía empezar trabajo
+
+Todo gesto que el desk tenía — asignar, desasignar, avanzar, bifurcar, preguntar,
+acomodar — opera sobre un documento que **ya existe**. No había forma de crear
+uno. Así que empezar un proyecto significaba salir de la interfaz hacia un `curl`
+o un script de siembra, que es una forma extraña para una superficie cuya
+afirmación central es que el trabajo sobrevive a la conversación.
+
+`POST /flow` y un formulario `New document` lo cierran, y dos decisiones adentro
+son las mismas reglas que esta carga de trabajo viene imponiendo en todo lo demás:
+
+* **`actorId` es obligatorio y no tiene default** — la regla de ADR-0009: un flow
+  sin actor no se crea, en vez de crearse y atribuirse a una cuenta de servicio.
+* **El objetivo es obligatorio y no se copia del título.** Un documento cuyo
+  objetivo repite su nombre no declara nada sobre qué significa "terminado", que
+  es la primera de las cuatro cosas que [03-ai-flows](03-ai-flows.md) dice que a
+  una sesión le faltan y que un flow existe para aportar.
+
+Se construyó con un formulario en línea y no con `window.prompt`, y la segunda
+razón es la que vale registrar: un diálogo nativo bloquea el event loop de la
+página, así que el gesto habría quedado **imposible de testear para cualquier
+cosa que maneje un navegador** — incluida la verificación de que funciona. Una
+decisión de producto y una de testeabilidad apuntaron al mismo lado, lo que suele
+indicar que el idioma estaba mal desde el principio.
+
+### El formato de intercambio se rompió, y los tests quedaron verdes
+
+`json.dumps` de Python escribe `Infinity` y `-Infinity`. **JSON no tiene
+ninguno de los dos.** Dos reportes de GATE-A10 llevaban un SNR de `-inf` en el
+nivel de ruido donde el detector nunca dispara, `JSON.parse` tiró del lado
+TypeScript, y `realReports()` — que devolvía `[]` ante cualquier falla — no
+devolvió nada. Cuatro tests de deriva entre lenguajes **se reportaron como
+saltados**.
+
+La costura se había roto y la suite estaba verde. Eso es peor que el bug: un test
+que falla es un mensaje y un test saltado es silencio.
+
+Las dos mitades están corregidas y la corrección va en ambas direcciones. Los
+escritores sanean los valores no finitos a `null` — que es el valor ausente de
+JSON, y un SNR de menos infinito *es* "no se detectó señal", donde un `0`
+forzado sería una medición fabricada — y pasan `allow_nan=False` para que lo que
+el saneador no atrape explote al escribir. Los lectores ahora distinguen
+**ausente** de **ilegible**: no haber directorio es un salto legítimo, un
+directorio de archivos que no parsean es una falla que los nombra.
+
+**La regla general para una costura entre lenguajes:** un lector que no puede
+distinguir "el productor no corrió" de "el productor produjo algo que no puedo
+leer" convierte cada rotura de intercambio en una pérdida de cobertura. Los dos
+lados de ésta ahora dicen cuál es.
+
 ## Qué argumenta que se construya después
 
 **Una flow shape `Gated`.** Hoy `FLOW_SHAPES = ["open"]`, y

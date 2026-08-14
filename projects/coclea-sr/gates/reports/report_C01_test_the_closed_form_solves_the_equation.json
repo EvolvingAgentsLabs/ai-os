@@ -1,0 +1,8 @@
+{
+  "failure": null,
+  "gate": "C01",
+  "passed": true,
+  "spec": "ADR-0002",
+  "symbolically_verified": true,
+  "test": "test_the_closed_form_solves_the_equation"
+}

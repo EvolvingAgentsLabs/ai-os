@@ -1,0 +1,11 @@
+{
+  "events_with_no_noise": 0,
+  "failure": null,
+  "gate": "A10",
+  "passed": true,
+  "ratio": 0.3,
+  "response_amplitude": 0.3,
+  "spec": "4.2 / 4.4",
+  "test": "test_the_tone_is_subthreshold",
+  "theta": 1.0
+}

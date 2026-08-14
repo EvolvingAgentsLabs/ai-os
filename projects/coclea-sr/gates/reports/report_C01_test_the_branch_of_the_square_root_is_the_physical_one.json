@@ -1,0 +1,11 @@
+{
+  "decays_toward_apex": true,
+  "failure": null,
+  "gate": "C01",
+  "passed": true,
+  "pressure_at_first_node": 0.9996650298274905,
+  "pressure_at_last_node": 0.003414685747252431,
+  "spec": "ADR-0002",
+  "test": "test_the_branch_of_the_square_root_is_the_physical_one",
+  "wavenumber_imag": -0.5319030644195417
+}

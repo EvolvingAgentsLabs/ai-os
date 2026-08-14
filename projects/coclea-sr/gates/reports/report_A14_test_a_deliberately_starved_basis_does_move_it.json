@@ -1,0 +1,13 @@
+{
+  "discriminates": true,
+  "failure": null,
+  "gate": "A14",
+  "passed": true,
+  "shift_db": 1.6714883569204124,
+  "snr_full": 6.02426720846962,
+  "snr_starved": 4.352778851549208,
+  "spec": "5.5",
+  "starved_modes": 4,
+  "test": "test_a_deliberately_starved_basis_does_move_it",
+  "tolerance_db": 0.2
+}

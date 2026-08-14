@@ -37,7 +37,7 @@ cd ai-ui    && node scripts/serve.ts                         # escritorio  :8098
 
 ## Estado
 
-`ai-base`, `ai-flows` y `ai-ui` corren — **532 tests propios**, arriba de los
+`ai-base`, `ai-flows` y `ai-ui` corren — **538 tests propios**, arriba de los
 3.768 que `ai-base` trae de upstream. `ai-storage` está especificado y no
 construido, aunque la primera pieza de su argumento ya corre dentro de
 `ai-flows`: una base de conocimiento de proyecto que una ventana de ocho mil
@@ -56,6 +56,7 @@ captura es de una instancia viva.
 | [`ai-flows/`](ai-flows/) | Flows, composición, el instrumental de medición, la base de conocimiento y los [agentes de sistema](ai-flows/agents/system/memory/) | Apache 2.0 |
 | [`ai-memory/`](ai-memory/) | Los agentes de memoria, como un árbol que corre como árbol | Apache 2.0 |
 | [`ai-ui/`](ai-ui/) | El escritorio | Apache 2.0 |
+| [`projects/`](projects/) | Trabajo corriendo **sobre** el sistema. Hoy: [`coclea-sr/`](projects/coclea-sr/), Python, 80 gates | Apache 2.0 |
 | `ai-storage/` | No construido | — |
 
 `ai-base/` queda byte a byte igual a upstream. Cualquier cambio ahí necesita una

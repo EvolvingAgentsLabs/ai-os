@@ -33,6 +33,53 @@ for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
     os.environ.setdefault(_var, "1")
 
 
+def _json_safe(value):
+    """Replace non-finite numbers with ``None``, recursively.
+
+    **JSON has no representation for infinity or NaN**, and Python's
+    `json.dumps` writes `Infinity` / `-Infinity` / `NaN` anyway — producing a
+    file that Python reads back happily and that every other language rejects.
+
+    Found on 2026-08-14 by `ai-flows/test/gates.test.ts`, which reads these
+    files in TypeScript: two GATE-A10 reports carried an SNR of `-inf` at the
+    noise level where the detector never fires, and `JSON.parse` failed with
+    "No number after minus sign". The TypeScript seam silently saw **zero**
+    gate reports and skipped four drift tests rather than failing — an
+    interchange break that presented as a quiet loss of coverage.
+
+    `null` is the right target and not `0` or a sentinel: an SNR of minus
+    infinity means *no signal was detectable*, which is JSON's absent value, and
+    coercing it to a number would put a fabricated measurement into a report.
+    Whether it was infinite is preserved alongside in `non_finite_fields`.
+    """
+    import math
+
+    if isinstance(value, float):
+        return None if not math.isfinite(value) else value
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    return value
+
+
+def _non_finite_paths(value, prefix=""):
+    """Where the non-finite values were, so the loss is recorded and not silent."""
+    import math
+
+    out = []
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            out.append(prefix or "(root)")
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            out.extend(_non_finite_paths(v, f"{prefix}.{k}" if prefix else str(k)))
+    elif isinstance(value, (list, tuple)):
+        for i, v in enumerate(value):
+            out.extend(_non_finite_paths(v, f"{prefix}[{i}]"))
+    return out
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """Stash each phase's outcome on the item so the fixture finaliser can read it.
@@ -80,6 +127,11 @@ def report(request):
         "failure": None if passed or call_rep is None else str(call_rep.longrepr)[-2000:],
         **payload,
     }
+    non_finite = _non_finite_paths(out)
+    if non_finite:
+        out["non_finite_fields"] = sorted(non_finite)
+    # `allow_nan=False` so a value this sanitiser missed raises at write time
+    # rather than producing a file only Python can read.
     (REPORTS / f"report_{request.node.module.GATE}_{name}.json").write_text(
-        json.dumps(out, indent=2, sort_keys=True) + "\n"
+        json.dumps(_json_safe(out), indent=2, sort_keys=True, allow_nan=False) + "\n"
     )

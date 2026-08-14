@@ -21,14 +21,28 @@ import { COCHLEA_NUMBERS, analyticOmega, cochleaAgents, cochleaFlows } from "../
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPORTS = join(HERE, "..", "..", "projects", "coclea-sr", "gates", "reports");
 
+/**
+ * No directory is a legitimate skip. Files that will not parse are a failure.
+ *
+ * Collapsing the two is how two `-Infinity` values in the Python reports turned
+ * four of these drift tests into silent skips on 2026-08-14 — the seam broke and
+ * the suite stayed green.
+ */
 function reports(): Array<Record<string, unknown>> {
+  let names: string[];
   try {
-    return readdirSync(REPORTS)
-      .filter((n) => n.endsWith(".json"))
-      .map((n) => JSON.parse(readFileSync(join(REPORTS, n), "utf8")));
+    names = readdirSync(REPORTS).filter((n) => n.endsWith(".json"));
   } catch {
     return [];
   }
+  return names.map((n) => {
+    const raw = readFileSync(join(REPORTS, n), "utf8");
+    try {
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch (err) {
+      throw new Error(`${n} is not valid JSON: ${(err as Error).message}`);
+    }
+  });
 }
 
 const find = (pred: (r: Record<string, unknown>) => boolean) => reports().find(pred);

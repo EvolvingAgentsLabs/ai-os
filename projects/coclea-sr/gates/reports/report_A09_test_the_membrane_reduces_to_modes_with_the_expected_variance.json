@@ -1,0 +1,28 @@
+{
+  "failure": null,
+  "gamma": [
+    0.08000000000000003,
+    0.07999999999999999,
+    0.07999999999999992,
+    0.08,
+    0.08000000000000006,
+    0.07999999999999999
+  ],
+  "gate": "A09",
+  "modal_noise": [
+    0.01,
+    0.01,
+    0.01,
+    0.01,
+    0.01,
+    0.01
+  ],
+  "n_modes": 6,
+  "passed": true,
+  "predicted_variance": 0.05072461050145403,
+  "relative_error": 0.00048809811683099894,
+  "sampled_variance": 0.05069985191459128,
+  "spec": "4.1",
+  "test": "test_the_membrane_reduces_to_modes_with_the_expected_variance",
+  "tolerance": 0.1095445103250827
+}

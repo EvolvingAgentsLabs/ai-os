@@ -244,7 +244,7 @@ export const SIMULATION_JS = String.raw`
     const url = typeof input === 'string' ? input : (input && input.url) || '';
     // Anything not one of the desk's own three endpoints goes to the network,
     // so this shim cannot silently swallow a call somebody adds later.
-    if (!/^\/(state|layout|assign|unassign|advance|fork|ask)/.test(url)) return real(input, init);
+    if (!/^\/(state|layout|flow|assign|unassign|advance|fork|ask)/.test(url)) return real(input, init);
     const body = init && init.body ? JSON.parse(init.body) : {};
 
     if (url.indexOf('/state') === 0) return json(stateBody());
@@ -252,6 +252,40 @@ export const SIMULATION_JS = String.raw`
     if (url.indexOf('/layout') === 0) {
       world.layout = body.layout;
       return json({ ok: true });
+    }
+
+    if (url.indexOf('/flow') === 0) {
+      // Creating a document, in the page.
+      //
+      // Implemented here and not only against a server for the reason the
+      // whole demo exists: if the desk grows a gesture the simulated backend
+      // does not have, the demo ships a button that works in production and
+      // throws in the browser -- and it looks right until somebody presses it.
+      // The FlowsClient interface declares createFlow so the compiler asks for
+      // this implementation too, rather than leaving it to be remembered.
+      if (!body.scopeId || !body.title || !body.goal) {
+        return json({ error: 'scopeId, title and goal are required' }, 400);
+      }
+      if (!body.actorId) {
+        return json({ error: 'actorId is required — a flow records the principal it acts for' }, 400);
+      }
+      // A counter, not a hash of the title: two documents may legitimately
+      // share a name, and an id derived from the name would silently collide.
+      var id = 'flow-new-' + (world.docs.length + 1);
+      world.docs.push({
+        id: id,
+        title: body.title,
+        goal: body.goal,
+        // draft, not waiting: nothing is queued yet, and a document that claims
+        // to be waiting for work nobody assigned is the kind of picture that
+        // renders cleanly and is wrong.
+        state: 'draft',
+        updatedAt: DEMO_AT,
+        done: 0,
+        total: 0,
+        steps: [],
+      });
+      return json({ ok: true, flowId: id, title: body.title });
     }
 
     if (url.indexOf('/assign') === 0) {

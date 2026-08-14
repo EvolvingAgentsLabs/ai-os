@@ -1,0 +1,20 @@
+{
+  "failure": null,
+  "gate": "C03",
+  "grids": [
+    500,
+    1000,
+    2000,
+    4000
+  ],
+  "observed_order": 2.0067924904957235,
+  "passed": true,
+  "residuals": [
+    3.2872916632708996e-06,
+    8.150974814623267e-07,
+    2.0294427089958416e-07,
+    5.0632966705215104e-08
+  ],
+  "spec": "ADR-0002",
+  "test": "test_the_residual_falls_with_the_grid"
+}

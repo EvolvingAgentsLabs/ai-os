@@ -1,7 +1,7 @@
 # ADR-0002 — The place code needs fluid coupling, not a ground spring
 
 **Date:** 2026-08-14
-**Status:** accepted as the specification of the next operator — **not built**
+**Status:** **built and accepted, 2026-08-14** — its pre-registered condition was met
 **Supersedes:** [ADR-0001](0001-the-place-code-needs-a-term-the-spec-absorbs.md)
 **Raised by:** run `e2-tonotopy`, which falsified ADR-0001 across its whole
 coupling sweep
@@ -80,16 +80,56 @@ an Airy turning point at the place, which gives an independent closed form to
 gate against — the analogue of GATE-A8 for the new operator, and the reason not
 to build it without one.
 
-## Why it is not built in this pass
+## Why it was not built in the pass that specified it
 
 The workspace rule is to count redesigns: "fine once, suspicious twice, and by
-the third it is looking for the result rather than measuring it." This is the
-third change to the model in one session — κ absorbed, κ made explicit, κ
-re-scaled as a coupling length — and each one moved the instrument closer to the
-answer it wanted. Stopping here, with the falsification recorded and the next
-operator specified but unbuilt, is the discipline the count exists to enforce.
+the third it is looking for the result rather than measuring it." That pass had
+already changed the model three times — κ absorbed, κ made explicit, κ re-scaled
+as a coupling length — and each change moved the instrument closer to the answer
+it wanted. Stopping there, with the falsification recorded and the next operator
+specified but unbuilt, is the discipline the count exists to enforce.
 
-The stopping condition for the next pass is written before it runs: **the
-transmission line is accepted only if `cochlear_orientation` is true and the
-control arm — this operator — remains false.** Both arms already exist in
-`experiments/e2_tonotopy.py`.
+The stopping condition was therefore **written before the operator existed**:
+the transmission line is accepted only if `cochlear_orientation` is true and the
+control arm — the string with a ground spring — remains false.
+
+## Result, measured 2026-08-14 — [ran]
+
+Built in `src/coclea/transmission.py`. **Both halves of the pre-registered
+condition hold**, and they are gates rather than a note:
+
+| | treatment (transmission line) | control (string + ground spring) |
+|---|---|---|
+| `cochlear_orientation` | **true at all six frequencies** | **false at all six** |
+| peak is interior | true at all six | false |
+| gate | `GATE-C2` | `GATE-C2`, control arm |
+
+And the operator is validated as a solver before being trusted as physics:
+
+* **GATE-C1** — against the closed form `P(x) = sin(k(1−x))/sin(k)` for the
+  constant-impedance box, in complex arithmetic: `7.3e-7` relative at N = 4000,
+  converging at **order 2.00**.
+* **GATE-C2** — the peak lands where the impedance resonates. `x_cf` from the
+  solved field and `characteristic_place` from `Re(Z) = 0` agree to better than
+  five grid spacings at every frequency: 500 Hz → 0.5358 vs 0.5357, 3 kHz →
+  0.2777 vs 0.2778, 12 kHz → 0.0780 vs 0.0783. **A peak that moves is not a
+  place code; a peak that moves to where the membrane is tuned is.**
+* **GATE-C3** — power in at the stapes equals power dissipated in the membrane,
+  computed independently from a boundary term and a volume integral: relative
+  residual `4.3e-8`, falling with the grid.
+
+Two findings that were not anticipated and are recorded because they corrected
+an expectation rather than confirming one:
+
+* **Damping does not control the delivered power.** Over three decades of `ζ`
+  the power the stapes delivers moves by 16% while the peak displacement moves
+  by a factor of 400. The stapes delivers what the line's input impedance
+  accepts; `ζ` decides only where and how sharply it is absorbed. An assertion
+  that "more damping dissipates more" was written, failed, and was replaced by
+  the law that does hold: **|U|ₘₐₓ ∝ 1/ζ**, constant to 6% across `ζ = 0.01…0.4`.
+* **The 1/ζ law is grid-limited at small damping.** At `ζ = 1e-3` a 2000-point
+  grid reads `|U|ₘₐₓ·ζ = 2.50` instead of 4.21 — a 40% error that looks like the
+  law breaking and is the grid failing to resolve the peak. It recovers on
+  refinement: 2.497, 3.885, 4.205 at N = 2000, 8000, 32000.
+
+**The decision stands and ADR-0001 stays superseded.**

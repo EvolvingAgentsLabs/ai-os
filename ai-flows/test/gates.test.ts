@@ -21,6 +21,20 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 /** The cochlea project's real gate reports, produced by pytest, read from disk. */
 const REPORTS_DIR = join(HERE, "..", "..", "projects", "coclea-sr", "gates", "reports");
 
+/**
+ * Read the Python suite's reports, distinguishing **absent** from **unreadable**.
+ *
+ * The first version collapsed the two: any failure returned `[]`, and every test
+ * downstream skipped. On 2026-08-14 two reports contained `-Infinity` — which
+ * Python's `json.dumps` emits and JSON does not have — so `JSON.parse` threw,
+ * this returned nothing, and **four drift tests reported themselves as skipped
+ * rather than failing**. An interchange break presented as a quiet loss of
+ * coverage, which is the worst way for one to present.
+ *
+ * So: no directory is a legitimate skip (the Python suite is not a dependency of
+ * this package). A directory with files that will not parse is a **failure**,
+ * because that is the seam breaking.
+ */
 function realReports(): GateReport[] {
   let names: string[];
   try {
@@ -28,8 +42,24 @@ function realReports(): GateReport[] {
   } catch {
     return [];
   }
-  return parseReports(names.map((n) => JSON.parse(readFileSync(join(REPORTS_DIR, n), "utf8"))))
-    .reports;
+  if (!names.length) return [];
+
+  const parsed: unknown[] = [];
+  const unreadable: string[] = [];
+  for (const n of names) {
+    try {
+      parsed.push(JSON.parse(readFileSync(join(REPORTS_DIR, n), "utf8")));
+    } catch (err) {
+      unreadable.push(`${n}: ${(err as Error).message}`);
+    }
+  }
+  if (unreadable.length) {
+    throw new Error(
+      `${unreadable.length} of ${names.length} gate reports are not valid JSON — ` +
+        `the interchange format is broken, not missing:\n  ${unreadable.join("\n  ")}`,
+    );
+  }
+  return parseReports(parsed).reports;
 }
 
 const green = (gate: string, test: string, extra: Record<string, unknown> = {}): GateReport => ({
@@ -215,6 +245,24 @@ describe("against the cochlea project's own reports", () => {
    * not a dependency of this package, and a TypeScript test that cannot run
    * without a Python environment would be a test nobody keeps green.
    */
+  it("every report on disk is valid JSON", (t) => {
+    // The guard for the failure above. Deliberately separate from the parse
+    // test so a broken file names itself instead of showing up as an empty set.
+    let names: string[];
+    try {
+      names = readdirSync(REPORTS_DIR).filter((n) => n.endsWith(".json"));
+    } catch {
+      return t.skip("no gate reports on disk");
+    }
+    if (!names.length) return t.skip("no gate reports on disk");
+    for (const n of names) {
+      assert.doesNotThrow(
+        () => JSON.parse(readFileSync(join(REPORTS_DIR, n), "utf8")),
+        `${n} is not valid JSON`,
+      );
+    }
+  });
+
   it("parses every report the Python suite produced", (t) => {
     const reports = realReports();
     if (!reports.length) return t.skip("no gate reports on disk; run the coclea-sr suite first");

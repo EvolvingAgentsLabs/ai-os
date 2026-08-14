@@ -134,6 +134,16 @@ function jsonForScript(value: unknown): string {
     .replace(/-->/g, "--\\u003e");
 }
 
+const NEWFORM_CSS = `
+.newform { position:absolute; top:34px; left:12px; width:420px; z-index:60; }
+.newform .win-body { padding:10px 12px 12px; }
+.newform label { display:block; margin:0 0 8px; font-size:12px; }
+.newform input { display:block; width:100%; margin-top:3px; box-sizing:border-box;
+  font:inherit; font-size:12px; padding:3px 5px; border:1px solid #808080;
+  border-top-color:#404040; border-left-color:#404040; background:#fff; }
+.newform .row { display:flex; gap:8px; margin-top:10px; }
+`;
+
 const DESK_CSS = `
 body{overflow:hidden}
 .desk{position:relative;width:100vw;height:calc(100vh - 30px);overflow:auto}
@@ -1362,6 +1372,48 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
   });
   document.getElementById('reload').addEventListener('click', () => refresh());
 
+  // Create a document. The gesture the desk was missing: every other action
+  // here operates on work that already exists, so starting a project meant
+  // leaving the interface.
+  //
+  // An inline form and not window.prompt, for two reasons. A modal dialog is
+  // the wrong idiom for a surface built on direct manipulation -- it takes the
+  // desk away to ask about it. And a native prompt blocks the page's event loop
+  // entirely, which makes the gesture untestable by anything driving a browser,
+  // including the check that it works at all.
+  var newForm = document.getElementById('newform');
+  var newTitle = document.getElementById('newtitle');
+  var newGoal = document.getElementById('newgoal');
+
+  function closeNew() { newForm.style.display = 'none'; newTitle.value = ''; newGoal.value = ''; }
+
+  document.getElementById('newdoc').addEventListener('click', function () {
+    var open = newForm.style.display !== 'none';
+    if (open) { closeNew(); return; }
+    newForm.style.display = 'block';
+    newTitle.focus();
+  });
+  document.getElementById('newcancel').addEventListener('click', closeNew);
+
+  document.getElementById('newcreate').addEventListener('click', async () => {
+    var title = (newTitle.value || '').trim();
+    var goal = (newGoal.value || '').trim();
+    // The goal is required and is NOT defaulted from the title. A document whose
+    // goal restates its name says nothing about what done means, which is the
+    // first thing doc/03 says a flow exists to supply.
+    if (!title || !goal) { say('A document needs a name and a goal.'); return; }
+    try {
+      var r = await post('/flow', {
+        scopeId: S.scopeId, actorId: S.people && S.people[0] ? S.people[0] : 'you',
+        title: title, goal: goal
+      });
+      closeNew();
+      say('Created "' + (r.title || title) + '". Drop an agent on it to give it a step.');
+      await refresh();
+      if (r.flowId) select(r.flowId);
+    } catch (e) { say('Could not create it: ' + e.message); }
+  });
+
   render();
   // A document can be addressed directly: ?select=<flowId>. Sharing "look at
   // this one" should be a link rather than an instruction to find it, and it is
@@ -1428,7 +1480,7 @@ export function renderDeskHtml(view: DeskView): string {
   return `<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ai-os — the desk</title>
-<style>${CHROME_CSS}${CREATURE_CSS}${DESK_CSS}${view.simulate ? TOUR_CSS + MASCOT_CSS : ""}</style>
+<style>${CHROME_CSS}${CREATURE_CSS}${DESK_CSS}${NEWFORM_CSS}${view.simulate ? TOUR_CSS + MASCOT_CSS : ""}</style>
 <div class="menubar">
   <span class="apple">ai-os</span>
   ${view.simulate ? `<span class="sim">Simulated — no core, no model, nothing stored</span><span class="dim">reloading starts over</span>` : ""}
@@ -1441,8 +1493,17 @@ export function renderDeskHtml(view: DeskView): string {
     .join("")}</select></label>
   <span class="sep">|</span>
   <span id="counts">${esc(view.docs.length)} document(s) · ${esc(view.agents.length)} agent(s) · ${esc(view.people.length)} person(s)</span>
+  <button id="newdoc">New document</button>
   <button id="reload">Refresh</button>
   <span class="right">harness ${esc(view.harness)} · <span id="stamp">${esc(new Date(view.at).toISOString())}</span></span>
+</div>
+<div class="win newform" id="newform" style="display:none">
+  <div class="bar"><span class="box"></span><h2>New document</h2><span class="box zoom"></span></div>
+  <div class="win-body">
+    <label>Name <input id="newtitle" type="text" placeholder="Passive membrane"></label>
+    <label>What would make it done? <input id="newgoal" type="text" placeholder="every required gate green, and frozen only if they are"></label>
+    <div class="row"><button id="newcreate">Create</button><button id="newcancel">Cancel</button></div>
+  </div>
 </div>
 <div class="desk deskbg hasdrawer">
   <div class="surface" id="surface">

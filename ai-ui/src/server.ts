@@ -61,6 +61,21 @@ export interface FlowsClient {
       members: string[];
     }>;
   }>;
+  /**
+   * Create a flow. Required by the desk's `New document` gesture.
+   *
+   * Declared on the interface rather than only on the HTTP client so the
+   * in-page simulated backend has to implement it too — otherwise the demo
+   * would offer a button that works against a server and throws in the browser,
+   * which is exactly the drift `build-demo.ts` exists to prevent.
+   */
+  createFlow(input: {
+    scopeId: string;
+    actorId: string;
+    title: string;
+    goal: string;
+    steps?: string[];
+  }): Promise<{ id: string; title: string; state: string }>;
   flows(scopeId: string): Promise<
     Array<{
       id: string;
@@ -403,6 +418,43 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         }
         await opts.layouts.put(body.layout);
         return send(200, { ok: true });
+      }
+
+      if (req.method === "POST" && url.pathname === "/flow") {
+        /**
+         * Create a document from the desk.
+         *
+         * Named `/flow` rather than `/flows` so it cannot be confused with the
+         * upstream collection route in `ai-flows`: this one is the desk's
+         * gesture, it validates what a *person* can supply, and it is the only
+         * place the desk mints work rather than acting on work that exists.
+         *
+         * The goal is required and not defaulted from the title. A flow whose
+         * goal is its own title states nothing about what "done" means, which
+         * is the first of the four things `doc/03` says a session lacks and a
+         * flow is supposed to fix.
+         */
+        const body = JSON.parse((await readBody(req)) || "{}");
+        const { scopeId, title, goal, actorId, steps } = body ?? {};
+        if (!scopeId || !title || !goal) {
+          return send(400, { error: "scopeId, title and goal are required" });
+        }
+        if (!actorId) {
+          return send(400, {
+            error: "actorId is required — a flow records the principal it acts for",
+          });
+        }
+        if (!Array.isArray(steps ?? []) || (steps ?? []).some((s: unknown) => typeof s !== "string")) {
+          return send(400, { error: "steps must be an array of strings" });
+        }
+        const created = await opts.flows.createFlow({
+          scopeId,
+          actorId,
+          title,
+          goal,
+          ...(steps?.length ? { steps } : {}),
+        });
+        return send(200, { ok: true, flowId: created.id, title: created.title });
       }
 
       if (req.method === "POST" && url.pathname === "/assign") {

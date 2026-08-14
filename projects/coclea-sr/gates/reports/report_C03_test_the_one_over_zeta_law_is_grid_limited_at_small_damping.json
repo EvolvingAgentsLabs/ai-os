@@ -1,0 +1,20 @@
+{
+  "converged_value": 4.205192671382633,
+  "error_at_coarsest": 0.40627482624564426,
+  "failure": null,
+  "gate": "C03",
+  "grids": [
+    2000,
+    8000,
+    32000
+  ],
+  "passed": true,
+  "peak_times_zeta": [
+    2.4967287494871973,
+    3.8847969975987167,
+    4.205192671382633
+  ],
+  "spec": "ADR-0002",
+  "test": "test_the_one_over_zeta_law_is_grid_limited_at_small_damping",
+  "zeta": 0.001
+}

@@ -136,6 +136,34 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
       );
     },
 
+    /**
+     * Create a flow. The one thing the desk could not do.
+     *
+     * Everything else the desk offers acts on a document that already exists:
+     * assign, unassign, advance, fork, ask. So a person could arrange work and
+     * could not *start* it — the first step of every project had to be a curl
+     * command or a seed script, which is a strange shape for an interface whose
+     * whole claim is that work outlives the conversation.
+     *
+     * `actorId` is required and has no default, for the reason
+     * [ADR-0009](../../doc/adr/0009-a-flow-records-who-it-acts-for.md) gives:
+     * a flow with no actor is not created rather than created and attributed to
+     * a service account.
+     */
+    async createFlow(input: {
+      scopeId: string;
+      actorId: string;
+      title: string;
+      goal: string;
+      steps?: string[];
+    }) {
+      return await call<{ id: string; title: string; state: string }>(
+        "POST",
+        "/flows",
+        input,
+      );
+    },
+
     async appendStep(flowId: string, intent: string) {
       const step = await call<{ index: number }>(
         "POST",

@@ -1,0 +1,60 @@
+{
+  "arm": "control-string-with-ground-spring",
+  "cochlear_orientation": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "failure": null,
+  "gate": "C02",
+  "passed": true,
+  "rows": [
+    {
+      "apical_is_propagating": true,
+      "basal_is_propagating": false,
+      "hz": 200.0,
+      "peak_is_interior": false,
+      "x_cf": 0.0005
+    },
+    {
+      "apical_is_propagating": true,
+      "basal_is_propagating": false,
+      "hz": 500.0,
+      "peak_is_interior": false,
+      "x_cf": 0.0005
+    },
+    {
+      "apical_is_propagating": true,
+      "basal_is_propagating": false,
+      "hz": 1500.0,
+      "peak_is_interior": false,
+      "x_cf": 0.0005
+    },
+    {
+      "apical_is_propagating": true,
+      "basal_is_propagating": false,
+      "hz": 3000.0,
+      "peak_is_interior": false,
+      "x_cf": 0.0005
+    },
+    {
+      "apical_is_propagating": true,
+      "basal_is_propagating": false,
+      "hz": 6000.0,
+      "peak_is_interior": false,
+      "x_cf": 0.0005
+    },
+    {
+      "apical_is_propagating": true,
+      "basal_is_propagating": false,
+      "hz": 12000.0,
+      "peak_is_interior": true,
+      "x_cf": 0.839
+    }
+  ],
+  "spec": "ADR-0002",
+  "test": "test_the_control_arm_still_fails"
+}

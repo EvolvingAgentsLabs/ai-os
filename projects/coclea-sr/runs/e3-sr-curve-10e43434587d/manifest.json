@@ -1,0 +1,31 @@
+{
+  "at": 1786727223.9863622,
+  "environment": {
+    "machine": "arm64",
+    "numpy": "2.5.2",
+    "omp_num_threads": "(unset)",
+    "platform": "macOS-15.7.7-arm64-arm-64bit",
+    "python": "3.12.13",
+    "scipy": "1.18.0"
+  },
+  "gates": {
+    "A01": true,
+    "A02": true,
+    "A03": true,
+    "A04": true,
+    "A07": true,
+    "A08": true,
+    "A09": true,
+    "A10": true,
+    "A11": true,
+    "A12": true,
+    "A13": true,
+    "A14": true,
+    "C01": true,
+    "C02": true,
+    "C03": false
+  },
+  "git_commit": "5e972d126bbe8c55779e6eb9167d71d31abed76d",
+  "result_sha256": "10e43434587d8bd9e39fe57089c3a53b2df725c299d4ba4a9993eddeb1c5afa4",
+  "run_id": "e3-sr-curve"
+}

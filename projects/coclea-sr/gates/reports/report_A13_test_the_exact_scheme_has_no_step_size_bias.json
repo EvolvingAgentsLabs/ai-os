@@ -1,0 +1,13 @@
+{
+  "exact_relative_error": {
+    "dt=0.007854": 0.007224122816356788,
+    "dt=0.031416": 0.002983319178537364
+  },
+  "failure": null,
+  "gate": "A13",
+  "passed": true,
+  "scheme": "van-loan",
+  "spec": "5.3",
+  "test": "test_the_exact_scheme_has_no_step_size_bias",
+  "truth": 0.19999999999999998
+}

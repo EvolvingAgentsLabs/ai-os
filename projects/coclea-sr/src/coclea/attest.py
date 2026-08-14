@@ -36,6 +36,25 @@ def sha256_file(path: Path) -> str:
     return sha256_bytes(path.read_bytes())
 
 
+def json_safe(value: Any) -> Any:
+    """Replace non-finite numbers with ``None``, recursively.
+
+    Same rule and same reason as `gates/conftest.py`: JSON has no infinity, and
+    `json.dumps` writes one anyway. A run whose `result.json` contains `-Infinity`
+    is a run no other language can read — including `ai-flows/src/gates.ts`,
+    which is the whole point of the interchange format.
+    """
+    import math
+
+    if isinstance(value, float):
+        return None if not math.isfinite(value) else value
+    if isinstance(value, dict):
+        return {k: json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [json_safe(v) for v in value]
+    return value
+
+
 def canonical(payload: Any) -> bytes:
     """The exact bytes a hash is taken over.
 
@@ -118,7 +137,7 @@ def record_run(run_id: str, result: dict[str, Any], actor: str = "EXPLORADOR") -
     survives with its entry intact, which is what makes a result citable months
     later.
     """
-    payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
+    payload = json.dumps(json_safe(result), indent=2, sort_keys=True, allow_nan=False) + "\n"
     digest = sha256_bytes(payload.encode())
 
     out = RUNS / f"{run_id}-{digest[:12]}"
