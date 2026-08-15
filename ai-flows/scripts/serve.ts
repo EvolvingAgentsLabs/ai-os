@@ -246,6 +246,7 @@ const server = createFlowServer({
    * research project accumulates procedure — how this suite is run, what a gate
    * number means — and that is a skill by every definition in `src/skills.ts`.
    */
+  readWorkspaceFile: (scopeId, path) => workspace.read(scopeId, path),
   async skillFiles(scopeId) {
     const files: Array<{ path: string; raw: string }> = [];
     const seed = join(import.meta.dirname, "..", "..", "ai-base", "skills-seed");

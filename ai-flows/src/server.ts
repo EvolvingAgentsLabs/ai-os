@@ -41,6 +41,7 @@ import { composeFromAgent } from "./compose.ts";
 import type { Conformation, ScopeNode } from "./conformation.ts";
 import { agentMarkdown, agentPath, parseRoster, validateAgent } from "./agent-file.ts";
 import { type SkillFile, indexSaving, readSkills, resolveSkill, routingIndex } from "./skills.ts";
+import { WIKI_MIRROR, consolidate, loadWiki, parseNotes, recall } from "./memory.ts";
 import { answerWithoutEvidence, askPrompt, type AskInput } from "./ask.ts";
 
 export interface FlowServerOptions {
@@ -130,6 +131,11 @@ export interface FlowServerOptions {
    * which is which is wiring, not routing.
    */
   skillFiles?: (scopeId: string) => Promise<SkillFile[]>;
+  /**
+   * A scope's memory mirror, read and written. Separate from `writeAgent` only
+   * so the wiring can put it somewhere else later; both are the workspace today.
+   */
+  readWorkspaceFile?: (scopeId: string, path: string) => Promise<string | null>;
   putMaterial?: (
     scopeId: string,
     path: string,
@@ -590,6 +596,73 @@ export function createFlowServer(opts: FlowServerOptions) {
         status: 200,
         body: { index: routingIndex(skills), count: skills.length, ...indexSaving(skills), broken },
       };
+    }),
+
+    /**
+     * Consolidate — turn material into memory that outlives the session.
+     *
+     * The agent writes `notes.json` into its sandbox and this decides whether
+     * any of it becomes memory. Offsets, lengths and hashes are computed from
+     * the quoted text rather than read from the draft, and a note whose quote is
+     * not in the file it cites is refused: `wiki.ts` records two models
+     * classifying one input correctly while one reported a source range that
+     * did not match the text it had hashed, and nothing complained.
+     *
+     * `sources` names the files the notes may cite, read from the sandbox. A
+     * note citing anything else is refused rather than stored unverifiable.
+     */
+    route("POST", "/scopes/:scope/memory/from-sandbox", async ({ params, body }) => {
+      if (!opts.readMaterial || !opts.writeAgent || !opts.readWorkspaceFile) {
+        return { status: 501, body: { error: "no sandbox is wired into this server" } };
+      }
+      const scopeId = decodeURIComponent(params.scope ?? "");
+      if (!scopeId.includes(":")) return { status: 400, body: { error: "a scope id looks like kind:ref" } };
+      const b = (body ?? {}) as Record<string, unknown>;
+      const notesPath = typeof b.path === "string" ? b.path.trim() : "notes.json";
+      const sourceList = Array.isArray(b.sources) ? (b.sources as string[]) : [];
+      if (!sourceList.length) {
+        return { status: 400, body: { error: "sources is required — a note that cites nothing cannot be checked" } };
+      }
+      const raw = await opts.readMaterial(scopeId, notesPath);
+      if (raw === null) return { status: 404, body: { error: `no ${notesPath} in the sandbox` } };
+
+      const parsed = parseNotes(raw);
+      if ("error" in parsed) return { status: 400, body: { error: parsed.error } };
+
+      const sources: Record<string, string> = {};
+      const missing: string[] = [];
+      for (const f of sourceList) {
+        const text = await opts.readMaterial(scopeId, f);
+        if (text === null) missing.push(f);
+        else sources[f] = text;
+      }
+      if (missing.length) {
+        return { status: 400, body: { error: `not in the sandbox: ${missing.join(", ")}` } };
+      }
+
+      const wiki = loadWiki(await opts.readWorkspaceFile(scopeId, WIKI_MIRROR));
+      const out = consolidate(wiki, parsed.notes, sources);
+      if ("error" in out) return { status: 400, body: { error: out.error, refused: out.refused } };
+      await opts.writeAgent(scopeId, WIKI_MIRROR, JSON.stringify(out.wiki, null, 2));
+      return { status: 201, body: { ok: true, added: out.added, total: Object.keys(out.wiki.notes).length } };
+    }),
+
+    /**
+     * Recall — what to read before starting work.
+     *
+     * `?about=a,b` filters deterministically before any model is asked
+     * anything; with nothing it returns the root index, which names shards and
+     * never notes and is therefore bounded however large the memory grows.
+     */
+    route("GET", "/scopes/:scope/memory", async ({ params, query }) => {
+      if (!opts.readWorkspaceFile) {
+        return { status: 501, body: { error: "no workspace is wired into this server" } };
+      }
+      const scopeId = decodeURIComponent(params.scope ?? "");
+      if (!scopeId.includes(":")) return { status: 400, body: { error: "a scope id looks like kind:ref" } };
+      const about = (query.get("about") ?? "").split(",").map((k) => k.trim()).filter(Boolean);
+      const wiki = loadWiki(await opts.readWorkspaceFile(scopeId, WIKI_MIRROR));
+      return { status: 200, body: { ...recall(wiki, about), total: Object.keys(wiki.notes).length } };
     }),
 
     route("GET", "/conformation", async () => {
