@@ -1,0 +1,359 @@
+{
+  "cells": [
+    {
+      "detector_input": -1,
+      "eta": -1,
+      "mean_snr_db": 4.525083606953589,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": -1,
+      "zeta": 1
+    },
+    {
+      "detector_input": -1,
+      "eta": -1,
+      "mean_snr_db": 2.912776209936181,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": -1,
+      "zeta": -1
+    },
+    {
+      "detector_input": 1,
+      "eta": -1,
+      "mean_snr_db": 2.836522387568579,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": -1,
+      "zeta": -1
+    },
+    {
+      "detector_input": 1,
+      "eta": -1,
+      "mean_snr_db": 0.34783477279294456,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": -1,
+      "zeta": 1
+    },
+    {
+      "detector_input": -1,
+      "eta": -1,
+      "mean_snr_db": 6.769594556295523,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": 1,
+      "zeta": -1
+    },
+    {
+      "detector_input": -1,
+      "eta": -1,
+      "mean_snr_db": 6.700991282864547,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": 1,
+      "zeta": 1
+    },
+    {
+      "detector_input": 1,
+      "eta": -1,
+      "mean_snr_db": 8.917352605860149,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": 1,
+      "zeta": 1
+    },
+    {
+      "detector_input": 1,
+      "eta": -1,
+      "mean_snr_db": 8.486617416263513,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": 1,
+      "zeta": -1
+    },
+    {
+      "detector_input": -1,
+      "eta": 1,
+      "mean_snr_db": 5.886516592598612,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": -1,
+      "zeta": -1
+    },
+    {
+      "detector_input": -1,
+      "eta": 1,
+      "mean_snr_db": 5.74228237260986,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": -1,
+      "zeta": 1
+    },
+    {
+      "detector_input": 1,
+      "eta": 1,
+      "mean_snr_db": 7.8745520936006095,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": -1,
+      "zeta": 1
+    },
+    {
+      "detector_input": 1,
+      "eta": 1,
+      "mean_snr_db": 4.786133507546143,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": -1,
+      "zeta": -1
+    },
+    {
+      "detector_input": -1,
+      "eta": 1,
+      "mean_snr_db": 7.02385913191545,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": 1,
+      "zeta": 1
+    },
+    {
+      "detector_input": -1,
+      "eta": 1,
+      "mean_snr_db": 7.502895648257924,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": 1,
+      "zeta": -1
+    },
+    {
+      "detector_input": 1,
+      "eta": 1,
+      "mean_snr_db": 10.71057999304168,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": 1,
+      "zeta": -1
+    },
+    {
+      "detector_input": 1,
+      "eta": 1,
+      "mean_snr_db": 9.524496560107156,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": 1,
+      "zeta": 1
+    }
+  ],
+  "design": "resolution-V half fraction of 2^5, generator E = ABCD",
+  "detector": "B (LIF with separable intrinsic noise) \u2014 spec \u00a74.4.3",
+  "dof": 48,
+  "effects": {
+    "detector_input": {
+      "ci": [
+        0.4452416559048845,
+        1.1597808279323893
+      ],
+      "clears_zero": true,
+      "effect_db": 0.8025112419186369,
+      "p_value": 4.093448572110464e-05,
+      "survives_holm": true
+    },
+    "detector_input:noise_scaling": {
+      "ci": [
+        -1.088246642172079,
+        -0.37370747014457417
+      ],
+      "clears_zero": true,
+      "effect_db": -0.7309770561583265,
+      "p_value": 0.00015179901440434793,
+      "survives_holm": true
+    },
+    "detector_input:zeta": {
+      "ci": [
+        -0.49177591842803325,
+        0.22276325359947147
+      ],
+      "clears_zero": false,
+      "effect_db": -0.1345063324142809,
+      "p_value": 0.45276640377126876,
+      "survives_holm": false
+    },
+    "eta": {
+      "ci": [
+        1.8370482966290518,
+        2.5515874686565563
+      ],
+      "clears_zero": true,
+      "effect_db": 2.194317882642804,
+      "p_value": 1.6397057598482564e-16,
+      "survives_holm": true
+    },
+    "eta:detector_input": {
+      "ci": [
+        0.5252712742960473,
+        1.239810446323552
+      ],
+      "clears_zero": true,
+      "effect_db": 0.8825408603097996,
+      "p_value": 9.027635064050843e-06,
+      "survives_holm": true
+    },
+    "eta:noise_scaling": {
+      "ci": [
+        -0.27469036699058014,
+        0.4398488050369246
+      ],
+      "clears_zero": false,
+      "effect_db": 0.08257921902317222,
+      "p_value": 0.6442206139064331,
+      "survives_holm": false
+    },
+    "eta:xi": {
+      "ci": [
+        -1.579768600646934,
+        -0.8652294286194294
+      ],
+      "clears_zero": true,
+      "effect_db": -1.2224990146331818,
+      "p_value": 1.1234226688390342e-08,
+      "survives_holm": true
+    },
+    "eta:zeta": {
+      "ci": [
+        -0.1331054962160918,
+        0.5814336758114129
+      ],
+      "clears_zero": false,
+      "effect_db": 0.22416408979766056,
+      "p_value": 0.21320854372087736,
+      "survives_holm": false
+    },
+    "noise_scaling": {
+      "ci": [
+        -1.4247737356957417,
+        -0.7102345636682369
+      ],
+      "clears_zero": true,
+      "effect_db": -1.0675041496819893,
+      "p_value": 2.4405395311824094e-07,
+      "survives_holm": true
+    },
+    "noise_scaling:zeta": {
+      "ci": [
+        -0.7960760488205834,
+        -0.08153687679307864
+      ],
+      "clears_zero": true,
+      "effect_db": -0.438806462806831,
+      "p_value": 0.017138493618227245,
+      "survives_holm": false
+    },
+    "xi": {
+      "ci": [
+        3.483316120361179,
+        4.197855292388684
+      ],
+      "clears_zero": true,
+      "effect_db": 3.8405857063749314,
+      "p_value": 2.2004362719996672e-26,
+      "survives_holm": true
+    },
+    "xi:detector_input": {
+      "ci": [
+        1.250645661052375,
+        1.9651848330798796
+      ],
+      "clears_zero": true,
+      "effect_db": 1.6079152470661273,
+      "p_value": 6.007725912682759e-12,
+      "survives_holm": true
+    },
+    "xi:noise_scaling": {
+      "ci": [
+        0.4086382187633224,
+        1.1231773907908271
+      ],
+      "clears_zero": true,
+      "effect_db": 0.7659078047770748,
+      "p_value": 8.04833009315575e-05,
+      "survives_holm": true
+    },
+    "xi:zeta": {
+      "ci": [
+        -0.7786186086911058,
+        -0.06407943666360105
+      ],
+      "clears_zero": true,
+      "effect_db": -0.4213490226773534,
+      "p_value": 0.021788437416296904,
+      "survives_holm": false
+    },
+    "zeta": {
+      "ci": [
+        -0.2616675716142344,
+        0.45287160041327035
+      ],
+      "clears_zero": false,
+      "effect_db": 0.09560201439951799,
+      "p_value": 0.5930444280115773,
+      "survives_holm": false
+    }
+  },
+  "factors": [
+    "eta",
+    "xi",
+    "detector_input",
+    "noise_scaling",
+    "zeta"
+  ],
+  "gate_B3": {
+    "ci": [
+      -1.579768600646934,
+      -0.8652294286194294
+    ],
+    "clears_zero": true,
+    "effect_db": -1.2224990146331818,
+    "interaction_of_interest": "eta:xi",
+    "p_value": 1.1234226688390342e-08,
+    "sign": "sub-additive (redundant)",
+    "survives_holm": true,
+    "unresolved_confound": "The working point sits AT the stochastic-resonance optimum (sigma* = 0.85, theta = 2 sigma*), so raising both noises together pushes the detector onto the DESCENDING flank of its own inverted U. A negative eta:xi interaction is therefore what the curvature of the SR curve would produce on its own, and this design cannot separate that from genuine redundancy between the two channels. Distinguishing them needs the levels chosen so the TOTAL noise stays below the optimum in every cell, or the operating point itself varied as a sixth factor. Until then the sign is measured and its cause is not.",
+    "verdict": "The eta:xi interaction is significant and **sub-additive (redundant)**: -1.222 dB, CI [-1.580, -0.865], surviving Holm. Each noise raises the SNR on its own (eta +2.19 dB, xi +3.84 dB) and together they raise it by LESS than the sum. The word 'cooperate' is therefore the wrong one for what was measured."
+  },
+  "levels": {
+    "detector_input": [
+      "disp",
+      "vel"
+    ],
+    "eta": [
+      0.8,
+      1.45
+    ],
+    "noise_scaling": [
+      "mass",
+      "uniform"
+    ],
+    "xi": [
+      0.1,
+      0.3
+    ],
+    "zeta": [
+      0.04,
+      0.1
+    ]
+  },
+  "power_analysis": {
+    "adequately_powered": true,
+    "alpha": 0.05,
+    "delta_db": 1.0,
+    "n_total_required": 17,
+    "n_total_used": 64,
+    "pilot_seeds": 12,
+    "power": 0.8,
+    "seeds_per_cell_used": 4,
+    "sigma_hat_db": 0.7190568999988101
+  },
+  "residual_sd_db": 0.7107597929638946,
+  "run_id": "b3-interactions"
+}

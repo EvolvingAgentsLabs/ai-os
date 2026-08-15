@@ -94,7 +94,10 @@ def _finish(fig, name: str, meta: dict[str, str], caption: str):
     # making room for it put the caption across the x-axis label — legible in a
     # thumbnail and not in the figure, which is the wrong way round.
     fig.tight_layout(rect=(0.0, 0.10, 1.0, 1.0))
-    wrapped = "\n".join(textwrap.wrap(caption, width=150))
+    # Wrap width scaled to the figure, not fixed. A constant 150 was wider than
+    # a 6.6-inch panel and clipped the caption's first characters off the left
+    # edge -- provenance present in the file and unreadable in the picture.
+    wrapped = "\n".join(textwrap.wrap(caption, width=int(fig.get_figwidth() * 20)))
     fig.text(0.5, 0.012, wrapped, ha="center", va="bottom", fontsize=6.5,
              color="#555555", linespacing=1.5)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -261,12 +264,59 @@ def figure_physiological():
             f"LOAD-BEARING ASSUMPTION: omega_eff = 2*pi*CF.")
 
 
+# --- B3: the interaction table -------------------------------------------------
+
+def figure_interactions():
+    result, manifest, run_dir = load("b3-interactions")
+    meta = stamp(manifest, run_dir)
+
+    eff = result["effects"]
+    order = sorted(eff, key=lambda k: eff[k]["effect_db"])
+    y = np.arange(len(order))
+    vals = [eff[k]["effect_db"] for k in order]
+    lo = [eff[k]["effect_db"] - eff[k]["ci"][0] for k in order]
+    hi = [eff[k]["ci"][1] - eff[k]["effect_db"] for k in order]
+    # Surviving Holm is what decides the colour: an effect that clears zero but
+    # does not survive the correction is not a finding, and colouring it as one
+    # would put the multiple-comparison problem back into the picture.
+    colours = ["#2f6fb5" if eff[k]["survives_holm"] else "#b9b4a8" for k in order]
+
+    fig, ax = plt.subplots(figsize=(7.2, 5.2))
+    ax.axvline(0.0, color="#b03a2e", lw=1.2)
+    # One call per point: `ecolor` takes a single colour, not a sequence, and
+    # passing a list of them raises rather than cycling.
+    for yy, v, l, h, c in zip(y, vals, lo, hi, colours):
+        ax.errorbar([v], [yy], xerr=[[l], [h]], fmt="none",
+                    ecolor=c, elinewidth=1.6, capsize=3)
+    ax.scatter(vals, y, c=colours, s=26, zorder=3)
+    ax.set_yticks(y)
+    ax.set_yticklabels(order, fontsize=8)
+    ax.set_xlabel("effect on SNR  (dB)   —   low level $\\to$ high level")
+    ax.set_title("GATE-B3 — main effects and two-factor interactions", fontsize=10)
+    ax.grid(axis="x", alpha=0.25, lw=0.5)
+
+    b3 = result["gate_B3"]
+    key = eff["eta:xi"]
+    ax.annotate("the question", xy=(key["effect_db"], order.index("eta:xi")),
+                xytext=(-70, -22), textcoords="offset points", fontsize=8, color="#b03a2e",
+                arrowprops=dict(arrowstyle="->", color="#b03a2e", lw=1.0))
+
+    _finish(fig, "b3-interactions.png", meta,
+            f"Resolution-V half fraction of 2^5, Detector B (LIF), {result['power_analysis']['n_total_used']} "
+            f"observations, Holm-corrected. Filled = survives Holm. eta:xi is "
+            f"{key['effect_db']:+.2f} dB [{key['ci'][0]:+.2f}, {key['ci'][1]:+.2f}] — the two noises are "
+            f"SUB-additive, not cooperative. CONFOUND, not ruled out: the working point sits AT the SR "
+            f"optimum, so raising both noises pushes the detector onto the descending flank of its own "
+            f"inverted U, which would produce a negative interaction on its own.")
+
+
 def main() -> int:
     print("figures (each stamped with its run):")
     figure_sr_curve()
     figure_sr_spatial()
     figure_tonotopy()
     figure_physiological()
+    figure_interactions()
     print(f"\nprovenance is in the PNG metadata; read it with Pillow or `strings`.")
     return 0
 

@@ -187,6 +187,32 @@ def record_run(run_id: str, result: dict[str, Any], actor: str = "EXPLORADOR") -
     return out
 
 
+def supersede(artifact: str, superseded_by: str, reason: str, actor: str = "AUDITOR") -> str:
+    """Mark a recorded artefact as replaced, without touching it.
+
+    Spec §6.4 rule 2: never modify a frozen artefact — make a new version and
+    re-run its gates. That rule needs a way to *say* the old one is no longer
+    current, or the ledger accumulates artefacts nobody can tell apart from live
+    ones.
+
+    Used first for two runs written before `json_safe` existed, which contain
+    Python's `NaN` and `-Infinity` literals and are therefore intact, correctly
+    hashed, and unreadable by anything but Python. Deleting them would break the
+    chain; leaving them unmarked would leave `verify_ledger.py` failing forever,
+    and a verifier that always fails is one nobody runs.
+    """
+    return append({
+        "ts": time.time(),
+        "artifact": artifact,
+        "sha256": sha256_file(ROOT / artifact) if (ROOT / artifact).exists() else None,
+        "state": "superseded",
+        "superseded_by": superseded_by,
+        "reason": reason,
+        "gates_passed": [],
+        "actor": actor,
+    })
+
+
 def gate_state() -> dict[str, bool]:
     """Which gates have a report on disk, and whether each one passed.
 

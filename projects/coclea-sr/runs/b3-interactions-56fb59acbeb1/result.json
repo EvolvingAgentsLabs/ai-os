@@ -1,0 +1,357 @@
+{
+  "cells": [
+    {
+      "detector_input": -1,
+      "eta": -1,
+      "mean_snr_db": 1.1492199718185951,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": -1,
+      "zeta": 1
+    },
+    {
+      "detector_input": -1,
+      "eta": -1,
+      "mean_snr_db": -0.014573708538271305,
+      "n": 3,
+      "noise_scaling": 1,
+      "xi": -1,
+      "zeta": -1
+    },
+    {
+      "detector_input": 1,
+      "eta": -1,
+      "mean_snr_db": 0.0,
+      "n": 1,
+      "noise_scaling": -1,
+      "xi": -1,
+      "zeta": -1
+    },
+    {
+      "detector_input": 1,
+      "eta": -1,
+      "mean_snr_db": null,
+      "n": 0,
+      "noise_scaling": 1,
+      "xi": -1,
+      "zeta": 1
+    },
+    {
+      "detector_input": -1,
+      "eta": -1,
+      "mean_snr_db": 5.980922042712358,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": 1,
+      "zeta": -1
+    },
+    {
+      "detector_input": -1,
+      "eta": -1,
+      "mean_snr_db": 6.046199087773452,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": 1,
+      "zeta": 1
+    },
+    {
+      "detector_input": 1,
+      "eta": -1,
+      "mean_snr_db": 8.315979962840869,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": 1,
+      "zeta": 1
+    },
+    {
+      "detector_input": 1,
+      "eta": -1,
+      "mean_snr_db": 7.813733360798788,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": 1,
+      "zeta": -1
+    },
+    {
+      "detector_input": -1,
+      "eta": 1,
+      "mean_snr_db": 5.602855646560165,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": -1,
+      "zeta": -1
+    },
+    {
+      "detector_input": -1,
+      "eta": 1,
+      "mean_snr_db": 5.150214779005266,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": -1,
+      "zeta": 1
+    },
+    {
+      "detector_input": 1,
+      "eta": 1,
+      "mean_snr_db": 7.124458267403012,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": -1,
+      "zeta": 1
+    },
+    {
+      "detector_input": 1,
+      "eta": 1,
+      "mean_snr_db": 3.6759669399289874,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": -1,
+      "zeta": -1
+    },
+    {
+      "detector_input": -1,
+      "eta": 1,
+      "mean_snr_db": 7.02385913191545,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": 1,
+      "zeta": 1
+    },
+    {
+      "detector_input": -1,
+      "eta": 1,
+      "mean_snr_db": 7.502895648257924,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": 1,
+      "zeta": -1
+    },
+    {
+      "detector_input": 1,
+      "eta": 1,
+      "mean_snr_db": 10.71057999304168,
+      "n": 4,
+      "noise_scaling": -1,
+      "xi": 1,
+      "zeta": -1
+    },
+    {
+      "detector_input": 1,
+      "eta": 1,
+      "mean_snr_db": 9.524496560107156,
+      "n": 4,
+      "noise_scaling": 1,
+      "xi": 1,
+      "zeta": 1
+    }
+  ],
+  "design": "resolution-V half fraction of 2^5, generator E = ABCD",
+  "detector": "B (LIF with separable intrinsic noise) \u2014 spec \u00a74.4.3",
+  "dof": 40,
+  "effects": {
+    "detector_input": {
+      "ci": [
+        -17574501.87206211,
+        17574504.052967727
+      ],
+      "clears_zero": false,
+      "effect_db": 1.0904528105769464,
+      "p_value": 0.9999999005665879,
+      "survives_holm": false
+    },
+    "detector_input:noise_scaling": {
+      "ci": [
+        -17574503.47060246,
+        17574502.45442737
+      ],
+      "clears_zero": false,
+      "effect_db": -0.5080875469928046,
+      "p_value": 0.9999999536698169,
+      "survives_holm": false
+    },
+    "detector_input:zeta": {
+      "ci": [
+        -17574502.65410727,
+        17574503.27092256
+      ],
+      "clears_zero": false,
+      "effect_db": 0.30840764438262236,
+      "p_value": 0.9999999718777153,
+      "survives_holm": false
+    },
+    "eta": {
+      "ci": [
+        -17574499.584534135,
+        17574506.340495694
+      ],
+      "clears_zero": false,
+      "effect_db": 3.3779807811017317,
+      "p_value": 0.9999996919773588,
+      "survives_holm": false
+    },
+    "eta:detector_input": {
+      "ci": [
+        -17574502.61404859,
+        17574503.310981248
+      ],
+      "clears_zero": false,
+      "effect_db": 0.3484663281085614,
+      "p_value": 0.9999999682249469,
+      "survives_holm": false
+    },
+    "eta:noise_scaling": {
+      "ci": [
+        -17574503.338441897,
+        17574502.586587932
+      ],
+      "clears_zero": false,
+      "effect_db": -0.3759269842853882,
+      "p_value": 0.9999999657209351,
+      "survives_holm": false
+    },
+    "eta:xi": {
+      "ci": [
+        -17574504.689246476,
+        17574501.235783353
+      ],
+      "clears_zero": false,
+      "effect_db": -1.7267315613025442,
+      "p_value": 0.9999998425472344,
+      "survives_holm": false
+    },
+    "eta:zeta": {
+      "ci": [
+        -17574503.012588266,
+        17574502.912441563
+      ],
+      "clears_zero": false,
+      "effect_db": -0.05007335210223862,
+      "p_value": 0.9999999954340397,
+      "survives_holm": false
+    },
+    "noise_scaling": {
+      "ci": [
+        -17574503.738632713,
+        17574502.186397124
+      ],
+      "clears_zero": false,
+      "effect_db": -0.7761177936198556,
+      "p_value": 0.9999999292293626,
+      "survives_holm": false
+    },
+    "noise_scaling:zeta": {
+      "ci": [
+        -17574502.90954885,
+        17574503.01548098
+      ],
+      "clears_zero": false,
+      "effect_db": 0.05296606684684148,
+      "p_value": 0.9999999951702663,
+      "survives_holm": false
+    },
+    "xi": {
+      "ci": [
+        -17574497.93369943,
+        17574507.9913304
+      ],
+      "clears_zero": false,
+      "effect_db": 5.028815486408738,
+      "p_value": 0.9999995414452809,
+      "survives_holm": false
+    },
+    "xi:detector_input": {
+      "ci": [
+        -17574501.600239236,
+        17574504.3247906
+      ],
+      "clears_zero": false,
+      "effect_db": 1.3622756809553798,
+      "p_value": 0.9999998757803018,
+      "survives_holm": false
+    },
+    "xi:noise_scaling": {
+      "ci": [
+        -17574502.472401243,
+        17574503.452628594
+      ],
+      "clears_zero": false,
+      "effect_db": 0.4901136752265961,
+      "p_value": 0.9999999553087722,
+      "survives_holm": false
+    },
+    "xi:zeta": {
+      "ci": [
+        -17574503.61966997,
+        17574502.30535986
+      ],
+      "clears_zero": false,
+      "effect_db": -0.6571550553062253,
+      "p_value": 0.9999999400770315,
+      "survives_holm": false
+    },
+    "zeta": {
+      "ci": [
+        -17574502.57975894,
+        17574503.3452709
+      ],
+      "clears_zero": false,
+      "effect_db": 0.38275597976276965,
+      "p_value": 0.9999999650982302,
+      "survives_holm": false
+    }
+  },
+  "factors": [
+    "eta",
+    "xi",
+    "detector_input",
+    "noise_scaling",
+    "zeta"
+  ],
+  "gate_B3": {
+    "ci": [
+      -17574504.689246476,
+      17574501.235783353
+    ],
+    "clears_zero": false,
+    "effect_db": -1.7267315613025442,
+    "interaction_of_interest": "eta:xi",
+    "p_value": 0.9999998425472344,
+    "survives_holm": false,
+    "verdict": "NO cooperation may be claimed: the eta:xi interaction term does not clear zero with a 95% interval (-1.727 dB, CI [-17574504.689, +17574501.236]). Per spec \u00a77.2 an absolute lift without a significant interaction is not a finding."
+  },
+  "levels": {
+    "detector_input": [
+      "disp",
+      "vel"
+    ],
+    "eta": [
+      0.55,
+      1.45
+    ],
+    "noise_scaling": [
+      "mass",
+      "uniform"
+    ],
+    "xi": [
+      0.02,
+      0.3
+    ],
+    "zeta": [
+      0.04,
+      0.1
+    ]
+  },
+  "power_analysis": {
+    "adequately_powered": true,
+    "alpha": 0.05,
+    "delta_db": 1.0,
+    "n_total_required": 45,
+    "n_total_used": 56,
+    "pilot_seeds": 12,
+    "power": 0.8,
+    "seeds_per_cell_used": 4,
+    "sigma_hat_db": 1.184459238989228
+  },
+  "residual_sd_db": 0.685645556451095,
+  "run_id": "b3-interactions"
+}

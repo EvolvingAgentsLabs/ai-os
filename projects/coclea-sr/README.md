@@ -59,6 +59,7 @@ rather than a fit.
 | **B1** | the place map against Greenwood | `r = +0.9986` in shape |
 | **B2** | **a significant interior maximum in SNR(D)** | **24/24 curves** |
 | **E4** | is the auditory nerve near the optimum? | reachable to **~1 kHz**, not above |
+| **B3** | do the two noises cooperate? | **no — sub-additive**, `−1.22 dB` `[−1.58, −0.87]` |
 
 ## The physiological verdict — E4, and what it says about 1995
 
@@ -91,6 +92,40 @@ the specification's §4.5 and not independently verified**; the sensitivity is
 reported beside them (a tenfold error in `r₀` moves `θ/σ` by 34.8%). And the
 whole verdict rests on taking `ω_eff = 2π·CF` — **attack that number first**.
 Full working in [`literature/comparison.md`](literature/comparison.md).
+
+## GATE-B3 — the two noises do not cooperate
+
+§7.2 sets the standard this project borrows from `harness_eval`: **an absolute
+lift with no significant interaction term is not a finding.** So "does mechanical
+noise cooperate with neuronal noise" is answered by one coefficient and nothing
+else.
+
+A resolution-V half fraction of `2^5` over §7.2's factors, sized by a power
+analysis run **first** (σ̂ = 1.18 dB from a pilot → N ≥ 45, used 64), every cell
+on **Detector B** — the LIF with separable intrinsic noise, and the first
+measurement in the project that uses it.
+
+Both noises raise the SNR strongly on their own (`ξ` **+3.84 dB**, `η` **+2.19
+dB**). Their interaction is **`−1.22 dB`, CI `[−1.58, −0.87]`**, surviving Holm.
+Together they help **less** than the sum of their separate effects.
+
+> **"Cooperate" is the wrong word for what was measured.** The two channels are
+> partially redundant, not synergistic — and the naive reading, that two
+> beneficial noises must compound, is exactly what the interaction term exists
+> to contradict.
+
+Also answered, in passing: **the spatial structure of the noise matters**
+(`noise_scaling` = −1.07 dB, surviving Holm), which §4.1 raised as an open
+question, and the neuronal noise helps more when the detector reads velocity
+(`xi:detector_input` = +1.61 dB).
+
+**The confound this cannot rule out, and it is stated in the run:** the working
+point sits *at* the SR optimum, so raising both noises together pushes the
+detector onto the descending flank of its own inverted U. A negative interaction
+is what that curvature produces on its own. Separating it from genuine redundancy
+needs the levels chosen so the total noise stays below the optimum in every cell,
+or the operating point varied as a sixth factor. **The sign is measured; its
+cause is not.**
 
 ## What was falsified, and it was the model
 
@@ -141,13 +176,26 @@ python3.12 -m venv .venv && .venv/bin/pip install numpy scipy sympy mpmath pytes
 PYTHONPATH=src .venv/bin/python experiments/e2_tonotopy.py      # the place map, 3 arms
 PYTHONPATH=src .venv/bin/python experiments/e3_sr_curve.py      # the SR curve — GATE-B2
 PYTHONPATH=src .venv/bin/python experiments/e4_physiological.py # the verdict
+PYTHONPATH=src .venv/bin/python experiments/b3_interactions.py  # GATE-B3
 PYTHONPATH=src .venv/bin/python experiments/figures.py          # report/, stamped
 python3 verify_ledger.py                                        # re-derive the chain
+make reproduce                                                  # bit-for-bit, §8.3
 ```
 
 `verify_ledger.py` uses the standard library only and imports nothing from
 `src/`. That is the point of it: a verifier sharing code with the thing it
 verifies checks self-consistency, not truth.
+
+**`make reproduce` re-runs every experiment and reports whether anything moved.**
+Content-addressed run directories make that automatic: a rerun producing the same
+bytes lands in the same directory and the ledger does not grow. Verified — all
+four experiments land on their existing hashes, with `OMP_NUM_THREADS=1` pinned
+because a multithreaded BLAS reduction is not bit-reproducible.
+
+**A divergence from the spec, stated:** §8.2 asks for a verifier under 100 lines.
+It is **136** — 92 non-blank non-comment, and about 79 once docstrings are
+removed. The stdlib-only requirement holds; the line count does not, and the
+growth is the readability check described below rather than machinery.
 
 ## Layout
 
@@ -163,6 +211,24 @@ verifies checks self-consistency, not truth.
 | [`report/`](report/) | Figures. Each carries its run id, result hash and commit **in the PNG's own metadata** (§8.4) |
 | [`runs/`](runs/) | Content-addressed run directories with manifests |
 | `ledger.jsonl` | Hash-chained, one line per artefact transition |
+
+## The attestation caught its own store
+
+`verify_ledger.py` originally checked hashes, and a hash says the bytes are the
+ones recorded — **it says nothing about whether anything can read them.** Two
+attested runs, including the one behind GATE-B2, contained Python's `NaN` and
+`-Infinity` literals: perfectly intact, correctly hashed, and parseable in no
+language but Python.
+
+The verifier now checks readability as well, with `parse_constant` set to reject
+those literals — without it Python accepts its own invalid output and the check
+passes on exactly the files it exists to catch.
+
+The two runs were not deleted. §6.4 rule 2 says never modify a frozen artefact:
+make a new version. `attest.supersede` records that, the replacements have
+**bit-identical numbers** (verified by diffing every leaf), and the verifier
+reports the originals as a warning rather than a failure — because a verifier
+that fails forever on history is one nobody runs.
 
 ## Nine ways the instrument lied
 
