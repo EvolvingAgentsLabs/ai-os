@@ -119,7 +119,7 @@ const engine = createEngine({
 // The conformation half of the page, rebuilt per render. Cheap, and it means the
 // page can never show a scope list from a previous process.
 const built = buildApp({ ...config, port: 0 });
-const { workspace, projects, sessions } = built;
+const { workspace, projects, sessions, sandbox } = built;
 
 async function conformation() {
   const wiringHoles: Hole[] = [];
@@ -224,6 +224,35 @@ const server = createFlowServer({
    * naming scopes would mean a project created from the desk and one created by
    * a seed script land in namespaces that only look alike.
    */
+  /**
+   * Furnish a scope. `workspace.write` directly rather than through a turn —
+   * the file is the artefact, and asking a model to type it back spends a turn
+   * to produce a file we already have.
+   */
+  async writeAgent(scopeId, path, markdown) {
+    await workspace.write(scopeId, path, markdown);
+  },
+  /**
+   * Material goes into the sandbox and is verified from inside it.
+   *
+   * `wc -c` run in the sandbox, compared against the bytes sent. Reading it
+   * back through the writer's own API would confirm nothing — that is exactly
+   * how this route reported `bytes: 37691` for a file the agent could not see.
+   */
+  async putMaterial(scopeId, path, content) {
+    const handle = await sandbox.provision([{ scopeId, mode: "rw", mountPath: "" }]);
+    const bytes = new TextEncoder().encode(content);
+    await sandbox.writeFileBytes(handle, path, bytes);
+    const res = await sandbox.run(handle, `wc -c < ${JSON.stringify(path)}`, { timeoutMs: 60_000 });
+    const seen = Number.parseInt((res.stdout ?? "").trim(), 10);
+    return {
+      verified: res.code === 0 && seen === bytes.length,
+      detail:
+        res.code === 0
+          ? `${seen} of ${bytes.length} bytes present`
+          : `exit ${res.code}: ${(res.stderr ?? "").trim().slice(0, 200)}`,
+    };
+  },
   async createProject({ name, ownerId }) {
     const project = await projects.create({ name, ownerId });
     const slug =

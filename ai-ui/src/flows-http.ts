@@ -159,6 +159,32 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
       return { id: r.id, name: r.name, scopeId: r.scopeId };
     },
 
+    async writeAgent(scopeId: string, draft: {
+      name: string;
+      description: string;
+      tools: string[];
+      subagents?: string[];
+      instructions: string;
+    }) {
+      const r = await call<{ name: string; path: string }>(
+        "POST",
+        `/scopes/${encodeURIComponent(scopeId)}/agents`,
+        draft,
+      );
+      return { name: r.name, path: r.path };
+    },
+
+    async writeFile(scopeId: string, path: string, content: string) {
+      const r = await call<{ path: string; verifiedInSandbox: string }>(
+        "POST",
+        `/scopes/${encodeURIComponent(scopeId)}/files`,
+        { path, content },
+      );
+      // The confirmation the sandbox gave, carried rather than restated. The
+      // desk must not be able to say "written" on a write it did not observe.
+      return { path: r.path, verifiedInSandbox: r.verifiedInSandbox };
+    },
+
     async createFlow(input: {
       scopeId: string;
       actorId: string;

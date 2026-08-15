@@ -39,6 +39,7 @@ import { verifySignature } from "./core-client.ts";
 import { FLOW_SHAPES, type FlowShape } from "./types.ts";
 import { composeFromAgent } from "./compose.ts";
 import type { Conformation, ScopeNode } from "./conformation.ts";
+import { agentMarkdown, agentPath, validateAgent } from "./agent-file.ts";
 import { answerWithoutEvidence, askPrompt, type AskInput } from "./ask.ts";
 
 export interface FlowServerOptions {
@@ -91,6 +92,37 @@ export interface FlowServerOptions {
    * dependency this answers 501 rather than inventing a scope id that no store
    * has heard of.
    */
+  /**
+   * Write an agent file into a scope's workspace.
+   *
+   * Injected for the same reason `createProject` is. Absent, the route answers
+   * 501: an empty project is honest, and an empty project that silently
+   * accepted agents nobody could see would not be.
+   */
+  writeAgent?: (scopeId: string, path: string, markdown: string) => Promise<void>;
+  /**
+   * Put material into the place an agent can actually read it — the scope's
+   * **sandbox**, not its workspace.
+   *
+   * These are two different stores and the distinction was learned the
+   * expensive way. The first version of `POST /scopes/:id/files` wrote through
+   * `workspace.write`, read the file back through `workspace.read`, reported
+   * `201 … bytes: 37691` — and the agent asked to summarise that file replied
+   * that it did not exist. The route had confirmed its own write with its own
+   * reader, which is not a check.
+   *
+   * The workspace is where agent *definitions* live, because the core loads
+   * those host-side. Everything an agent reads or runs lives in the sandbox,
+   * the same layer `scripts/provision-project.ts` writes to.
+   *
+   * The implementation must verify **from inside the sandbox**. Anything else
+   * repeats the defect one layer down.
+   */
+  putMaterial?: (
+    scopeId: string,
+    path: string,
+    content: string,
+  ) => Promise<{ verified: boolean; detail: string }>;
   createProject?: (input: {
     name: string;
     ownerId: string;
@@ -376,6 +408,79 @@ export function createFlowServer(opts: FlowServerOptions) {
         };
       }
       return { status: 201, body: await opts.createProject({ name, ownerId }) };
+    }),
+
+    /**
+     * Furnish a project — write an agent into its workspace.
+     *
+     * An agent here **is** a markdown file, so this route writes one and does
+     * nothing else. That is not a shortcut: `scripts/seed-cochlea.ts` furnishes
+     * a scope by asking a model to use its write tool, which spends a turn and
+     * can fail in ways a file write cannot. The file is the artefact either way.
+     */
+    route("POST", "/scopes/:scope/agents", async ({ params, body }) => {
+      if (!opts.writeAgent) {
+        return { status: 501, body: { error: "no workspace is wired into this server" } };
+      }
+      const scopeId = decodeURIComponent(params.scope ?? "");
+      if (!scopeId.includes(":")) {
+        return { status: 400, body: { error: "a scope id looks like kind:ref" } };
+      }
+      const b = (body ?? {}) as Record<string, unknown>;
+      const draft = {
+        name: typeof b.name === "string" ? b.name.trim() : "",
+        description: typeof b.description === "string" ? b.description : "",
+        tools: Array.isArray(b.tools) ? (b.tools as string[]) : [],
+        subagents: Array.isArray(b.subagents) ? (b.subagents as string[]) : [],
+        instructions: typeof b.instructions === "string" ? b.instructions : "",
+      };
+      const why = validateAgent(draft);
+      if (why) return { status: 400, body: { error: why } };
+      const path = agentPath(draft.name);
+      await opts.writeAgent(scopeId, path, agentMarkdown(draft));
+      return { status: 201, body: { ok: true, scopeId, path, name: draft.name } };
+    }),
+
+    /**
+     * Put material into a project — the specification, a dataset, a note.
+     *
+     * A project started from the desk has agents and **nothing to work on**,
+     * and an agent asked to check a result with no material in front of it
+     * correctly answers that it has none. That was measured, not assumed: the
+     * first agent to run in a project created this way replied asking which
+     * matrix it was supposed to look at.
+     *
+     * Paths are refused rather than repaired. A sanitiser that silently turns
+     * `../../etc/x` into `etc/x` writes a file somewhere the caller did not ask
+     * for and reports success.
+     */
+    route("POST", "/scopes/:scope/files", async ({ params, body }) => {
+      if (!opts.putMaterial) {
+        return { status: 501, body: { error: "no sandbox is wired into this server" } };
+      }
+      const scopeId = decodeURIComponent(params.scope ?? "");
+      if (!scopeId.includes(":")) {
+        return { status: 400, body: { error: "a scope id looks like kind:ref" } };
+      }
+      const b = (body ?? {}) as Record<string, unknown>;
+      const path = typeof b.path === "string" ? b.path.trim() : "";
+      const content = typeof b.content === "string" ? b.content : null;
+      if (!path) return { status: 400, body: { error: "path is required" } };
+      if (path.startsWith("/") || path.split("/").includes("..")) {
+        return { status: 400, body: { error: "path must be relative and may not climb out of the scope" } };
+      }
+      if (content === null) {
+        // Not defaulted to "". A caller that forgot the field would otherwise
+        // truncate a file it meant to write.
+        return { status: 400, body: { error: "content is required — send an empty string to write an empty file" } };
+      }
+      const out = await opts.putMaterial(scopeId, path, content);
+      if (!out.verified) {
+        // 500 and not 201. A furnished project that is empty is the failure this
+        // route exists to make impossible, and reporting success is how it hid.
+        return { status: 500, body: { error: `wrote ${path} and the sandbox does not have it: ${out.detail}` } };
+      }
+      return { status: 201, body: { ok: true, scopeId, path, verifiedInSandbox: out.detail } };
     }),
 
     route("GET", "/conformation", async () => {

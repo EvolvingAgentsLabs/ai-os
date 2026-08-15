@@ -26,6 +26,8 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
   const asked: Array<{ flowId: string; question: string; step?: number }> = [];
   const created: Array<{ scopeId: string; actorId: string; title: string; goal: string }> = [];
   const projects: Array<{ name: string; ownerId: string }> = [];
+  const agents: Array<{ scopeId: string; name: string; tools: string[] }> = [];
+  const files: Array<{ scopeId: string; path: string; bytes: number }> = [];
   const client: FlowsClient = {
     async conformation() {
       return {
@@ -120,6 +122,16 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
       asked.push({ flowId, question, step });
       return { answer: `about ${flowId}: ${question}`, spent: true, evidence: 3 };
     },
+    async writeAgent(scopeId, draft) {
+      // The real validator lives in ai-flows/src/agent-file.ts and is exercised
+      // by its own tests; this stub records what the route forwarded.
+      agents.push({ scopeId, name: draft.name, tools: draft.tools });
+      return { name: draft.name, path: `agents/${draft.name}.md` };
+    },
+    async writeFile(scopeId, path, content) {
+      files.push({ scopeId, path, bytes: content.length });
+      return { path, verifiedInSandbox: `${content.length} of ${content.length} bytes present` };
+    },
     async createProject(input) {
       projects.push({ name: input.name, ownerId: input.ownerId });
       const slug = input.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -134,7 +146,7 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
     },
     ...over,
   };
-  return { client, appended, advanced, removed, resumed, forked, asked, created, projects };
+  return { client, appended, advanced, removed, resumed, forked, asked, created, projects, agents, files };
 }
 
 async function serve(flows: FlowsClient) {

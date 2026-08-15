@@ -85,6 +85,31 @@ export interface FlowsClient {
     name: string;
     ownerId: string;
   }): Promise<{ id: string; name: string; scopeId: string }>;
+  /**
+   * Write an agent into a scope. The gesture that furnishes a new project.
+   *
+   * Without it a project started from the desk is permanently empty: a document
+   * needs an agent to run a step, and every agent in this system had been
+   * written by a seed script. Starting a project you cannot staff is starting
+   * nothing.
+   */
+  writeAgent(
+    scopeId: string,
+    draft: {
+      name: string;
+      description: string;
+      tools: string[];
+      subagents?: string[];
+      instructions: string;
+    },
+  ): Promise<{ name: string; path: string }>;
+  /**
+   * Put material into a scope — a specification, a dataset, a note.
+   *
+   * The other half of furnishing a project. Agents with nothing to read answer
+   * that they have nothing to read, which was measured rather than assumed.
+   */
+  writeFile(scopeId: string, path: string, content: string): Promise<{ path: string; verifiedInSandbox: string }>;
   createFlow(input: {
     scopeId: string;
     actorId: string;
@@ -464,6 +489,45 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         }
         const created = await opts.flows.createProject({ name, ownerId });
         return send(200, { ok: true, ...created });
+      }
+
+      if (req.method === "POST" && url.pathname === "/agent") {
+        /**
+         * Write an agent into the current scope.
+         *
+         * The validation lives in `ai-flows/src/agent-file.ts` and is applied
+         * there, not here. Two validators would be two answers to "is this a
+         * valid agent", and the desk's copy would be the one that drifts.
+         */
+        const body = JSON.parse((await readBody(req)) || "{}");
+        if (!body?.scopeId) return send(400, { error: "scopeId is required" });
+        try {
+          const written = await opts.flows.writeAgent(body.scopeId, {
+            name: String(body.name ?? ""),
+            description: String(body.description ?? ""),
+            tools: Array.isArray(body.tools) ? body.tools : [],
+            subagents: Array.isArray(body.subagents) ? body.subagents : [],
+            instructions: String(body.instructions ?? ""),
+          });
+          return send(200, { ok: true, ...written });
+        } catch (e) {
+          return send(400, { error: (e as Error).message });
+        }
+      }
+
+      if (req.method === "POST" && url.pathname === "/file") {
+        const body = JSON.parse((await readBody(req)) || "{}");
+        if (!body?.scopeId) return send(400, { error: "scopeId is required" });
+        try {
+          const w = await opts.flows.writeFile(
+            body.scopeId,
+            String(body.path ?? ""),
+            typeof body.content === "string" ? body.content : "",
+          );
+          return send(200, { ok: true, ...w });
+        } catch (e) {
+          return send(400, { error: (e as Error).message });
+        }
       }
 
       if (req.method === "POST" && url.pathname === "/flow") {
