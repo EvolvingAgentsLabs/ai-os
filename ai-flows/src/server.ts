@@ -39,7 +39,7 @@ import { verifySignature } from "./core-client.ts";
 import { FLOW_SHAPES, type FlowShape } from "./types.ts";
 import { composeFromAgent } from "./compose.ts";
 import type { Conformation, ScopeNode } from "./conformation.ts";
-import { agentMarkdown, agentPath, validateAgent } from "./agent-file.ts";
+import { agentMarkdown, agentPath, parseRoster, validateAgent } from "./agent-file.ts";
 import { answerWithoutEvidence, askPrompt, type AskInput } from "./ask.ts";
 
 export interface FlowServerOptions {
@@ -118,6 +118,11 @@ export interface FlowServerOptions {
    * The implementation must verify **from inside the sandbox**. Anything else
    * repeats the defect one layer down.
    */
+  /**
+   * Read a file back out of a scope's **sandbox**, so material an agent wrote
+   * there can be brought into the workspace. `null` when it is not there.
+   */
+  readMaterial?: (scopeId: string, path: string) => Promise<string | null>;
   putMaterial?: (
     scopeId: string,
     path: string,
@@ -481,6 +486,65 @@ export function createFlowServer(opts: FlowServerOptions) {
         return { status: 500, body: { error: `wrote ${path} and the sandbox does not have it: ${out.detail}` } };
       }
       return { status: 201, body: { ok: true, scopeId, path, verifiedInSandbox: out.detail } };
+    }),
+
+    /**
+     * Install an agent an **agent** wrote.
+     *
+     * This is the gesture llmunix-marketplace was built around — the kernel
+     * reads a goal and writes the roster that goal needs, rather than being
+     * handed one. It could not work here without a route, and the reason is the
+     * seam this file already documents: an agent writes into its sandbox, and
+     * the core loads agent definitions from the scope's workspace. A roster an
+     * agent wrote lands where nothing reads it.
+     *
+     * What ai-os adds to that gesture is this route's middle line: the draft is
+     * **validated before it becomes an agent**. A model that writes
+     * `tools: [excecute]` produces a file that loads without complaint and an
+     * agent that can run nothing, and llmunix had nothing between the model and
+     * the roster. Here a bad draft is refused and named, and the flow can see
+     * that it was.
+     */
+    route("POST", "/scopes/:scope/agents/from-sandbox", async ({ params, body }) => {
+      if (!opts.writeAgent || !opts.readMaterial) {
+        return { status: 501, body: { error: "no sandbox is wired into this server" } };
+      }
+      const scopeId = decodeURIComponent(params.scope ?? "");
+      if (!scopeId.includes(":")) {
+        return { status: 400, body: { error: "a scope id looks like kind:ref" } };
+      }
+      const b = (body ?? {}) as Record<string, unknown>;
+      const path = typeof b.path === "string" ? b.path.trim() : "";
+      if (!path || path.startsWith("/") || path.split("/").includes("..")) {
+        return { status: 400, body: { error: "a relative path inside the sandbox is required" } };
+      }
+      const raw = await opts.readMaterial(scopeId, path);
+      if (raw === null) return { status: 404, body: { error: `no ${path} in the sandbox` } };
+
+      const drafts = parseRoster(raw);
+      if ("error" in drafts) return { status: 400, body: { error: drafts.error } };
+
+      // Validate every draft **before installing any**. A roster half-installed
+      // because the fourth entry was malformed is a scope whose agents do not
+      // match what anyone approved, and no later step could tell.
+      const refused = drafts.agents
+        .map((d) => ({ name: d.name, why: validateAgent(d) }))
+        .filter((x): x is { name: string; why: string } => x.why !== null);
+      if (refused.length) {
+        return {
+          status: 400,
+          body: {
+            error: "the roster was refused and nothing was installed",
+            refused,
+            installed: [],
+          },
+        };
+      }
+      for (const d of drafts.agents) await opts.writeAgent(scopeId, agentPath(d.name), agentMarkdown(d));
+      return {
+        status: 201,
+        body: { ok: true, scopeId, installed: drafts.agents.map((d) => d.name) },
+      };
     }),
 
     route("GET", "/conformation", async () => {

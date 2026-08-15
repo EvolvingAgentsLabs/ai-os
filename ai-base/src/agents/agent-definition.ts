@@ -3,7 +3,7 @@ import { isSafeSkillName } from "../skills/skill-name.ts";
 
 export const AGENTS_DIR = "agents";
 
-const CHILD_TOOL_NAMES: ReadonlySet<string> = new Set([
+export const CHILD_TOOL_NAMES: ReadonlySet<string> = new Set([
   "execute",
   "read",
   "write",

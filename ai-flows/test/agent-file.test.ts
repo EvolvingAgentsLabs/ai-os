@@ -8,7 +8,7 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { KNOWN_TOOLS, agentMarkdown, agentPath, validateAgent } from "../src/agent-file.ts";
+import { KNOWN_TOOLS, agentMarkdown, agentPath, parseRoster, validateAgent } from "../src/agent-file.ts";
 import { parseFrontmatter } from "../../ai-base/src/skills/frontmatter.ts";
 import { parseAgentDefinition } from "../../ai-base/src/agents/agent-definition.ts";
 
@@ -53,7 +53,7 @@ describe("refusing an agent", () => {
     // anything.
     const why = validateAgent({ ...draft, tools: ["read", "excecute"] });
     assert.match(String(why), /excecute/);
-    assert.match(String(why), new RegExp(KNOWN_TOOLS[0]));
+    assert.match(String(why), new RegExp(String(KNOWN_TOOLS[0])));
   });
 
   it("refuses an agent with no tools", () => {
@@ -85,5 +85,88 @@ describe("refusing an agent", () => {
 
   it("accepts the one that is fine", () => {
     assert.equal(validateAgent(draft), null);
+  });
+});
+
+/**
+ * Reading a roster a model wrote — the llmunix-marketplace gesture, which is
+ * "give the kernel a goal and it writes the agents that goal needs".
+ *
+ * What ai-os adds is everything below: llmunix had nothing between the model
+ * and the roster, so a model that emitted a misspelled tool produced an agent
+ * that loaded fine and could run nothing.
+ */
+describe("reading a roster a model wrote", () => {
+  const one = {
+    name: "CONSTRUCTOR",
+    description: "Writes the solver.",
+    tools: ["read", "write"],
+    instructions: "You implement what DERIVADOR derived.",
+  };
+
+  it("accepts a bare array and an {agents: [...]} envelope alike", () => {
+    for (const raw of [JSON.stringify([one]), JSON.stringify({ agents: [one] })]) {
+      const r = parseRoster(raw);
+      assert.ok("agents" in r);
+      assert.equal(r.agents[0]!.name, "CONSTRUCTOR");
+    }
+  });
+
+  /**
+   * An empty roster is a **failure**, not "nothing to do". A step asked for a
+   * roster that produced none did not succeed, and installing nothing quietly
+   * reports that it did.
+   */
+  it("refuses an empty roster rather than installing nothing and reporting success", () => {
+    const r = parseRoster("[]");
+    assert.ok("error" in r);
+    assert.match(r.error, /empty/);
+  });
+
+  it("refuses two agents with one name, which would silently overwrite", () => {
+    const r = parseRoster(JSON.stringify([one, { ...one, description: "Different." }]));
+    assert.ok("error" in r);
+    assert.match(r.error, /CONSTRUCTOR/);
+  });
+
+  it("names the failure when the model emitted something that is not JSON", () => {
+    const r = parseRoster("here is your roster: [{");
+    assert.ok("error" in r);
+    assert.match(r.error, /not JSON/);
+  });
+
+  /**
+   * The parser fills missing fields with empties rather than guessing, so
+   * `validateAgent` is what refuses them — one place where "is this a valid
+   * agent" is answered, whoever wrote the draft.
+   */
+  it("leaves a half-written draft for the validator to refuse, rather than repairing it", () => {
+    const r = parseRoster(JSON.stringify([{ name: "HALF" }]));
+    assert.ok("agents" in r);
+    assert.equal(r.agents[0]!.description, "");
+    assert.ok(validateAgent(r.agents[0]!), "the validator refuses it");
+  });
+});
+
+/**
+ * The tool list is upstream's, not a copy of it.
+ *
+ * This test exists because the copy was wrong. `agent-file.ts` first restated
+ * the allowed tools by hand and included `search`, which does not exist — so a
+ * draft declaring it passed validation and produced an agent upstream loaded
+ * with no tools at all. A test comparing two hand-written lists would have
+ * agreed with itself; this one asserts the validator accepts exactly what
+ * upstream's parser accepts, by running both.
+ */
+describe("the allowed tools come from upstream", () => {
+  it("accepts every name upstream accepts, and no others", () => {
+    for (const tool of KNOWN_TOOLS) {
+      const md = agentMarkdown({ ...draft, tools: [tool], subagents: [] });
+      assert.deepEqual(parseAgentDefinition("X", md).tools, [tool], `${tool} must survive both`);
+      assert.equal(validateAgent({ ...draft, tools: [tool] }), null, `${tool} must validate`);
+    }
+    // The one that started it. `search` is plausible, absent, and was accepted.
+    assert.ok(validateAgent({ ...draft, tools: ["search"] }), "search does not exist");
+    assert.throws(() => parseAgentDefinition("X", agentMarkdown({ ...draft, tools: ["search"] })));
   });
 });

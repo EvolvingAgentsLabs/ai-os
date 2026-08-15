@@ -27,6 +27,12 @@ FLOWS_PORT ?= 8097
 DESK_PORT  ?= 8098
 
 DATA_DIR     ?= /tmp/aios-data
+# Upstream's ceiling is 300s. A research project's own test suite is a legitimate
+# long command -- coclea-sr's gate suite runs for minutes -- and at 300s the
+# agent's request for longer is silently clamped, so it reports "900s was not
+# enough" about a timeout it never received. Raised here rather than in ai-base,
+# which stays byte-identical to upstream.
+EXEC_TIMEOUT_MAX_SEC ?= 3600
 DATABASE_URL ?= postgresql://$(PG_USER):$(PG_PASSWORD)@localhost:$(PG_PORT)/$(PG_DB)
 TEST_DB_URL  ?= postgresql://$(PG_USER):$(PG_PASSWORD)@localhost:$(PG_PORT)/$(PG_TESTDB)
 
@@ -73,6 +79,7 @@ START := ./scripts/start-service.sh
 
 core: postgres
 	@DATA_DIR=$(DATA_DIR) DATABASE_URL=$(DATABASE_URL) SESSION_STORE=postgres PORT=$(CORE_PORT) \
+	  EXEC_TIMEOUT_MAX_SEC=$(EXEC_TIMEOUT_MAX_SEC) \
 	  $(START) core $(CORE_PORT) ai-base $(PWD)/$(LOG_DIR)/core.log $(PWD)/$(RUN_DIR)/core.pid \
 	  -- node --env-file=.env src/index.ts
 

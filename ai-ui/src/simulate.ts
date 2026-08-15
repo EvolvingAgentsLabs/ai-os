@@ -249,7 +249,9 @@ export const SIMULATION_JS = String.raw`
    * the halt names exactly that one, so the two cannot drift apart unnoticed.
    */
   const GREEN_GATES = new Set(['A01', 'A08', 'A12']);
-  const KNOWN_TOOLS = ['read', 'write', 'execute', 'search'];
+  // Upstream's set, verbatim. A tool named search was here once, invented,
+  // and it is what let a model-written roster install agents with no tools.
+  const KNOWN_TOOLS = ['execute', 'read', 'write', 'publish', 'memory', 'history', 'background'];
 
   const real = window.fetch.bind(window);
   window.fetch = async (input, init) => {

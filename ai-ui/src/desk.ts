@@ -1589,7 +1589,7 @@ export function renderDeskHtml(view: DeskView): string {
   <div class="win-body">
     <label>Name <input id="agname" type="text" placeholder="DERIVADOR"></label>
     <label>What it is for <input id="agdesc" type="text" placeholder="Derives the closed forms every gate is checked against"></label>
-    <label>Tools <input id="agtools" type="text" value="read, execute" placeholder="read, write, execute, search"></label>
+    <label>Tools <input id="agtools" type="text" value="read, execute" placeholder="read, write, execute, publish, memory, history, background"></label>
     <label>Subagents <input id="agsubs" type="text" placeholder="VERIFICADOR-MATH (optional)"></label>
     <label>Instructions <textarea id="aginstr" rows="5" placeholder="You derive the analytic truth. You never check your own derivation against the solver."></textarea></label>
     <p class="dim">An agent is a markdown file. This writes agents/&lt;name&gt;.md into this project.</p>

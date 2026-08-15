@@ -13,6 +13,8 @@
  * core and still carries the tree ai-flows composes from.
  */
 
+import { CHILD_TOOL_NAMES } from "../../ai-base/src/agents/agent-definition.ts";
+
 /** What a caller may ask for. Rejected rather than repaired — see `validateAgent`. */
 export interface AgentDraft {
   name: string;
@@ -23,14 +25,20 @@ export interface AgentDraft {
 }
 
 /**
- * Tool names upstream understands.
+ * Tool names upstream understands — **read from upstream, not restated here.**
  *
- * Enumerated rather than passed through. A file declaring `tools: [excecute]`
- * loads without complaint and the agent simply cannot run anything — a typo
- * becomes a capability the agent silently lacks, and the failure surfaces
- * minutes later as "the step did nothing".
+ * The first version of this line was a hand-written list that included
+ * `search`, which does not exist. It was written from memory and never checked,
+ * and it did exactly the damage this module was built to prevent: a roster an
+ * agent wrote declared `search`, the validator accepted it, and upstream then
+ * rejected the whole `tools:` list — installing two agents that loaded fine and
+ * had **no tools at all**. Caught only because the conformation showed
+ * `tools=  ok=false` beside six agents that were fine.
+ *
+ * A second copy of a list whose whole purpose is to match another list is not a
+ * check. `CHILD_TOOL_NAMES` is the definition; this re-exports it.
  */
-export const KNOWN_TOOLS = ["read", "write", "execute", "search"] as const;
+export const KNOWN_TOOLS: readonly string[] = [...CHILD_TOOL_NAMES].sort();
 
 /** A filename an agent may have. Upper, digits and dashes — the roster's shape. */
 const NAME = /^[A-Za-z][A-Za-z0-9-]{0,39}$/;
@@ -61,7 +69,7 @@ export function validateAgent(draft: Partial<AgentDraft>): string | null {
   if (!Array.isArray(tools) || !tools.length) {
     return `an agent needs at least one tool, from: ${KNOWN_TOOLS.join(", ")}`;
   }
-  const unknown = tools.filter((t) => !(KNOWN_TOOLS as readonly string[]).includes(t));
+  const unknown = tools.filter((t) => !KNOWN_TOOLS.includes(t));
   if (unknown.length) {
     return `unknown tool(s): ${unknown.join(", ")}. Known: ${KNOWN_TOOLS.join(", ")}`;
   }
@@ -93,3 +101,55 @@ export function agentMarkdown(draft: AgentDraft): string {
 
 /** Where the file goes. One rule, so a desk-written agent and a seeded one collide properly. */
 export const agentPath = (name: string): string => `agents/${name}.md`;
+
+/**
+ * Read a roster a model wrote.
+ *
+ * JSON, and deliberately not markdown-with-frontmatter. A model asked to emit
+ * four agent files in one document produces something that *looks* parseable
+ * and disagrees with `parseFrontmatter` on the details — an unquoted colon in a
+ * description, a list written as prose. The failure is then a roster that
+ * installs with three of its four agents describing nothing, and nothing
+ * downstream can tell that from an author who wrote it that way.
+ *
+ * `JSON.parse` either succeeds or names the offset it failed at, and the model
+ * can be told to fix it.
+ */
+export function parseRoster(raw: string): { agents: AgentDraft[] } | { error: string } {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    return { error: `the roster is not JSON: ${(e as Error).message}` };
+  }
+  const list = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray((parsed as { agents?: unknown })?.agents)
+      ? (parsed as { agents: unknown[] }).agents
+      : null;
+  if (!list) return { error: "the roster must be a JSON array of agents, or {agents: [...]}" };
+  if (!list.length) {
+    // Not "nothing to do". A step that was asked for a roster and produced an
+    // empty one failed, and installing nothing quietly reports success.
+    return { error: "the roster is empty" };
+  }
+  const agents: AgentDraft[] = [];
+  for (const item of list) {
+    const o = (item ?? {}) as Record<string, unknown>;
+    agents.push({
+      name: typeof o.name === "string" ? o.name.trim() : "",
+      description: typeof o.description === "string" ? o.description : "",
+      tools: Array.isArray(o.tools) ? (o.tools as string[]) : [],
+      subagents: Array.isArray(o.subagents) ? (o.subagents as string[]) : [],
+      instructions: typeof o.instructions === "string" ? o.instructions : "",
+    });
+  }
+  const names = agents.map((a) => a.name);
+  const dup = names.find((n, i) => names.indexOf(n) !== i);
+  if (dup) {
+    // Two agents with one name means the second silently overwrites the first,
+    // and the roster the flow reports installing is not the one on disk.
+    return { error: `two agents named ${dup} — the second would overwrite the first` };
+  }
+  return { agents };
+}

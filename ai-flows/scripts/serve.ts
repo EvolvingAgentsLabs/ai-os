@@ -239,6 +239,12 @@ const server = createFlowServer({
    * back through the writer's own API would confirm nothing — that is exactly
    * how this route reported `bytes: 37691` for a file the agent could not see.
    */
+  /** Read back out of the sandbox — where an agent's own output lands. */
+  async readMaterial(scopeId, path) {
+    const handle = await sandbox.provision([{ scopeId, mode: "rw", mountPath: "" }]);
+    const res = await sandbox.run(handle, `cat ${JSON.stringify(path)}`, { timeoutMs: 60_000 });
+    return res.code === 0 ? (res.stdout ?? "") : null;
+  },
   async putMaterial(scopeId, path, content) {
     const handle = await sandbox.provision([{ scopeId, mode: "rw", mountPath: "" }]);
     const bytes = new TextEncoder().encode(content);
