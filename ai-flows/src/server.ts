@@ -40,6 +40,7 @@ import { FLOW_SHAPES, type FlowShape } from "./types.ts";
 import { composeFromAgent } from "./compose.ts";
 import type { Conformation, ScopeNode } from "./conformation.ts";
 import { agentMarkdown, agentPath, parseRoster, validateAgent } from "./agent-file.ts";
+import { type SkillFile, indexSaving, readSkills, resolveSkill, routingIndex } from "./skills.ts";
 import { answerWithoutEvidence, askPrompt, type AskInput } from "./ask.ts";
 
 export interface FlowServerOptions {
@@ -123,6 +124,12 @@ export interface FlowServerOptions {
    * there can be brought into the workspace. `null` when it is not there.
    */
   readMaterial?: (scopeId: string, path: string) => Promise<string | null>;
+  /**
+   * The skill files a scope can reach. Injected because they live on disk in
+   * two places — the seed tree and the scope's own `skills/` — and deciding
+   * which is which is wiring, not routing.
+   */
+  skillFiles?: (scopeId: string) => Promise<SkillFile[]>;
   putMaterial?: (
     scopeId: string,
     path: string,
@@ -544,6 +551,44 @@ export function createFlowServer(opts: FlowServerOptions) {
       return {
         status: 201,
         body: { ok: true, scopeId, installed: drafts.agents.map((d) => d.name) },
+      };
+    }),
+
+    /**
+     * The routing index — every skill's name and description, no skill's body.
+     *
+     * This is skillos's lazy load, and the whole argument is the size of what
+     * comes back: to *choose* a skill an agent needs one line about each; to
+     * *use* one it needs that one's body and no other. Measured on the seed tree
+     * the index is 4,397 characters against 105,423 — 95.8% of the choosing
+     * phase removed. `savedFraction` is recomputed per scope and can come back
+     * near zero, which is the honest answer for a small catalogue.
+     *
+     * `broken` is returned rather than logged. A skill that fell out of the
+     * index is invisible to the agent, which then correctly reports that
+     * nothing covers the task — and the reason would be in a log nobody reads.
+     */
+    route("GET", "/scopes/:scope/skills", async ({ params, query }) => {
+      if (!opts.skillFiles) {
+        return { status: 501, body: { error: "no skill tree is wired into this server" } };
+      }
+      const scopeId = decodeURIComponent(params.scope ?? "");
+      if (!scopeId.includes(":")) {
+        return { status: 400, body: { error: "a scope id looks like kind:ref" } };
+      }
+      const { skills, broken } = readSkills(await opts.skillFiles(scopeId));
+      const wanted = query.get("path");
+      if (wanted) {
+        const skill = resolveSkill(skills, wanted);
+        // 404 rather than the nearest match. A fuzzy answer makes the agent
+        // follow instructions for a skill it did not pick, which is the one
+        // failure lazy loading introduces that eager loading cannot produce.
+        if (!skill) return { status: 404, body: { error: `no skill at ${wanted}` } };
+        return { status: 200, body: { skill } };
+      }
+      return {
+        status: 200,
+        body: { index: routingIndex(skills), count: skills.length, ...indexSaving(skills), broken },
       };
     }),
 

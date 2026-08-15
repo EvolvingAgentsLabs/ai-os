@@ -14,7 +14,7 @@
  * `GET /` renders the same page `scripts/view.ts` writes to a file, so the
  * control arm for M5 is reachable without a build step or a second process.
  */
-import { readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { loadConfig } from "../../ai-base/src/config.ts";
 import { buildApp } from "../../ai-base/src/wiring.ts";
@@ -239,6 +239,39 @@ const server = createFlowServer({
    * back through the writer's own API would confirm nothing — that is exactly
    * how this route reported `bytes: 37691` for a file the agent could not see.
    */
+  /**
+   * The seed tree plus whatever the scope wrote for itself.
+   *
+   * A scope's own `skills/` adds to the catalogue rather than shadowing it: a
+   * research project accumulates procedure — how this suite is run, what a gate
+   * number means — and that is a skill by every definition in `src/skills.ts`.
+   */
+  async skillFiles(scopeId) {
+    const files: Array<{ path: string; raw: string }> = [];
+    const seed = join(import.meta.dirname, "..", "..", "ai-base", "skills-seed");
+    const walk = async (dir: string, rel: string) => {
+      let entries;
+      try {
+        entries = await readdir(dir, { withFileTypes: true });
+      } catch {
+        return;
+      }
+      for (const e of entries) {
+        const p = join(dir, e.name);
+        if (e.isDirectory()) await walk(p, rel ? `${rel}/${e.name}` : e.name);
+        else if (e.name === "SKILL.md") files.push({ path: `${rel}/SKILL.md`, raw: await readFile(p, "utf8") });
+      }
+    };
+    await walk(seed, "");
+    const root = workspace.scopeDir(scopeId);
+    for (const abs of await workspace.list(scopeId)) {
+      if (!abs.startsWith(`${root}/skills/`) || !abs.endsWith("/SKILL.md")) continue;
+      const relToScope = abs.slice(root.length + 1);
+      const raw = await workspace.read(scopeId, relToScope);
+      if (raw !== null) files.push({ path: relToScope.slice("skills/".length), raw });
+    }
+    return files;
+  },
   /** Read back out of the sandbox — where an agent's own output lands. */
   async readMaterial(scopeId, path) {
     const handle = await sandbox.provision([{ scopeId, mode: "rw", mountPath: "" }]);
