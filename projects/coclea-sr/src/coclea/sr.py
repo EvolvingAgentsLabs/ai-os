@@ -176,6 +176,74 @@ def sr_curve(
                    theta=theta, points=points)
 
 
+def shared_sr_curve(
+    modes: Modes,
+    probe_xs: np.ndarray,
+    drive_omega: float,
+    *,
+    noise_grid: np.ndarray,
+    theta: float,
+    drive_amplitude: float,
+    n_seeds: int = 8,
+    n_periods: int = 60,
+    samples_per_period: int = 64,
+    detector_input: DetectorInput = "disp",
+    noise_scaling: NoiseScaling = "mass",
+    tau_ref: float = 0.0,
+    master_seed: int = 20260815,
+    n_boot: int = 400,
+) -> list[SRCurve]:
+    """The SR curve at several probes on **one** membrane, sharing everything.
+
+    `sr_curve` cannot answer a spatial question and this is the reason: it
+    calibrates the tone to be subthreshold *at the probe*, and picks `theta`
+    from the sigma grid, so every probe is independently equalised. Comparing
+    peak SNR across probes then compares three separate instruments. Measured on
+    the graded string: 13.02 dB at ``x=0.20`` against 10.80 dB at ``x=0.375``,
+    which is mode 3's own peak — the opposite of the expected ordering, produced
+    by the normalisation rather than by the membrane.
+
+    Here one stapes drive, one threshold and one noise intensity are applied to
+    the whole membrane, and each probe sees whatever the mode shapes deliver to
+    it. That is the arrangement spec §R2's question is about, and it is the same
+    correction ADR-0003 made for the transmission line — applied to the plain
+    string, which is all the narrowed model has.
+
+    Returns one `SRCurve` per probe, in the order given.
+    """
+    period = 2.0 * np.pi / drive_omega
+    dt = period / samples_per_period
+    T = n_periods * period
+    seeds = np.random.SeedSequence(master_seed).spawn(len(noise_grid))
+
+    per_probe: list[list[SRPoint]] = [[] for _ in probe_xs]
+    for D, seed in zip(noise_grid, seeds):
+        ms = stochastic.modal_system(modes, np.asarray(probe_xs, dtype=float), float(D), noise_scaling)
+        ps = stochastic.simulate_ou_modal(
+            ms,
+            stochastic.Drive(omega=drive_omega, amplitude=drive_amplitude),
+            T, dt, np.random.default_rng(seed), n_paths=n_seeds,
+        )
+        v = ps.channel(detector_input)
+        ev = detector.threshold_events(v, ps.t, theta, tau_ref)
+        for j in range(len(probe_xs)):
+            boot_rng = np.random.default_rng(seed.spawn(len(probe_xs))[j])
+            per_probe[j].append(
+                SRPoint(
+                    sigma=float(np.std(v[:, :, j])),
+                    noise_intensity=float(D),
+                    snr=analysis.snr_db(ev, ps.t, drive_omega, j, n_boot=n_boot, rng=boot_rng),
+                    vs=analysis.vector_strength(ev, drive_omega, j, n_boot=n_boot, rng=boot_rng),
+                    event_rate=float(ev.rates()[:, j].mean()),
+                    tone_amplitude=float(ps.tone_amplitude[j]),
+                )
+            )
+    return [
+        SRCurve(probe_x=float(px), drive_omega=drive_omega, theta=theta, points=pts)
+        for px, pts in zip(probe_xs, per_probe)
+    ]
+
+
 # --- the same curve, on the operator that has a place code -------------------
 
 def tl_sr_curve(
