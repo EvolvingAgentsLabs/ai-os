@@ -54,6 +54,7 @@ export function createMemoryFlowStore(opts: { now?: () => number; id?: () => str
         goal: input.goal,
         shape: input.shape ?? "open",
         state: "draft",
+        requiredGates: input.requiredGates ? [...input.requiredGates] : null,
         forkedFrom: input.forkedFrom ? { ...input.forkedFrom } : null,
         createdAt: at,
         updatedAt: at,
@@ -183,6 +184,9 @@ export function createMemoryFlowStore(opts: { now?: () => number; id?: () => str
         actorId: row.flow.actorId,
         title: input.title ?? row.flow.title,
         goal: row.flow.goal,
+        // ...and its required gates: the same work down a different branch is
+        // held to the same checks.
+        requiredGates: row.flow.requiredGates ? [...row.flow.requiredGates] : null,
         shape: row.flow.shape,
         state: "draft",
         forkedFrom: { flowId: row.flow.id, atStep: input.atStep },

@@ -636,8 +636,8 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
             say('Forked at step ' + at + '. The original keeps its history; the fork is yours to change.', 5000);
             void r;
           } else if (a.route === '/advance') {
-            await post('/advance', { flowId: doc.id });
-            say('Advanced.');
+            const r = await post('/advance', { flowId: doc.id });
+            say(r.reason ? 'Halted — ' + r.reason : 'Advanced.', r.reason ? 8000 : 2500);
           } else if (a.route === '/ask') {
             const q = p.querySelector('#q');
             if (q) { q.value = a.label; q.focus(); }
@@ -781,7 +781,7 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
         const label = b.textContent;
         b.onclick = async () => {
           b.disabled = true; b.textContent = 'Working…';
-          try { const r = await post('/advance', { flowId: doc.id }); say('Step ' + r.outcome + '.'); await refresh(); }
+          try { const r = await post('/advance', { flowId: doc.id }); say(r.reason ? 'Halted — ' + r.reason : 'Step ' + r.outcome + '.', r.reason ? 8000 : 2500); await refresh(); }
           catch (e) { say('Advance failed: ' + e.message, 5000); b.disabled = false; b.textContent = label; }
         };
       }

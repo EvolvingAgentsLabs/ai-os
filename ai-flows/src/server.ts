@@ -144,12 +144,26 @@ export function createFlowServer(opts: FlowServerOptions) {
         // different question than the one they asked.
         return { status: 400, body: { error: `unknown shape; this build has ${FLOW_SHAPES.join(", ")}` } };
       }
+      // A gated flow must name its gates at creation. Refused rather than
+      // defaulted to an empty set: a gated flow with nothing to check is a flow
+      // whose only content has been configured away, and the shape exists to
+      // stop exactly that from finishing quietly.
+      const gates = Array.isArray(b.requiredGates) ? b.requiredGates : null;
+      if (b.shape === "gated") {
+        if (!gates?.length || gates.some((g) => typeof g !== "string" || !g.trim())) {
+          return {
+            status: 400,
+            body: { error: "a gated flow requires a non-empty requiredGates array of names" },
+          };
+        }
+      }
       const flow = await store.createFlow({
         scopeId: b.scopeId,
         actorId: b.actorId,
         title: typeof b.title === "string" && b.title ? b.title : b.goal.slice(0, 80),
         goal: b.goal,
         ...(isShape(b.shape) ? { shape: b.shape } : {}),
+        ...(gates?.length ? { requiredGates: gates as string[] } : {}),
       });
       const steps = Array.isArray(b.steps) ? b.steps : [];
       for (const s of steps) {

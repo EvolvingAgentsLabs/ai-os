@@ -239,6 +239,17 @@ export const SIMULATION_JS = String.raw`
       headers: { 'content-type': 'application/json' },
     });
 
+  /**
+   * The checks this fabricated world has a green report for.
+   *
+   * Inside the shim rather than in the module, because the shim ships as a
+   * string and runs in a page with no build step -- a module-scope constant is
+   * simply not in scope there. The seeded gated flow names one gate that is
+   * **not** in this set, and desk.test.ts executes this shim and asserts that
+   * the halt names exactly that one, so the two cannot drift apart unnoticed.
+   */
+  const GREEN_GATES = new Set(['A01', 'A08', 'A12']);
+
   const real = window.fetch.bind(window);
   window.fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : (input && input.url) || '';
@@ -272,10 +283,15 @@ export const SIMULATION_JS = String.raw`
       // A counter, not a hash of the title: two documents may legitimately
       // share a name, and an id derived from the name would silently collide.
       var id = 'flow-new-' + (world.docs.length + 1);
+      if (body.shape === 'gated' && !(body.requiredGates && body.requiredGates.length)) {
+        return json({ error: 'a gated flow requires a non-empty requiredGates array of names' }, 400);
+      }
       world.docs.push({
         id: id,
         title: body.title,
         goal: body.goal,
+        shape: body.shape === 'gated' ? 'gated' : 'open',
+        requiredGates: body.shape === 'gated' ? body.requiredGates.slice() : null,
         // draft, not waiting: nothing is queued yet, and a document that claims
         // to be waiting for work nobody assigned is the kind of picture that
         // renders cleanly and is wrong.
@@ -336,6 +352,22 @@ export const SIMULATION_JS = String.raw`
       if (!doc) return json({ error: 'no such flow' }, 404);
       const next = doc.steps.find((s) => s.state === 'pending');
       if (!next) {
+        // The gate decides at the completion path and nowhere else -- the same
+        // place the real engine checks it. A gated flow whose checks are not all
+        // green **refuses to finish**, naming them. The mock carries this
+        // because a demo that can only ever succeed teaches the wrong gesture:
+        // the desk's own affordance for a held freeze is what is being tested.
+        if (doc.shape === 'gated') {
+          const missing = (doc.requiredGates || []).filter((g) => !GREEN_GATES.has(g));
+          if (missing.length) {
+            doc.state = 'blocked';
+            return json({
+              ok: true,
+              outcome: 'halted',
+              reason: 'the flow may not freeze — never ran: ' + missing.join(', '),
+            });
+          }
+        }
         doc.state = 'done';
         return json({ ok: true, outcome: 'complete' });
       }
@@ -460,6 +492,10 @@ export function demoWorld(): {
       : [],
   });
 
+  /**
+   * The checks this fabricated world has a green report for. `B02` is not here
+   * on purpose -- see `flow-coclea-freeze`.
+   */
   return {
     docs: [
       {
@@ -484,6 +520,37 @@ export function demoWorld(): {
             "Rewrote /root/workspace/ledger.txt to ledger_with_currency.txt. Every amount now carries its USD prefix; column spacing preserved exactly.",
           ),
           step(2, "ReviewAgent", "pending", null),
+        ],
+      },
+      {
+        /**
+         * A `gated` flow, and the reason the mock has one.
+         *
+         * The desk's other documents can only succeed, so the demo teaches a
+         * gesture the real system does not have: click advance, watch it go
+         * green. A gated flow **refuses to finish** while a check it named is
+         * red or has never run, and that refusal is the whole point of the
+         * shape. It has to be playable or the affordance is untested.
+         *
+         * `B02` is deliberately absent from GREEN_GATES: the freeze is held by
+         * a check nobody has run yet, which is the ordinary case.
+         */
+        id: "flow-coclea-freeze",
+        title: "Freeze the passive membrane",
+        goal: "freeze the eigensolver only once every check it names is green",
+        shape: "gated",
+        requiredGates: ["A01", "A08", "A12", "B02"],
+        state: "waiting",
+        updatedAt: hoursAgo(2),
+        done: 1,
+        total: 1,
+        steps: [
+          step(
+            0,
+            "MembraneAgent",
+            "done",
+            "Ran the gate suite in the project sandbox: 45 checks, 44 green. B02 has no report — it has never been run.",
+          ),
         ],
       },
       {

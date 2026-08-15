@@ -12,6 +12,7 @@ import { type DeskDoc, type DeskView, renderDeskHtml } from "../src/desk.ts";
 import { propose } from "../src/layout.ts";
 import { digestOf } from "../src/zoom.ts";
 import { actionsFor } from "../src/actions.ts";
+import { SIMULATION_JS, demoWorld } from "../src/simulate.ts";
 
 /**
  * Fill in the derived halves of a document with the real functions.
@@ -742,5 +743,85 @@ describe("the tour crossing a real scope change", () => {
     // would throw on the desk it is most likely to run against.
     const html = renderDeskHtml({ ...view(), simulate: true });
     assert.match(html, /if \(!wanted\) return;/);
+  });
+});
+
+/**
+ * The gated shape, exercised by **running the shipped shim** rather than by
+ * reading its source.
+ *
+ * A test asserting that `SIMULATION_JS` contains the string `gated` would pass
+ * over a shim whose branch is unreachable. This installs it over a stub
+ * `window`, calls `fetch('/advance')` the way the page does, and reads what
+ * comes back.
+ */
+describe("a gated flow on the simulated desk", () => {
+  async function installShim() {
+    const world = demoWorld();
+    const win: Record<string, unknown> = {
+      __DESK__: {
+        scopeId: "demo",
+        docs: world.docs,
+        agents: world.agents,
+        layout: {},
+        notes: [],
+      },
+      __WORLDS__: {},
+      fetch: async () => {
+        throw new Error("the shim passed a desk route through to the network");
+      },
+      location: { search: "" },
+      addEventListener: () => {},
+      setTimeout: () => 0,
+    };
+    const doc = {
+      getElementById: () => null,
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      addEventListener: () => {},
+    };
+    const fn = new Function(
+      "window",
+      "document",
+      "location",
+      "URLSearchParams",
+      "Response",
+      "console",
+      SIMULATION_JS,
+    );
+    fn(win, doc, win.location, URLSearchParams, Response, console);
+    return { win, world };
+  }
+
+  it("refuses to finish while a check it named has never run, and says which", async () => {
+    const { win, world } = await installShim();
+    const gated = world.docs.find((d) => d.id === "flow-coclea-freeze");
+    assert.ok(gated, "the demo world seeds a gated flow");
+    const r = await (win.fetch as typeof fetch)("/advance", {
+      method: "POST",
+      body: JSON.stringify({ flowId: "flow-coclea-freeze" }),
+    });
+    const out = (await r.json()) as { outcome: string; reason?: string };
+    assert.equal(out.outcome, "halted");
+    // Naming the gate is the requirement. "halted" alone sends the person to a
+    // log file to find out which check stopped the freeze.
+    assert.match(String(out.reason), /B02/);
+    assert.doesNotMatch(String(out.reason), /A01|A08|A12/);
+  });
+
+  it("refuses to create a gated document that names no checks", async () => {
+    const { win } = await installShim();
+    const r = await (win.fetch as typeof fetch)("/flow", {
+      method: "POST",
+      body: JSON.stringify({
+        scopeId: "demo",
+        actorId: "matias",
+        title: "x",
+        goal: "y",
+        shape: "gated",
+        requiredGates: [],
+      }),
+    });
+    assert.equal(r.status, 400);
   });
 });

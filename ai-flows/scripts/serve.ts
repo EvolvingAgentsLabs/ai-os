@@ -42,6 +42,8 @@ const DB = config.databaseUrl;
 if (!DB) throw new Error("DATABASE_URL is required — flows are not durable without it");
 
 const PORT = Number(process.env.FLOWS_PORT ?? 8097);
+import { createGateVerdict } from "./gate-verdict.ts";
+
 const store = createPostgresFlowStore(DB);
 const core = createCoreClient({
   baseUrl: process.env.CORE_API_URL ?? "http://localhost:8080",
@@ -50,6 +52,15 @@ const core = createCoreClient({
 const engine = createEngine({
   store,
   core,
+  /**
+   * Whether a gated flow may finish. Unset when `GATE_REPORTS_DIR` is not
+   * configured, and the engine then blocks every gated flow — a deployment that
+   * cannot check is not a deployment where everything passes.
+   */
+  ...(() => {
+    const g = createGateVerdict(process.env.GATE_REPORTS_DIR);
+    return g ? { gateVerdict: g } : {};
+  })(),
   /**
    * A step runs IN THE FLOW'S SCOPE, and getting this wrong is silent.
    *

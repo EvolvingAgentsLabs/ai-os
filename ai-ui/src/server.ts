@@ -121,7 +121,7 @@ export interface FlowsClient {
    * pulsed forever over a run that had finished minutes earlier.
    */
   resume(flowId: string): Promise<{ resumed: number }>;
-  advance(flowId: string): Promise<{ kind: string }>;
+  advance(flowId: string): Promise<{ kind: string; reason?: string }>;
   /**
    * Copy steps `0..atStep` into a new flow carrying `forkedFrom`.
    *
@@ -537,7 +537,11 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         // and the flow ends up with two running attempts nobody asked for.
         await opts.flows.resume(body.flowId);
         const outcome = await opts.flows.advance(body.flowId);
-        return send(200, { ok: true, outcome: outcome.kind });
+        return send(200, {
+          ok: true,
+          outcome: outcome.kind,
+          ...(outcome.reason ? { reason: outcome.reason } : {}),
+        });
       }
 
       /**

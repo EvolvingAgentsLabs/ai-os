@@ -62,6 +62,20 @@ export interface EngineDeps {
    * the ready-made one.
    */
   carry?: (flow: FlowWithSteps, step: Step) => string;
+  /**
+   * Whether a `gated` flow is allowed to finish. Injected, and the engine holds
+   * no opinion about where gate reports live or what a gate is.
+   *
+   * `null` means "this deployment cannot evaluate gates". A `gated` flow then
+   * **blocks rather than completing**: a shape whose whole content is a check
+   * must not fall back to no check when the checker is absent, which is the same
+   * "did not run is not passed" rule the verdict itself enforces one level down.
+   */
+  gateVerdict?: (flow: FlowWithSteps) => Promise<{
+    mayFreeze: boolean;
+    blockers: string[];
+    unknown: string[];
+  } | null>;
   awaitOptions?: { intervalMs?: number; timeoutMs?: number; sleep?: (ms: number) => Promise<void> };
 }
 
@@ -186,6 +200,47 @@ export function createEngine(deps: EngineDeps) {
       if (!step) {
         // Terminal states were already returned above, so reaching here always
         // means a live flow with nothing left pending.
+        //
+        // For a `gated` flow that is not enough. Every step having settled says
+        // the work ran; it does not say the work was right, and the whole point
+        // of the shape is that those are different questions. This is spec §6.1
+        // of the cochlea project — eval-gated freeze — enforced by the engine
+        // rather than remembered by whoever reads the result.
+        if (flow.shape === "gated") {
+          const gates = flow.requiredGates ?? [];
+          if (!gates.length) {
+            await deps.store.transitionFlow(flowId, flow.state, "blocked");
+            return {
+              kind: "halted",
+              reason:
+                "a gated flow with no required gates has had its only content configured " +
+                "away; it is blocked rather than finished",
+            };
+          }
+          const verdict = deps.gateVerdict ? await deps.gateVerdict(flow) : null;
+          if (!verdict) {
+            await deps.store.transitionFlow(flowId, flow.state, "blocked");
+            return {
+              kind: "halted",
+              reason:
+                "this deployment cannot evaluate gates, so a gated flow cannot be " +
+                "allowed to finish — absent a checker is not the same as passing",
+            };
+          }
+          if (!verdict.mayFreeze) {
+            await deps.store.transitionFlow(flowId, flow.state, "blocked");
+            // Red and never-run are reported apart, all the way to the caller: a
+            // specific fixable failure rendered as an unexplained refusal is how
+            // a gate stops being read.
+            const parts: string[] = [];
+            if (verdict.blockers.length) parts.push(`red: ${verdict.blockers.join(", ")}`);
+            if (verdict.unknown.length) parts.push(`never ran: ${verdict.unknown.join(", ")}`);
+            return {
+              kind: "halted",
+              reason: `every step settled and the flow may not freeze — ${parts.join("; ")}`,
+            };
+          }
+        }
         await deps.store.transitionFlow(flowId, flow.state, "done");
         const done = await deps.store.getFlow(flowId);
         return { kind: "complete", flow: done ?? flow };

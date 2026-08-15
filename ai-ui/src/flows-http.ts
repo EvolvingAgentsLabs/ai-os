@@ -208,11 +208,14 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
     },
 
     async advance(flowId: string) {
-      const r = await call<{ outcome: { kind: string } }>(
+      const r = await call<{ outcome: { kind: string; reason?: string } }>(
         "POST",
         `/flows/${encodeURIComponent(flowId)}/advance`,
       );
-      return { kind: r.outcome?.kind ?? "unknown" };
+      // The reason is carried, not dropped. A `gated` flow halts naming the gate
+      // that stopped it, and "halted" alone sends the person to a log file to
+      // find out which -- which is the desk failing at the one thing it is for.
+      return { kind: r.outcome?.kind ?? "unknown", reason: r.outcome?.reason };
     },
 
     async fork(flowId: string, atStep: number) {

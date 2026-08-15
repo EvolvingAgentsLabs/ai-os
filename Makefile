@@ -79,6 +79,7 @@ core: postgres
 flows: core
 	@DATA_DIR=$(DATA_DIR) DATABASE_URL=$(DATABASE_URL) SESSION_STORE=postgres \
 	  FLOWS_ALLOW_UNAUTHENTICATED=1 PORT=$(FLOWS_PORT) CORE_API_URL=http://localhost:$(CORE_PORT) \
+	  GATE_REPORTS_DIR=$(PWD)/$(PROJECT)/gates/reports \
 	  $(START) flows $(FLOWS_PORT) ai-flows $(PWD)/$(LOG_DIR)/flows.log $(PWD)/$(RUN_DIR)/flows.pid \
 	  -- node --env-file=../ai-base/.env scripts/serve.ts
 
