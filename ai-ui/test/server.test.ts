@@ -25,6 +25,7 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
   const forked: Array<{ flowId: string; atStep: number }> = [];
   const asked: Array<{ flowId: string; question: string; step?: number }> = [];
   const created: Array<{ scopeId: string; actorId: string; title: string; goal: string }> = [];
+  const projects: Array<{ name: string; ownerId: string }> = [];
   const client: FlowsClient = {
     async conformation() {
       return {
@@ -119,6 +120,11 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
       asked.push({ flowId, question, step });
       return { answer: `about ${flowId}: ${question}`, spent: true, evidence: 3 };
     },
+    async createProject(input) {
+      projects.push({ name: input.name, ownerId: input.ownerId });
+      const slug = input.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      return { id: `p${projects.length}`, name: input.name, scopeId: `group:${slug}-p${projects.length}` };
+    },
     async createFlow(input) {
       created.push({
         scopeId: input.scopeId, actorId: input.actorId,
@@ -128,7 +134,7 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
     },
     ...over,
   };
-  return { client, appended, advanced, removed, resumed, forked, asked, created };
+  return { client, appended, advanced, removed, resumed, forked, asked, created, projects };
 }
 
 async function serve(flows: FlowsClient) {
@@ -633,5 +639,59 @@ describe("creating a document from the desk", () => {
     });
     assert.equal(res.status, 400);
     assert.equal(f.created.length, 0);
+  });
+});
+
+/**
+ * Starting a project from the desk.
+ *
+ * The gesture that decides whether this is a system or a viewer of one. Every
+ * scope the desk has ever shown was minted by a seed script run from a shell,
+ * so a person sitting at it could open work somebody else started and could not
+ * start their own — which is the difference between an operating system and a
+ * dashboard over one.
+ */
+describe("starting a project from the desk", () => {
+  it("creates it, and answers with the scope its work will happen in", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/project", { name: "COCLEA-SR", ownerId: "matias" });
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as { ok: boolean; scopeId: string; name: string };
+    assert.equal(body.ok, true);
+    assert.equal(body.name, "COCLEA-SR");
+    // The scope id is what the page navigates to. Without it the project exists
+    // and the person who just made it has no way to reach it.
+    assert.match(body.scopeId, /^group:coclea-sr-/);
+    assert.equal(f.projects.length, 1);
+    assert.equal(f.projects[0]!.ownerId, "matias");
+  });
+
+  /**
+   * The same rule `Flow.actorId` states, one level up. A project with a guessed
+   * owner is manufactured provenance, and at this level it decides who may see
+   * the work at all.
+   */
+  it("refuses a project with no owner", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/project", { name: "COCLEA-SR" });
+    assert.equal(res.status, 400);
+    assert.match(await res.text(), /ownerId is required/);
+    assert.equal(f.projects.length, 0, "nothing may be created on a rejected request");
+  });
+
+  it("refuses a project with no name", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/project", { name: "   ", ownerId: "matias" });
+    assert.equal(res.status, 400);
+    assert.equal(f.projects.length, 0);
   });
 });

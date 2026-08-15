@@ -77,6 +77,24 @@ export interface FlowServerOptions {
    * degradation this whole surface is designed to survive.
    */
   ask?: (prompt: string) => Promise<string>;
+  /**
+   * Create a project and return the scope its work happens in.
+   *
+   * Injected for the reason `conformation` is: the project store lives in
+   * `ai-base` and reaching it from here would give this module a second way
+   * into the core.
+   *
+   * The route exists because without it **a project cannot be born in this
+   * system**. Every scope on the desk today was created by a seed script run
+   * from a shell, and a system whose projects can only be created by its
+   * maintainers is a demo of the projects, not of the system. Absent the
+   * dependency this answers 501 rather than inventing a scope id that no store
+   * has heard of.
+   */
+  createProject?: (input: {
+    name: string;
+    ownerId: string;
+  }) => Promise<{ id: string; name: string; scopeId: string }>;
   now?: () => number;
 }
 
@@ -331,6 +349,33 @@ export function createFlowServer(opts: FlowServerOptions) {
       });
       for (const step of plan.steps) await store.appendStep({ flowId: flow.id, intent: step.intent });
       return { status: 201, body: { plan, flow: await store.getFlow(flow.id) } };
+    }),
+
+    /**
+     * Create a project. The one gesture that was missing for a project to start
+     * inside ai-os rather than beside it.
+     */
+    route("POST", "/projects", async ({ body }) => {
+      if (!opts.createProject) {
+        return {
+          status: 501,
+          body: { error: "no project store is wired into this server" },
+        };
+      }
+      const b = (body ?? {}) as Record<string, unknown>;
+      const name = typeof b.name === "string" ? b.name.trim() : "";
+      const ownerId = typeof b.ownerId === "string" ? b.ownerId.trim() : "";
+      // Both required and neither defaulted. A project with a guessed owner is
+      // manufactured provenance -- the same rule `Flow.actorId` states, applied
+      // one level up, where it decides who may see the work at all.
+      if (!name) return { status: 400, body: { error: "name is required" } };
+      if (!ownerId) {
+        return {
+          status: 400,
+          body: { error: "ownerId is required — a project records who it belongs to" },
+        };
+      }
+      return { status: 201, body: await opts.createProject({ name, ownerId }) };
     }),
 
     route("GET", "/conformation", async () => {

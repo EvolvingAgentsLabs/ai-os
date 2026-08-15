@@ -1395,6 +1395,36 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
   });
   document.getElementById('newcancel').addEventListener('click', closeNew);
 
+  /**
+   * Starting a project, from the desk.
+   *
+   * The page navigates into the new scope rather than re-rendering in place:
+   * the scope is a query parameter here, so staying put would leave the chrome
+   * naming one project and the surface showing another.
+   */
+  var projForm = document.getElementById('newprojform');
+  var projName = document.getElementById('newprojname');
+  function closeProj() { projForm.style.display = 'none'; projName.value = ''; }
+  document.getElementById('newproj').addEventListener('click', function () {
+    if (projForm.style.display !== 'none') { closeProj(); return; }
+    projForm.style.display = 'block';
+    projName.focus();
+  });
+  document.getElementById('newprojcancel').addEventListener('click', closeProj);
+  document.getElementById('newprojcreate').addEventListener('click', async () => {
+    var name = (projName.value || '').trim();
+    if (!name) { say('A project needs a name.'); return; }
+    try {
+      var r = await post('/project', {
+        name: name,
+        ownerId: S.people && S.people[0] ? S.people[0] : 'you'
+      });
+      closeProj();
+      say('Started "' + name + '". It is empty — nothing has happened in it yet.', 6000);
+      if (r.scopeId) location.search = '?scope=' + encodeURIComponent(r.scopeId);
+    } catch (e) { say('Could not start it: ' + e.message); }
+  });
+
   document.getElementById('newcreate').addEventListener('click', async () => {
     var title = (newTitle.value || '').trim();
     var goal = (newGoal.value || '').trim();
@@ -1493,9 +1523,18 @@ export function renderDeskHtml(view: DeskView): string {
     .join("")}</select></label>
   <span class="sep">|</span>
   <span id="counts">${esc(view.docs.length)} document(s) · ${esc(view.agents.length)} agent(s) · ${esc(view.people.length)} person(s)</span>
+  <button id="newproj">New project</button>
   <button id="newdoc">New document</button>
   <button id="reload">Refresh</button>
   <span class="right">harness ${esc(view.harness)} · <span id="stamp">${esc(new Date(view.at).toISOString())}</span></span>
+</div>
+<div class="win newform" id="newprojform" style="display:none">
+  <div class="bar"><span class="box"></span><h2>New project</h2><span class="box zoom"></span></div>
+  <div class="win-body">
+    <label>Name <input id="newprojname" type="text" placeholder="COCLEA-SR"></label>
+    <p class="dim">It starts empty — no documents, no agents. Nothing has happened in it yet.</p>
+    <div class="row"><button id="newprojcreate">Create</button><button id="newprojcancel">Cancel</button></div>
+  </div>
 </div>
 <div class="win newform" id="newform" style="display:none">
   <div class="bar"><span class="box"></span><h2>New document</h2><span class="box zoom"></span></div>

@@ -69,6 +69,22 @@ export interface FlowsClient {
    * would offer a button that works against a server and throws in the browser,
    * which is exactly the drift `build-demo.ts` exists to prevent.
    */
+  /**
+   * Create a project, and return the scope its work happens in.
+   *
+   * On the interface rather than only on the HTTP client, for the same reason
+   * `createFlow` is: the simulated backend has to implement it too, or the demo
+   * ships a button that works against a server and throws in the browser.
+   *
+   * This is the gesture that was missing for a project to **start** inside
+   * ai-os. Until it existed, every scope on the desk had been created by a seed
+   * script run from a shell — which makes the desk a viewer of projects someone
+   * else made rather than a place work begins.
+   */
+  createProject(input: {
+    name: string;
+    ownerId: string;
+  }): Promise<{ id: string; name: string; scopeId: string }>;
   createFlow(input: {
     scopeId: string;
     actorId: string;
@@ -418,6 +434,36 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         }
         await opts.layouts.put(body.layout);
         return send(200, { ok: true });
+      }
+
+      if (req.method === "POST" && url.pathname === "/project") {
+        /**
+         * Start a project from the desk.
+         *
+         * The gesture the desk did not have, and the one that decides whether
+         * this is a system or a viewer. Every scope shown here until now was
+         * minted by a seed script run from a shell; a person sitting at the desk
+         * could open work somebody else had started and could not start their
+         * own.
+         *
+         * The response carries the `scopeId` so the page can navigate straight
+         * into the new project. It is deliberately **empty** when it gets there
+         * — no agents, no documents, no layout. Seeding it with a starter flow
+         * would make the first thing a person sees something they did not write,
+         * and the emptiness is honest: the project exists and nothing has
+         * happened in it yet.
+         */
+        const body = JSON.parse((await readBody(req)) || "{}");
+        const name = typeof body?.name === "string" ? body.name.trim() : "";
+        const ownerId = typeof body?.ownerId === "string" ? body.ownerId.trim() : "";
+        if (!name) return send(400, { error: "a project needs a name" });
+        if (!ownerId) {
+          return send(400, {
+            error: "ownerId is required — a project records who it belongs to",
+          });
+        }
+        const created = await opts.flows.createProject({ name, ownerId });
+        return send(200, { ok: true, ...created });
       }
 
       if (req.method === "POST" && url.pathname === "/flow") {

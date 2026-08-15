@@ -809,6 +809,33 @@ describe("a gated flow on the simulated desk", () => {
     assert.doesNotMatch(String(out.reason), /A01|A08|A12/);
   });
 
+  it("starts a project, and hands back an empty scope rather than a furnished one", async () => {
+    const { win } = await installShim();
+    const r = await (win.fetch as typeof fetch)("/project", {
+      method: "POST",
+      body: JSON.stringify({ name: "COCLEA-SR", ownerId: "matias" }),
+    });
+    const out = (await r.json()) as { scopeId: string };
+    assert.match(out.scopeId, /^group:coclea-sr-/);
+    // Empty is the point. A mock that handed back a furnished project would
+    // teach that starting one gives you something to look at.
+    const w = (win.__WORLDS__ as Record<string, { docs: unknown[]; agents: unknown[] }>)[
+      out.scopeId
+    ];
+    assert.ok(w, "the new scope is reachable");
+    assert.equal(w.docs.length, 0);
+    assert.equal(w.agents.length, 0);
+  });
+
+  it("refuses to start a project with no owner", async () => {
+    const { win } = await installShim();
+    const r = await (win.fetch as typeof fetch)("/project", {
+      method: "POST",
+      body: JSON.stringify({ name: "COCLEA-SR" }),
+    });
+    assert.equal(r.status, 400);
+  });
+
   it("refuses to create a gated document that names no checks", async () => {
     const { win } = await installShim();
     const r = await (win.fetch as typeof fetch)("/flow", {

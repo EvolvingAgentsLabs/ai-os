@@ -255,7 +255,7 @@ export const SIMULATION_JS = String.raw`
     const url = typeof input === 'string' ? input : (input && input.url) || '';
     // Anything not one of the desk's own three endpoints goes to the network,
     // so this shim cannot silently swallow a call somebody adds later.
-    if (!/^\/(state|layout|flow|assign|unassign|advance|fork|ask)/.test(url)) return real(input, init);
+    if (!/^\/(state|layout|project|flow|assign|unassign|advance|fork|ask)/.test(url)) return real(input, init);
     const body = init && init.body ? JSON.parse(init.body) : {};
 
     if (url.indexOf('/state') === 0) return json(stateBody());
@@ -263,6 +263,29 @@ export const SIMULATION_JS = String.raw`
     if (url.indexOf('/layout') === 0) {
       world.layout = body.layout;
       return json({ ok: true });
+    }
+
+    if (url.indexOf('/project') === 0) {
+      // Starting a project, in the page.
+      //
+      // The new scope is added to the selector and to the embedded worlds, and
+      // it is **empty** -- no documents, no agents. That is what the real route
+      // returns, and a mock that handed back a furnished project would teach
+      // that starting one gives you something to look at.
+      var pname = (body.name || '').trim();
+      if (!pname) return json({ error: 'a project needs a name' }, 400);
+      if (!body.actorId && !body.ownerId) return json({ error: 'ownerId is required — a project records who it belongs to' }, 400);
+      var slug = pname.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'project';
+      var pid = 'p' + (Object.keys(worlds).length + 1);
+      var newScope = 'group:' + slug + '-' + pid;
+      worlds[newScope] = { docs: [], agents: [], layout: { scopeId: newScope, docs: {}, cubes: {} }, notes: [] };
+      const sel = document.getElementById('scope');
+      if (sel) {
+        const opt = document.createElement('option');
+        opt.value = newScope; opt.textContent = newScope;
+        sel.appendChild(opt);
+      }
+      return json({ ok: true, id: pid, name: pname, scopeId: newScope });
     }
 
     if (url.indexOf('/flow') === 0) {

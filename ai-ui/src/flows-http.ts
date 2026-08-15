@@ -150,6 +150,15 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
      * a flow with no actor is not created rather than created and attributed to
      * a service account.
      */
+    async createProject(input: { name: string; ownerId: string }) {
+      const r = await call<{ id: string; name: string; scopeId: string }>(
+        "POST",
+        "/projects",
+        input,
+      );
+      return { id: r.id, name: r.name, scopeId: r.scopeId };
+    },
+
     async createFlow(input: {
       scopeId: string;
       actorId: string;

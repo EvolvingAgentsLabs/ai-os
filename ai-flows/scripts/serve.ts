@@ -217,6 +217,24 @@ const server = createFlowServer({
   // look like", and the desk would draw cubes the explorer does not have.
   conformation,
   /**
+   * Where a project starts.
+   *
+   * The scope id is derived the same way `scripts/seed-cochlea.ts` derives it —
+   * `group:<slug>-<projectId>` — rather than invented here. A second rule for
+   * naming scopes would mean a project created from the desk and one created by
+   * a seed script land in namespaces that only look alike.
+   */
+  async createProject({ name, ownerId }) {
+    const project = await projects.create({ name, ownerId });
+    const slug =
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 40) || "project";
+    return { id: project.id, name: project.name, scopeId: `group:${slug}-${project.id}` };
+  },
+  /**
    * The model seam behind `POST /flows/:id/ask` ([ask.ts](../src/ask.ts)).
    *
    * A synchronous turn rather than the queued one a step uses: a person is
