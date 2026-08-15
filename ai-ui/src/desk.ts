@@ -1411,6 +1411,60 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
     projName.focus();
   });
   document.getElementById('newprojcancel').addEventListener('click', closeProj);
+
+  /** Writing an agent, from the desk. The file IS the agent — nothing else happens. */
+  var agForm = document.getElementById('newagentform');
+  function closeAg() { agForm.style.display = 'none'; }
+  document.getElementById('newagent').addEventListener('click', function () {
+    if (agForm.style.display !== 'none') { closeAg(); return; }
+    agForm.style.display = 'block';
+    document.getElementById('agname').focus();
+  });
+  document.getElementById('agcancel').addEventListener('click', closeAg);
+  document.getElementById('agcreate').addEventListener('click', async () => {
+    var list = (v) => (v || '').split(',').map((x) => x.trim()).filter(Boolean);
+    try {
+      var r = await post('/agent', {
+        scopeId: S.scopeId,
+        name: (document.getElementById('agname').value || '').trim(),
+        description: document.getElementById('agdesc').value || '',
+        tools: list(document.getElementById('agtools').value),
+        subagents: list(document.getElementById('agsubs').value),
+        instructions: document.getElementById('aginstr').value || ''
+      });
+      closeAg();
+      say('Wrote ' + r.path + '. Drop it on a document to give it a step.', 6000);
+      await refresh();
+    } catch (e) {
+      // The refusal comes from ai-flows and is shown verbatim: it names the
+      // field and the reason, and a desk that replaced it with "invalid" would
+      // be hiding the only useful part.
+      say(e.message, 8000);
+    }
+  });
+
+  /** Putting material in. Goes to the sandbox, and says what the sandbox saw. */
+  var flForm = document.getElementById('newfileform');
+  function closeFl() { flForm.style.display = 'none'; }
+  document.getElementById('newfile').addEventListener('click', function () {
+    if (flForm.style.display !== 'none') { closeFl(); return; }
+    flForm.style.display = 'block';
+    document.getElementById('flpath').focus();
+  });
+  document.getElementById('flcancel').addEventListener('click', closeFl);
+  document.getElementById('flcreate').addEventListener('click', async () => {
+    try {
+      var r = await post('/file', {
+        scopeId: S.scopeId,
+        path: (document.getElementById('flpath').value || '').trim(),
+        content: document.getElementById('flbody').value || ''
+      });
+      closeFl();
+      // What the sandbox reported, not what was sent. The desk must not be able
+      // to say "written" about a write it did not observe.
+      say(r.path + ' — ' + r.verifiedInSandbox, 7000);
+    } catch (e) { say(e.message, 8000); }
+  });
   document.getElementById('newprojcreate').addEventListener('click', async () => {
     var name = (projName.value || '').trim();
     if (!name) { say('A project needs a name.'); return; }
@@ -1524,9 +1578,32 @@ export function renderDeskHtml(view: DeskView): string {
   <span class="sep">|</span>
   <span id="counts">${esc(view.docs.length)} document(s) · ${esc(view.agents.length)} agent(s) · ${esc(view.people.length)} person(s)</span>
   <button id="newproj">New project</button>
+  <button id="newagent">New agent</button>
+  <button id="newfile">Add material</button>
   <button id="newdoc">New document</button>
   <button id="reload">Refresh</button>
   <span class="right">harness ${esc(view.harness)} · <span id="stamp">${esc(new Date(view.at).toISOString())}</span></span>
+</div>
+<div class="win newform" id="newagentform" style="display:none">
+  <div class="bar"><span class="box"></span><h2>New agent</h2><span class="box zoom"></span></div>
+  <div class="win-body">
+    <label>Name <input id="agname" type="text" placeholder="DERIVADOR"></label>
+    <label>What it is for <input id="agdesc" type="text" placeholder="Derives the closed forms every gate is checked against"></label>
+    <label>Tools <input id="agtools" type="text" value="read, execute" placeholder="read, write, execute, search"></label>
+    <label>Subagents <input id="agsubs" type="text" placeholder="VERIFICADOR-MATH (optional)"></label>
+    <label>Instructions <textarea id="aginstr" rows="5" placeholder="You derive the analytic truth. You never check your own derivation against the solver."></textarea></label>
+    <p class="dim">An agent is a markdown file. This writes agents/&lt;name&gt;.md into this project.</p>
+    <div class="row"><button id="agcreate">Write it</button><button id="agcancel">Cancel</button></div>
+  </div>
+</div>
+<div class="win newform" id="newfileform" style="display:none">
+  <div class="bar"><span class="box"></span><h2>Add material</h2><span class="box zoom"></span></div>
+  <div class="win-body">
+    <label>Path <input id="flpath" type="text" placeholder="COCLEA-SR-SPEC.md"></label>
+    <label>Contents <textarea id="flbody" rows="8" placeholder="Paste the specification, the dataset, the note…"></textarea></label>
+    <p class="dim">Goes into this project's sandbox — where its agents can read and run it — and is confirmed from inside it.</p>
+    <div class="row"><button id="flcreate">Put it in</button><button id="flcancel">Cancel</button></div>
+  </div>
 </div>
 <div class="win newform" id="newprojform" style="display:none">
   <div class="bar"><span class="box"></span><h2>New project</h2><span class="box zoom"></span></div>

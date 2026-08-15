@@ -827,6 +827,60 @@ describe("a gated flow on the simulated desk", () => {
     assert.equal(w.agents.length, 0);
   });
 
+  it("writes an agent, and the new cube is on the desk", async () => {
+    const { win } = await installShim();
+    const count = async () => {
+      const st = await (win.fetch as typeof fetch)("/state");
+      return ((await st.json()) as { agents: unknown[] }).agents.length;
+    };
+    const before = await count();
+    const r = await (win.fetch as typeof fetch)("/agent", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "DERIVADOR",
+        description: "Derives the closed forms.",
+        tools: ["read", "execute"],
+        instructions: "You derive the analytic truth.",
+      }),
+    });
+    const out = (await r.json()) as { path: string };
+    assert.equal(out.path, "agents/DERIVADOR.md");
+    // Read through /state, the way the page does. Reaching into __DESK__ would
+    // assert about a copy and pass over a shim that never told the desk.
+    assert.equal(await count(), before + 1);
+  });
+
+  /**
+   * The refusal that matters. `tools: [excecute]` produces a file that loads
+   * without complaint and an agent that silently cannot run anything, and a
+   * mock that accepted it would teach the gesture as safe.
+   */
+  it("refuses a misspelled tool, here as in production", async () => {
+    const { win } = await installShim();
+    const r = await (win.fetch as typeof fetch)("/agent", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "TYPO",
+        description: "d",
+        tools: ["read", "excecute"],
+        instructions: "i",
+      }),
+    });
+    assert.equal(r.status, 400);
+    assert.match(JSON.stringify(await r.json()), /excecute/);
+  });
+
+  it("refuses material on a path that climbs out of the scope", async () => {
+    const { win } = await installShim();
+    for (const path of ["../../etc/passwd", "/etc/passwd"]) {
+      const r = await (win.fetch as typeof fetch)("/file", {
+        method: "POST",
+        body: JSON.stringify({ path, content: "x" }),
+      });
+      assert.equal(r.status, 400, `"${path}" must be refused here too`);
+    }
+  });
+
   it("refuses to start a project with no owner", async () => {
     const { win } = await installShim();
     const r = await (win.fetch as typeof fetch)("/project", {

@@ -249,13 +249,14 @@ export const SIMULATION_JS = String.raw`
    * the halt names exactly that one, so the two cannot drift apart unnoticed.
    */
   const GREEN_GATES = new Set(['A01', 'A08', 'A12']);
+  const KNOWN_TOOLS = ['read', 'write', 'execute', 'search'];
 
   const real = window.fetch.bind(window);
   window.fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : (input && input.url) || '';
     // Anything not one of the desk's own three endpoints goes to the network,
     // so this shim cannot silently swallow a call somebody adds later.
-    if (!/^\/(state|layout|project|flow|assign|unassign|advance|fork|ask)/.test(url)) return real(input, init);
+    if (!/^\/(state|layout|project|agent|file|flow|assign|unassign|advance|fork|ask)/.test(url)) return real(input, init);
     const body = init && init.body ? JSON.parse(init.body) : {};
 
     if (url.indexOf('/state') === 0) return json(stateBody());
@@ -286,6 +287,40 @@ export const SIMULATION_JS = String.raw`
         sel.appendChild(opt);
       }
       return json({ ok: true, id: pid, name: pname, scopeId: newScope });
+    }
+
+    if (url.indexOf('/agent') === 0) {
+      // Writing an agent, in the page. The validation is the same rule the real
+      // route applies, and the unknown-tool refusal is the one that matters:
+      // tools: [excecute] loads without complaint and the agent silently cannot
+      // run anything.
+      var an = (body.name || '').trim();
+      if (!/^[A-Za-z][A-Za-z0-9-]{0,39}$/.test(an)) return json({ error: 'an agent needs a name' }, 400);
+      if (!(body.description || '').trim()) return json({ error: 'an agent needs a description — it is what a person reads when choosing one' }, 400);
+      if (!(body.instructions || '').trim()) return json({ error: 'an agent needs instructions — a file with frontmatter and no body declares a name and no behaviour' }, 400);
+      var tools = body.tools || [];
+      if (!tools.length) return json({ error: 'an agent needs at least one tool, from: read, write, execute, search' }, 400);
+      var bad = tools.filter((t) => KNOWN_TOOLS.indexOf(t) < 0);
+      if (bad.length) return json({ error: 'unknown tool(s): ' + bad.join(', ') + '. Known: ' + KNOWN_TOOLS.join(', ') }, 400);
+      world.agents.push({
+        name: an, description: body.description,
+        tools: tools, subagents: body.subagents || [], missing: false,
+      });
+      return json({ ok: true, name: an, path: 'agents/' + an + '.md' });
+    }
+
+    if (url.indexOf('/file') === 0) {
+      // Material goes to the sandbox. There is no sandbox in a page, so the mock
+      // reports what one would have reported -- and refuses the same paths,
+      // because a path refused in production and accepted here is the drift
+      // this whole shim exists to prevent.
+      var fp = (body.path || '').trim();
+      if (!fp) return json({ error: 'path is required' }, 400);
+      if (fp.charAt(0) === '/' || fp.split('/').indexOf('..') >= 0) {
+        return json({ error: 'path must be relative and may not climb out of the scope' }, 400);
+      }
+      var n = (body.content || '').length;
+      return json({ ok: true, path: fp, verifiedInSandbox: n + ' of ' + n + ' bytes present' });
     }
 
     if (url.indexOf('/flow') === 0) {
