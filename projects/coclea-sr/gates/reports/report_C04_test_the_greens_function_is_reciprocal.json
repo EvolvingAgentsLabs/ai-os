@@ -1,0 +1,18 @@
+{
+  "G_ab": [
+    -0.035904987360693405,
+    0.026848506580111
+  ],
+  "G_ba": [
+    -0.03590498736069345,
+    0.026848506580111037
+  ],
+  "a": 0.22,
+  "b": 0.55,
+  "failure": null,
+  "gate": "C04",
+  "passed": true,
+  "relative_difference": 1.259749033187741e-15,
+  "spec": "ADR-0003",
+  "test": "test_the_greens_function_is_reciprocal"
+}

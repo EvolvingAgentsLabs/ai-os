@@ -174,3 +174,117 @@ def sr_curve(
 
     return SRCurve(probe_x=float(ms0.probe_x[0]), drive_omega=drive_omega,
                    theta=theta, points=points)
+
+
+# --- the same curve, on the operator that has a place code -------------------
+
+def tl_sr_curve(
+    profile,
+    probe_x: float,
+    drive_omega: float,
+    *,
+    beta: float,
+    sigma_grid: np.ndarray | None = None,
+    noise_grid: np.ndarray | None = None,
+    stapes_drive: float | None = None,
+    N: int = 1000,
+    n_spectrum: int = 200,
+    omega_band: tuple[float, float] | None = None,
+    theta: float | None = None,
+    subthreshold_fraction: float = 0.5,
+    n_seeds: int = 20,
+    n_periods: int = 200,
+    samples_per_period: int = 200,
+    tau_ref: float = 0.0,
+    master_seed: int = 20260815,
+    n_boot: int = 2000,
+) -> SRCurve:
+    """SR curve at one probe of the **transmission line**. ADR-0003.
+
+    Same detector, same estimator, same bootstrap as `sr_curve` — deliberately,
+    so a difference between the two is a difference in the operator and not in
+    the instrument. What changes is where the field comes from: a spectrum
+    computed once per frequency by reciprocity, synthesised into a stationary
+    Gaussian series, with the stapes-driven tone superposed analytically.
+
+    ## Two modes, and only one of them can answer a spatial question
+
+    **`sigma_grid`** normalises: the noise is scaled so the probe sees exactly
+    this ``sigma``, ``theta`` follows from it, and the tone is scaled to a fixed
+    fraction of ``theta``. Every probe is then placed at the *same operating
+    point*. Good for asking "does this probe show stochastic resonance"; useless
+    for asking "which probe shows it most", because it **normalises away exactly
+    the quantity the spatial question is about**.
+
+    E5 was first written that way and produced a peak-SNR curve flat to 1.5 dB
+    across the whole membrane, at every frequency — the pre-registered condition
+    failed, and the cause was the instrument rather than the physics.
+
+    **`noise_grid` + `stapes_drive`** is the physical mode: one noise intensity
+    for the whole membrane, one threshold, one drive at the stapes, and whatever
+    the traveling wave delivers at each position is what the detector there
+    sees. That is the only arrangement in which "the resonance is sharpest where
+    the membrane is tuned" is a statement about the membrane.
+    """
+    if (sigma_grid is None) == (noise_grid is None):
+        raise ValueError("give exactly one of sigma_grid (normalised) or noise_grid (physical)")
+    from . import tl_stochastic
+
+    lo, hi = omega_band or (drive_omega / 40.0, drive_omega * 40.0)
+    w = np.geomspace(lo, hi, n_spectrum)
+    spec = tl_stochastic.probe_spectrum(profile, N, w, beta, probe_x)
+
+    unit_var = spec.variance(1.0)
+    if noise_grid is not None:
+        # Physical mode: D is given, sigma is whatever the membrane delivers here.
+        grid = np.asarray(noise_grid, dtype=float)
+        sigmas = np.sqrt(grid * unit_var)
+        if theta is None:
+            raise ValueError("physical mode needs an explicit theta, shared across probes")
+    else:
+        grid = None
+        sigmas = np.asarray(sigma_grid, dtype=float)
+        theta = theta if theta is not None else calibrate.calibrate_threshold(
+            float(np.median(sigmas))
+        )
+
+    tone_c = tl_stochastic.tone_at_probe(profile, N, drive_omega, beta, probe_x, 1.0)
+    if abs(tone_c) <= 0:
+        raise ValueError(f"probe {probe_x} has no response at Omega={drive_omega}")
+    if stapes_drive is not None:
+        # Whatever the wave actually delivers here from a fixed drive at the base.
+        tone_amp = float(abs(tone_c) * stapes_drive)
+    else:
+        tone_amp = subthreshold_fraction * theta
+    phase = float(np.angle(tone_c))
+
+    period = 2.0 * np.pi / drive_omega
+    dt = period / samples_per_period
+    n_steps = int(round(n_periods * samples_per_period))
+    t = np.arange(n_steps) * dt
+
+    seeds = np.random.SeedSequence(master_seed).spawn(len(sigmas))
+
+    points: list[SRPoint] = []
+    for k, (s_target, seed) in enumerate(zip(sigmas, seeds)):
+        D = float(grid[k]) if grid is not None else float(s_target**2 / unit_var)
+        rng = np.random.default_rng(seed)
+        y = tl_stochastic.synthesise(spec, D, n_steps, dt, rng, n_paths=n_seeds)
+        y = y + tone_amp * np.cos(drive_omega * t + phase)[None, :]
+        v = y[:, :, None]  # (paths, steps, one probe) -- the detector's shape
+
+        ev = detector.threshold_events(v, t, theta, tau_ref)
+        boot_rng = np.random.default_rng(seed.spawn(1)[0])
+        points.append(
+            SRPoint(
+                sigma=float(s_target),
+                noise_intensity=D,
+                snr=analysis.snr_db(ev, t, drive_omega, 0, n_boot=n_boot, rng=boot_rng),
+                vs=analysis.vector_strength(ev, drive_omega, 0, n_boot=n_boot, rng=boot_rng),
+                event_rate=float(ev.rates().mean()),
+                tone_amplitude=float(tone_amp),
+            )
+        )
+
+    return SRCurve(probe_x=float(probe_x), drive_omega=drive_omega,
+                   theta=theta, points=points)

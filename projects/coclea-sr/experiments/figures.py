@@ -310,6 +310,47 @@ def figure_interactions():
             f"inverted U, which would produce a negative interaction on its own.")
 
 
+# --- E5: the answer to the central question ------------------------------------
+
+def figure_place_coded_resonance():
+    result, manifest, run_dir = load("e5-tl-resonance")
+    meta = stamp(manifest, run_dir)
+
+    fig, ax = plt.subplots(figsize=(7.0, 4.4))
+    colours = {"low": "#2f6fb5", "mid": "#c8781b", "high": "#6b4fa8"}
+    for band, colour in colours.items():
+        r = result["results"][band]
+        probes = r["probes"]
+        xs = sorted(probes, key=float)
+        peaks = [probes[k]["peak"] for k in xs]
+        sig = [probes[k]["significant_interior_maximum"] for k in xs]
+        px = [float(k) for k in xs]
+
+        ax.plot(px, peaks, "-", lw=1.6, color=colour,
+                label=f"{r['hz']:.0f} Hz   $x_{{cf}}$ = {r['x_cf']:.3f}")
+        # Filled where the interior maximum is significant, hollow where it is
+        # not: away from the tuned place there is no resonance, and drawing
+        # those points the same way would hide the result.
+        ax.scatter([p for p, k in zip(px, sig) if k], [v for v, k in zip(peaks, sig) if k],
+                   s=34, color=colour, zorder=3)
+        ax.scatter([p for p, k in zip(px, sig) if not k], [v for v, k in zip(peaks, sig) if not k],
+                   s=34, facecolors="none", edgecolors=colour, zorder=3)
+        ax.axvline(r["x_cf"], color=colour, ls=":", lw=1.1, alpha=0.8)
+
+    ax.set_xlabel("probe position along the membrane,  $x/L$   (base $\\to$ apex)")
+    ax.set_ylabel("peak SNR at the optimum  (dB)")
+    ax.set_title("Is the resonance sharpest where the membrane is tuned?", fontsize=10)
+    ax.legend(fontsize=8, frameon=False)
+    ax.grid(alpha=0.25, lw=0.5)
+
+    _finish(fig, "e5-place-coded-resonance.png", meta,
+            "ADR-0003 condition 3, and the question spec §R2 calls the interesting one. Dotted "
+            "lines mark x_cf, computed from the impedance alone with no field involved. Filled "
+            "markers have a statistically significant interior maximum; hollow ones do not — away "
+            "from the tuned place there is no stochastic resonance. One noise intensity, one "
+            "threshold and one stapes drive for the whole membrane.")
+
+
 def main() -> int:
     print("figures (each stamped with its run):")
     figure_sr_curve()
@@ -317,6 +358,7 @@ def main() -> int:
     figure_tonotopy()
     figure_physiological()
     figure_interactions()
+    figure_place_coded_resonance()
     print(f"\nprovenance is in the PNG metadata; read it with Pillow or `strings`.")
     return 0
 

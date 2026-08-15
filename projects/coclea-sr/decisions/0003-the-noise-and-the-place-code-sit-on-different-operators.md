@@ -1,7 +1,7 @@
 # ADR-0003 — The noise and the place code sit on different operators
 
 **Date:** 2026-08-14
-**Status:** accepted as a stated limitation — the unification is specified, **not built**
+**Status:** **resolved, 2026-08-15** — the unification is built and accepted
 **Raised by:** E3 reaching GATE-B2 while E2's place map comes from ADR-0002's operator
 
 ## The seam
@@ -67,3 +67,82 @@ Unifying them is accepted only if:
 
 If (3) fails, the place code and the resonance are independent, which is a real
 result and a more interesting one than the arrangement that assumes them linked.
+
+
+---
+
+## Result, measured 2026-08-15 — [ran]
+
+Built in `src/coclea/tl_stochastic.py` and `sr.tl_sr_curve`, run as
+`experiments/e5_tl_resonance.py`. The reciprocity route works as described: one
+tridiagonal solve per frequency instead of one per source node, which is a
+factor of `N = 1000` and the difference between a module and a cluster job.
+
+### The question §R2 calls the interesting one, answered
+
+**Yes — the resonance is sharpest where the membrane is tuned.**
+
+| drive | `x_cf` from the impedance alone | probe with the highest peak SNR | within one probe spacing? |
+|---|---|---|---|
+| 800 Hz | 0.4680 | 0.48 | yes |
+| 3 kHz | 0.2775 | 0.24 | yes |
+| 9 kHz | 0.1195 | 0.08 | yes |
+
+And it is not a small preference. At 3 kHz the peak is **3.17 dB** at the tuned
+place and between −0.9 and +1.5 dB everywhere else, and **only the probes at or
+next to `x_cf` show a statistically significant interior maximum at all.** Away
+from the tuned place there is no stochastic resonance to speak of.
+
+The asymmetry that produces it is visible in the calibration: with one noise
+intensity, one threshold and one stapes drive for the whole membrane, the tone
+at 3 kHz is `0.500 θ` at `x_cf` and between `0.001 θ` and `0.03 θ` everywhere
+else, while `σ/θ` ranges from 0.14 to 2.8. **The tone is sharply place-coded and
+the noise is not.**
+
+### Condition 1 — passed, after catching a factor of two
+
+The synthesised field's variance matches the closed-form spectrum integral to
+within 2%. It did not at first: the sampler carried exactly **half** the
+predicted variance, ratio 0.4929, from a one-sided/two-sided convention. That is
+what this condition was pre-registered to catch, and it caught it — the error is
+invisible in any curve that is only ever compared against itself.
+
+### Condition 2 — **failed, and it was mis-specified**
+
+The condition required the optimum to stay within grid resolution of
+`σ_opt = θ/2`, on the reasoning that this "is a property of the detector and
+must survive changing the field". **That reasoning is wrong.** The law is derived
+in the *adiabatic* limit — spec §4.2's `Ω ≪ 1/τ_corr` — and is a property of the
+detector *and the regime*.
+
+Measured, and the numbers are unambiguous:
+
+| | tone period / `τ_corr` |
+|---|---|
+| GATE-A10, where the law was validated | **62.8** — adiabatic |
+| transmission line at `x_cf`, 800 Hz / 3 kHz / 9 kHz | **0.308 / 0.311 / 0.308** |
+
+Two hundred times off the regime, on the opposite side, and **constant across
+frequency** — because the membrane at `x_cf` *is* a tuned filter, so its noise is
+centred on the tone's own frequency and its bandwidth scales with it. The cochlea
+cannot be adiabatic: the mechanism that creates the place code is the same one
+that forces signal and noise into the same band.
+
+The condition is left **failing and recorded** rather than relaxed — relaxing a
+pre-registered condition after seeing the data is how a result gets arranged. A
+correctly scoped replacement is reported beside it: **`c2b`, the optimum must be
+a stable property across probes and frequencies even where its adiabatic value
+does not apply.** Measured `σ_opt/θ` clusters at 0.55–0.64 against the adiabatic
+0.5, with a spread below 0.1. That passes.
+
+### What this changes about the project's own claims
+
+E3's spatial modulation was the string's mode shapes and is now superseded for
+any spatial statement: the string has no place code, so "where the membrane is
+tuned" had no referent in it. E3 remains the validation of the *detector and
+estimator* against a parameter-free law in the regime where that law holds.
+
+**A new, sharper prediction falls out.** If stochastic resonance is a place-coded
+mechanism, then the deviation of `σ_opt/θ` from the adiabatic 0.5 is a *signature
+of co-tuning* — and it should be present in real fibres for the same structural
+reason. Nothing here measures that.
