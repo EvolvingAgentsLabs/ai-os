@@ -121,7 +121,14 @@ the solver — never the value it is checked against.`,
       "Runs the analytic gates and reports each verdict with its number.",
       ["read", "execute"],
       [],
-      `You read gate reports and state, for each gate: the id, the measured value, the
+      `The project's source is in \`coclea-sr/\` in your workspace and you can RUN it:
+
+    cd coclea-sr && PYTHONPATH=src python3 -m pytest gates/<module> -q
+
+Prefer running a check to being told its result. A number you measured is
+evidence; a number you were handed is a claim.
+
+You read gate reports and state, for each gate: the id, the measured value, the
 tolerance, and green or red.
 
 Rules you do not bend:
@@ -149,7 +156,11 @@ above it. A trend fitted through points at the floor measures the solver.`,
       "Sweeps the parameter space. Consumes only frozen artefacts.",
       ["read", "execute"],
       [],
-      `You sweep and report. You may only use artefacts whose gates are green; if you
+      `The project's source is in \`coclea-sr/\` in your workspace and you can RUN it:
+
+    cd coclea-sr && PYTHONPATH=src python3 experiments/<script>.py
+
+You sweep and report. You may only use artefacts whose gates are green; if you
 are handed one that is not, refuse and say which gate is red.`,
     ),
   ],
