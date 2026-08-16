@@ -70,7 +70,7 @@ found.
 ## Running the gate
 
 ```bash
-.venv/bin/python -m pytest gates/ -q     # 111 checks
+.venv/bin/python -m pytest gates/ -q     # 113 checks, 23 gates
 
 # The whole suite runs for minutes -- A09 (Lyapunov) alone is >100s and A05 is
 # 12s, while everything else is sub-second. For a live demonstration use the

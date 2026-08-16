@@ -1,0 +1,35 @@
+{
+  "argmax_index": 4,
+  "argmax_value": 0.1,
+  "arm": "subthreshold",
+  "drive_fraction": 0.5,
+  "failure": null,
+  "gate": "B02",
+  "left_end": null,
+  "left_end_ci": [
+    null,
+    null
+  ],
+  "maximum_is_interior": true,
+  "non_finite_fields": [
+    "left_end",
+    "left_end_ci[0]",
+    "left_end_ci[1]"
+  ],
+  "passed": true,
+  "peak": 10.540798662366875,
+  "peak_ci": [
+    9.992978145104809,
+    11.152199859754733
+  ],
+  "right_end": 5.106363610165337,
+  "right_end_ci": [
+    3.5922195242628434,
+    6.449143640415283
+  ],
+  "separated_from_left": true,
+  "separated_from_right": true,
+  "significant_interior_maximum": true,
+  "spec": "4.3.4 / 11-R2",
+  "test": "test_b02_a_subthreshold_tone_shows_a_significant_interior_maximum"
+}
