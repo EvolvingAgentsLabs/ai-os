@@ -1,0 +1,25 @@
+[
+  {
+    "arm": "1:1",
+    "explorers": 3,
+    "verifiers": 3,
+    "rep": 1,
+    "flow_id": "f6cff1a9-f676-477d-80df-919f19c4a392",
+    "cost_usd": 0.06382517400004417,
+    "elapsed_s": 387.3124210834503,
+    "explorer_claims": [
+      1.00838,
+      1.01,
+      1.00838
+    ],
+    "verifier_claims": [
+      1.00833,
+      1.008191,
+      1.007
+    ],
+    "final": 1.008,
+    "correct": true,
+    "retraction": true,
+    "failed_steps": 0
+  }
+]
