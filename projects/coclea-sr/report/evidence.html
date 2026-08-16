@@ -1,0 +1,2587 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>COCLEA-SR — evidence</title><style>
+:root{--bg:#0f1115;--fg:#e6e8ee;--dim:#9aa3b2;--ok:#3fb950;--bad:#f85149;--card:#171a21;--line:#242833}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:32px 20px 80px}
+h1{font-size:26px;margin:0 0 4px} h2{font-size:17px;margin:34px 0 12px;color:var(--dim);
+  text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.sub{color:var(--dim);margin:0 0 22px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.badge.ok{background:rgba(63,185,80,.15);color:var(--ok);border:1px solid rgba(63,185,80,.4)}
+.badge.bad{background:rgba(248,81,73,.15);color:var(--bad);border:1px solid rgba(248,81,73,.4)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.card .k{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.card .v{font-size:22px;font-weight:650;margin-top:4px}
+.card .n{color:var(--dim);font-size:12px;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--fg);
+  border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;font-family:ui-monospace,monospace}
+.chip.ok{border-color:rgba(63,185,80,.45)} .chip.ok::before{content:"● ";color:var(--ok)}
+.chip.bad{border-color:rgba(248,81,73,.5)} .chip.bad::before{content:"● ";color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+pre{background:#0b0d11;border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;
+  max-height:340px;font-size:12px}
+button.verify{background:#1f6feb;color:#fff;border:0;border-radius:8px;padding:10px 16px;
+  font-size:14px;font-weight:600;cursor:pointer}
+button.verify:hover{background:#2f81f7}
+#vout{margin-top:12px;white-space:pre-wrap}
+.scroll{overflow-x:auto}
+</style></head><body><div class="wrap">
+
+<h1>COCLEA-SR <span class="badge ok">
+attested · 23/23 gates</span></h1>
+<p class="sub">Physiological noise as a functional mechanism: stochastic resonance
+lets subthreshold basilar-membrane displacements cross the spiral-ganglion firing
+threshold. Hypothesis formulated ~1995; this page is generated from the run
+ledger, not written.</p>
+
+<div class="grid">
+  <div class="card"><div class="k">Ledger</div><div class="v">28</div>
+    <div class="n">hash-chained entries</div></div>
+  <div class="card"><div class="k">Gates</div><div class="v">23</div>
+    <div class="n">113 checks, 0 red</div></div>
+  <div class="card"><div class="k">GATE-B2 peak SNR</div><div class="v">10.54 dB</div>
+    <div class="n">significant interior maximum</div></div>
+  <div class="card"><div class="k">Attested runs</div><div class="v">13</div>
+    <div class="n">manifest + seed + commit</div></div>
+</div>
+
+<h2>Verify it yourself</h2>
+<p class="sub">This re-links the hash chain in your browser from the ledger embedded
+below. You are not asked to trust the badge above.</p>
+<button class="verify" onclick="verify()">Verify ledger</button>
+<div id="vout"></div>
+
+<h2>Gates</h2>
+<p class="sub">Click a gate for the measurements it recorded. Every check writes its
+report whether it passed or failed — the run somebody needs to read is the one
+that went red.</p>
+<div class="chips"><button class="chip ok" onclick="showGate('A01')">A01 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('A02')">A02 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('A03')">A03 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A04')">A04 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('A05')">A05 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A06')">A06 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A07')">A07 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A08')">A08 <span style="color:var(--dim);font-weight:400">8</span></button><button class="chip ok" onclick="showGate('A09')">A09 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A10')">A10 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A11')">A11 <span style="color:var(--dim);font-weight:400">14</span></button><button class="chip ok" onclick="showGate('A12')">A12 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A13')">A13 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A14')">A14 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('B02')">B02 <span style="color:var(--dim);font-weight:400">2</span></button><button class="chip ok" onclick="showGate('C01')">C01 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('C02')">C02 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('C03')">C03 <span style="color:var(--dim);font-weight:400">9</span></button><button class="chip ok" onclick="showGate('C04')">C04 <span style="color:var(--dim);font-weight:400">8</span></button><button class="chip ok" onclick="showGate('H1')">H1 <span style="color:var(--dim);font-weight:400">1</span></button><button class="chip ok" onclick="showGate('H2')">H2 <span style="color:var(--dim);font-weight:400">1</span></button><button class="chip ok" onclick="showGate('H3')">H3 <span style="color:var(--dim);font-weight:400">2</span></button><button class="chip ok" onclick="showGate('H4')">H4 <span style="color:var(--dim);font-weight:400">7</span></button></div>
+<div class="gate-detail" id="g-A01" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A01 — 3 check(s)</h3><pre>[
+  {
+    &quot;N&quot;: 2000,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A01&quot;,
+    &quot;margin&quot;: 10.77768525830811,
+    &quot;max_relative_error&quot;: 9.278430164112816e-06,
+    &quot;n_modes&quot;: 10,
+    &quot;omega_numeric&quot;: [
+      1.570796286296149,
+      4.712387890316369,
+      7.853976587301744,
+      10.995560439752957,
+      14.13713750943339,
+      17.278705858629415,
+      20.420263549524392,
+      23.561808644134416,
+      26.703339204618825,
+      29.84485329314665
+    ],
+    &quot;omega_truth&quot;: [
+      1.5707963267948966,
+      4.71238898038469,
+      7.853981633974483,
+      10.995574287564276,
+      14.137166941154069,
+      17.27875959474386,
+      20.420352248333657,
+      23.561944901923447,
+      26.703537555513243,
+      29.845130209103033
+    ],
+    &quot;passed&quot;: true,
+    &quot;relative_error&quot;: [
+      2.578230339342244e-08,
+      2.3131968211427189e-07,
+      6.425623299834107e-07,
+      1.2593986413814933e-06,
+      2.0818683687392247e-06,
+      3.109952086005285e-06,
+      4.343647366405271e-06,
+      5.782960175726299e-06,
+      7.4278883090379635e-06,
+      9.278430164112816e-06
+    ],
+    &quot;spec&quot;: &quot;2.2 / 2.4&quot;,
+    &quot;test&quot;: &quot;test_eigenvalues_match_the_closed_form&quot;,
+    &quot;tolerance&quot;: 0.0001
+  },
+  {
+    &quot;expected_ratios&quot;: [
+      1,
+      3,
+      5,
+      7,
+      9,
+      11,
+      13,
+      15,
+      17,
+      19
+    ],
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A01&quot;,
+    &quot;passed&quot;: true,
+    &quot;ratios&quot;: [
+      1.0,
+      2.999999383387848,
+      4.9999969160997875,
+      6.999991364685411,
+      8.999981495224935,
+      10.999966074131516,
+      12.999943867752735,
+      14.999913642329687,
+      16.99987416419466,
+      18.999824199686113
+    ],
+    &quot;spec&quot;: &quot;2.2 / 2.4&quot;,
+    &quot;test&quot;: &quot;test_only_odd_harmonics_appear&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A01&quot;,
+    &quot;max_relation_residual&quot;: 2.939771298590236e-15,
+    &quot;passed&quot;: true,
+    &quot;relation&quot;: &quot;Eq(cos(L*omega/c), 0)&quot;,
+    &quot;spec&quot;: &quot;2.2 / 2.4&quot;,
+    &quot;test&quot;: &quot;test_the_derivation_behind_the_truth_value_still_holds&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-A02" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A02 — 3 check(s)</h3><pre>[
+  {
+    &quot;N&quot;: 2000,
+    &quot;alpha&quot;: 3.0,
+    &quot;case&quot;: &quot;exponential&quot;,
+    &quot;cross_tolerance&quot;: 0.0001,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A02&quot;,
+    &quot;max_cross_offdiagonal&quot;: 6.274766405997314e-07,
+    &quot;min_abs_cross_diagonal&quot;: 0.9999999999994257,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.3 property 2&quot;,
+    &quot;test&quot;: &quot;test_it_holds_with_a_varying_coefficient&quot;
+  },
+  {
+    &quot;N&quot;: 2000,
+    &quot;case&quot;: &quot;uniform&quot;,
+    &quot;cross_tolerance&quot;: 0.0001,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A02&quot;,
+    &quot;max_cross_offdiagonal&quot;: 4.587747280128212e-13,
+    &quot;min_abs_cross_diagonal&quot;: 0.9999999999999987,
+    &quot;n_modes&quot;: 10,
+    &quot;passed&quot;: true,
+    &quot;simpson_gram_note&quot;: &quot;same continuous integral under a quadrature the solver does not use; its size is the grid&#x27;s discretisation error, and it falls with N.&quot;,
+    &quot;simpson_gram_offdiagonal&quot;: 1.3388843500538977e-15,
+    &quot;spec&quot;: &quot;2.3 property 2&quot;,
+    &quot;structural_gram_note&quot;: &quot;identity by construction: eigh_tridiagonal returns an orthonormal basis and eigenmodes scales it by M^-1/2. Diagnostic, not evidence.&quot;,
+    &quot;structural_gram_offdiagonal&quot;: 2.220446049250313e-15,
+    &quot;test&quot;: &quot;test_numeric_modes_are_orthogonal_to_the_closed_form_family&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A02&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.3 property 2&quot;,
+    &quot;structural&quot;: true,
+    &quot;structural_gram_offdiagonal&quot;: 2.220446049250313e-15,
+    &quot;test&quot;: &quot;test_the_structural_gram_meets_the_spec_bar_and_is_labelled_as_structural&quot;,
+    &quot;tolerance&quot;: 1e-08
+  }
+]</pre></div><div class="gate-detail" id="g-A03" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A03 — 4 check(s)</h3><pre>[
+  {
+    &quot;alpha&quot;: 3.0,
+    &quot;case&quot;: &quot;exponential&quot;,
+    &quot;counts&quot;: [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    &quot;expected&quot;: [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A03&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.3 property 3&quot;,
+    &quot;test&quot;: &quot;test_it_holds_on_the_exponential_membrane&quot;
+  },
+  {
+    &quot;case&quot;: &quot;reference-with-ground-term&quot;,
+    &quot;counts&quot;: [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    &quot;coupling&quot;: 0.02,
+    &quot;expected&quot;: [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A03&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.3 property 3&quot;,
+    &quot;test&quot;: &quot;test_it_holds_with_the_ground_term&quot;
+  },
+  {
+    &quot;N&quot;: 2000,
+    &quot;case&quot;: &quot;uniform&quot;,
+    &quot;counts&quot;: [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    &quot;expected&quot;: [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A03&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.3 property 3&quot;,
+    &quot;test&quot;: &quot;test_mode_n_has_n_minus_one_interior_zeros&quot;
+  },
+  {
+    &quot;case&quot;: &quot;deliberate-defect&quot;,
+    &quot;counts&quot;: [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    &quot;discriminates&quot;: false,
+    &quot;expected&quot;: [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A03&quot;,
+    &quot;note&quot;: &quot;A3 cannot see an O(dx) boundary mass error. GATE-A12 can.&quot;,
+    &quot;passed&quot;: true,
+    &quot;scheme&quot;: &quot;lumped-full-cell&quot;,
+    &quot;spec&quot;: &quot;2.3 property 3&quot;,
+    &quot;test&quot;: &quot;test_the_deliberate_defect_passes_this_gate&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-A04" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A04 — 3 check(s)</h3><pre>[
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A04&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.3 property 4 / 2.6&quot;,
+    &quot;test&quot;: &quot;test_more_modes_reconstruct_better&quot;,
+    &quot;truncation_curve&quot;: {
+      &quot;100&quot;: 1.4764031794891507e-06,
+      &quot;200&quot;: 2.622234486860789e-07,
+      &quot;25&quot;: 4.2661104206794815e-05,
+      &quot;50&quot;: 8.188359356447423e-06
+    }
+  },
+  {
+    &quot;N&quot;: 2000,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A04&quot;,
+    &quot;n_modes&quot;: 200,
+    &quot;passed&quot;: true,
+    &quot;relative_L2_error&quot;: {
+      &quot;gaussian_bump&quot;: 2.622234486860789e-07,
+      &quot;localised&quot;: 3.989198748980532e-07,
+      &quot;smoothstep&quot;: 3.549024715175176e-07
+    },
+    &quot;spec&quot;: &quot;2.3 property 4 / 2.6&quot;,
+    &quot;test&quot;: &quot;test_projection_and_reconstruction_round_trip&quot;,
+    &quot;tolerance&quot;: 1e-06,
+    &quot;worst&quot;: 3.989198748980532e-07
+  },
+  {
+    &quot;energy_share_beyond_mode_5&quot;: {
+      &quot;gaussian_bump&quot;: 0.013715372088662038,
+      &quot;localised&quot;: 0.004259205147140817,
+      &quot;smoothstep&quot;: 1.3734151134708106e-05
+    },
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A04&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.3 property 4 / 2.6&quot;,
+    &quot;test&quot;: &quot;test_the_test_functions_are_not_finite_modal_sums&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-A05" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A05 — 4 check(s)</h3><pre>[
+  {
+    &quot;N&quot;: 200,
+    &quot;alpha&quot;: 3.0,
+    &quot;case&quot;: &quot;exponential&quot;,
+    &quot;dt&quot;: 0.00045440325246628066,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A05&quot;,
+    &quot;measured_over_predicted&quot;: 0.9893007542741037,
+    &quot;n_steps&quot;: 523409,
+    &quot;omega_1&quot;: 2.6417817805558537,
+    &quot;passed&quot;: true,
+    &quot;predicted_bound&quot;: 5e-07,
+    &quot;relative_drift&quot;: 4.946503771370518e-07,
+    &quot;spec&quot;: &quot;2.4 / 5.3&quot;,
+    &quot;test&quot;: &quot;test_a_varying_profile_conserves_too&quot;,
+    &quot;tolerance&quot;: 1e-06
+  },
+  {
+    &quot;N&quot;: 200,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A05&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.4 / 5.3&quot;,
+    &quot;stability_limit&quot;: 0.007071067811865475,
+    &quot;test&quot;: &quot;test_it_refuses_a_step_beyond_the_stability_limit&quot;
+  },
+  {
+    &quot;N&quot;: 200,
+    &quot;dt&quot;: 0.0004838028943651966,
+    &quot;energy_initial&quot;: 1.470625609268609,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A05&quot;,
+    &quot;measured_over_predicted&quot;: 0.9999491202837866,
+    &quot;modal_energy_share&quot;: [
+      0.8388907418922176,
+      0.11796415937193168,
+      0.028764994955199547,
+      0.010033082258650582,
+      0.00434702152200071
+    ],
+    &quot;n_periods&quot;: 100,
+    &quot;n_steps&quot;: 826783,
+    &quot;passed&quot;: true,
+    &quot;predicted_bound&quot;: 5.000000000000002e-07,
+    &quot;relative_drift&quot;: 4.999745601418935e-07,
+    &quot;spec&quot;: &quot;2.4 / 5.3&quot;,
+    &quot;test&quot;: &quot;test_the_energy_stays_bounded_over_a_hundred_periods&quot;,
+    &quot;tolerance&quot;: 1e-06
+  },
+  {
+    &quot;early_window_drift&quot;: 4.999745601418935e-07,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A05&quot;,
+    &quot;late_window_drift&quot;: 4.832907939676494e-07,
+    &quot;passed&quot;: true,
+    &quot;ratio&quot;: 0.9666307698345508,
+    &quot;spec&quot;: &quot;2.4 / 5.3&quot;,
+    &quot;test&quot;: &quot;test_the_error_is_bounded_and_not_drifting&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-A06" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A06 — 6 check(s)</h3><pre>[
+  {
+    &quot;failure&quot;: null,
+    &quot;fraction_lost_by_zeta&quot;: {
+      &quot;0.01&quot;: 0.7981119017392835,
+      &quot;0.05&quot;: 0.9996657165448777,
+      &quot;0.2&quot;: 0.9999999999999883
+    },
+    &quot;gate&quot;: &quot;A06&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.4&quot;,
+    &quot;test&quot;: &quot;test_more_damping_dissipates_more&quot;
+  },
+  {
+    &quot;N&quot;: 200,
+    &quot;dt&quot;: 0.0005,
+    &quot;energy_dissipated&quot;: 1.1737231737297686,
+    &quot;energy_lost&quot;: 1.173723801759862,
+    &quot;failure&quot;: null,
+    &quot;fraction_of_initial_energy_lost&quot;: 0.7981119017392835,
+    &quot;gate&quot;: &quot;A06&quot;,
+    &quot;n_periods&quot;: 20,
+    &quot;passed&quot;: true,
+    &quot;relative_residual&quot;: 5.350748551934227e-07,
+    &quot;spec&quot;: &quot;2.4&quot;,
+    &quot;test&quot;: &quot;test_the_energy_balance_closes_0.01&quot;,
+    &quot;tolerance&quot;: 0.0001,
+    &quot;zeta0&quot;: 0.01
+  },
+  {
+    &quot;N&quot;: 200,
+    &quot;dt&quot;: 0.0005,
+    &quot;energy_dissipated&quot;: 1.470133218660237,
+    &quot;energy_lost&quot;: 1.4701340034587513,
+    &quot;failure&quot;: null,
+    &quot;fraction_of_initial_energy_lost&quot;: 0.9996657165448777,
+    &quot;gate&quot;: &quot;A06&quot;,
+    &quot;n_periods&quot;: 20,
+    &quot;passed&quot;: true,
+    &quot;relative_residual&quot;: 5.338278772892737e-07,
+    &quot;spec&quot;: &quot;2.4&quot;,
+    &quot;test&quot;: &quot;test_the_energy_balance_closes_0.05&quot;,
+    &quot;tolerance&quot;: 0.0001,
+    &quot;zeta0&quot;: 0.05
+  },
+  {
+    &quot;N&quot;: 200,
+    &quot;dt&quot;: 0.0005,
+    &quot;energy_dissipated&quot;: 1.4706248288075334,
+    &quot;energy_lost&quot;: 1.4706256092685919,
+    &quot;failure&quot;: null,
+    &quot;fraction_of_initial_energy_lost&quot;: 0.9999999999999883,
+    &quot;gate&quot;: &quot;A06&quot;,
+    &quot;n_periods&quot;: 20,
+    &quot;passed&quot;: true,
+    &quot;relative_residual&quot;: 5.30700032372862e-07,
+    &quot;spec&quot;: &quot;2.4&quot;,
+    &quot;test&quot;: &quot;test_the_energy_balance_closes_0.2&quot;,
+    &quot;tolerance&quot;: 0.0001,
+    &quot;zeta0&quot;: 0.2
+  },
+  {
+    &quot;convention&quot;: &quot;slope of log(residual) against log(dt); positive means falling&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A06&quot;,
+    &quot;observed_order_in_dt&quot;: 2.00002195034833,
+    &quot;passed&quot;: true,
+    &quot;residuals&quot;: [
+      8.541311734849785e-06,
+      2.1353250314784334e-06,
+      5.338278772892737e-07,
+      1.3345150926544256e-07
+    ],
+    &quot;spec&quot;: &quot;2.4&quot;,
+    &quot;steps&quot;: [
+      0.002,
+      0.001,
+      0.0005,
+      0.00025
+    ],
+    &quot;test&quot;: &quot;test_the_residual_falls_with_the_step&quot;
+  },
+  {
+    &quot;energy_dissipated&quot;: 0.0,
+    &quot;energy_lost&quot;: 5.860809171309711e-09,
+    &quot;failure&quot;: null,
+    &quot;fraction_of_initial_energy_lost&quot;: 3.98524895416753e-09,
+    &quot;gate&quot;: &quot;A06&quot;,
+    &quot;passed&quot;: true,
+    &quot;relative_residual&quot;: 1.0,
+    &quot;spec&quot;: &quot;2.4&quot;,
+    &quot;test&quot;: &quot;test_undamped_dissipates_nothing&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-A07" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A07 — 4 check(s)</h3><pre>[
+  {
+    &quot;case&quot;: &quot;uniform&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A07&quot;,
+    &quot;passed&quot;: true,
+    &quot;relative_error&quot;: [
+      6.449239281916713e-09,
+      5.7883732074067345e-08,
+      1.605932778374951e-07,
+      3.1484426673045347e-07,
+      5.204685184240576e-07,
+      7.774843580163572e-07,
+      1.0859113916914698e-06,
+      1.4457412065350412e-06,
+      1.8569795024119891e-06,
+      2.3196140697434987e-06,
+      2.833651662001419e-06,
+      3.399099573423656e-06
+    ],
+    &quot;spec&quot;: &quot;2.5 / 2.10&quot;,
+    &quot;test&quot;: &quot;test_the_uniform_case_is_exact&quot;,
+    &quot;traverse_time&quot;: 1.0,
+    &quot;worst&quot;: 3.399099573423656e-06
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;alpha_K&quot;: 3.0,
+    &quot;alpha_mu&quot;: -3.0,
+    &quot;case&quot;: &quot;exponential-3&quot;,
+    &quot;failure&quot;: null,
+    &quot;first_mode_error&quot;: 0.6818090005951606,
+    &quot;gate&quot;: &quot;A07&quot;,
+    &quot;improvement_factor&quot;: 340.16006558897675,
+    &quot;last_mode_error&quot;: 0.0020043769671040873,
+    &quot;passed&quot;: true,
+    &quot;phase&quot;: [
+      2.641779400505474,
+      5.223644639110498,
+      8.17721613537382,
+      11.230167446827025,
+      14.320867658552697,
+      17.429578759506118,
+      20.548216511682657,
+      23.672887459445032,
+      26.801492456817655,
+      29.932802038754847,
+      33.06604904948675,
+      36.200730279763725
+    ],
+    &quot;relative_error&quot;: [
+      0.6818090005951606,
+      0.10849182035988733,
+      0.04115549494043897,
+      0.02133523480697758,
+      0.012994167654897299,
+      0.008728587485419735,
+      0.0062616090943991495,
+      0.004708548381017954,
+      0.0036682368806296305,
+      0.0029375589597888064,
+      0.0024047913799778134,
+      0.0020043769671040873
+    ],
+    &quot;spec&quot;: &quot;2.5 / 2.10&quot;,
+    &quot;target&quot;: [
+      1.5707963267948966,
+      4.71238898038469,
+      7.853981633974483,
+      10.995574287564276,
+      14.137166941154069,
+      17.27875959474386,
+      20.420352248333657,
+      23.561944901923447,
+      26.703537555513243,
+      29.845130209103033,
+      32.98672286269283,
+      36.12831551628262
+    ],
+    &quot;test&quot;: &quot;test_the_wkb_error_falls_with_mode_number_exponential-3-profile0&quot;,
+    &quot;traverse_time&quot;: 1.0
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;alpha_K&quot;: 9.89735519581013,
+    &quot;alpha_mu&quot;: 4.0,
+    &quot;case&quot;: &quot;reference-no-ground&quot;,
+    &quot;failure&quot;: null,
+    &quot;first_mode_error&quot;: 0.23603650349710512,
+    &quot;gate&quot;: &quot;A07&quot;,
+    &quot;improvement_factor&quot;: 27.781056295735727,
+    &quot;last_mode_error&quot;: 0.00849631133476144,
+    &quot;passed&quot;: true,
+    &quot;phase&quot;: [
+      1.94156159947766,
+      5.057532823551198,
+      8.190509690716391,
+      11.326859054057353,
+      14.464455722593481,
+      17.60263975806721,
+      20.741138585847544,
+      23.8798332700087,
+      27.018632653475958,
+      30.15749583806157,
+      33.296386197214176,
+      36.43527293290945
+    ],
+    &quot;relative_error&quot;: [
+      0.23603650349710512,
+      0.07324179829024492,
+      0.04284808297566765,
+      0.03012891894766716,
+      0.023150945504269067,
+      0.018744410531753207,
+      0.01570914808974776,
+      0.013491601368582375,
+      0.0117997511493626,
+      0.010466217663317953,
+      0.00938751435874122,
+      0.00849631133476144
+    ],
+    &quot;spec&quot;: &quot;2.5 / 2.10&quot;,
+    &quot;target&quot;: [
+      1.5707963267948966,
+      4.71238898038469,
+      7.853981633974483,
+      10.995574287564276,
+      14.137166941154069,
+      17.27875959474386,
+      20.420352248333657,
+      23.561944901923447,
+      26.703537555513243,
+      29.845130209103033,
+      32.98672286269283,
+      36.12831551628262
+    ],
+    &quot;test&quot;: &quot;test_the_wkb_error_falls_with_mode_number_reference-no-ground-profile1&quot;,
+    &quot;traverse_time&quot;: 149.77974906739598
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;alpha_K&quot;: 10.0,
+    &quot;alpha_mu&quot;: 4.0,
+    &quot;case&quot;: &quot;steep-no-ground&quot;,
+    &quot;failure&quot;: null,
+    &quot;first_mode_error&quot;: 0.2383309883955226,
+    &quot;gate&quot;: &quot;A07&quot;,
+    &quot;improvement_factor&quot;: 27.65978476988964,
+    &quot;last_mode_error&quot;: 0.008616516374884052,
+    &quot;passed&quot;: true,
+    &quot;phase&quot;: [
+      1.9451657679279806,
+      5.061139225615208,
+      8.194183470752806,
+      11.330627024163023,
+      14.468297012028529,
+      17.6065609748683,
+      20.745142781518442,
+      23.883911423471144,
+      27.022781625795545,
+      30.161712645142295,
+      33.30066682342209,
+      36.439615738525646
+    ],
+    &quot;relative_error&quot;: [
+      0.2383309883955226,
+      0.07400710057726362,
+      0.043315843177769875,
+      0.03047159955780426,
+      0.02342266114935109,
+      0.018971349090600075,
+      0.015905236561787956,
+      0.013664683577178467,
+      0.011955122785459958,
+      0.01060750728246786,
+      0.009517282515030447,
+      0.008616516374884052
+    ],
+    &quot;spec&quot;: &quot;2.5 / 2.10&quot;,
+    &quot;target&quot;: [
+      1.5707963267948966,
+      4.71238898038469,
+      7.853981633974483,
+      10.995574287564276,
+      14.137166941154069,
+      17.27875959474386,
+      20.420352248333657,
+      23.561944901923447,
+      26.703537555513243,
+      29.845130209103033,
+      32.98672286269283,
+      36.12831551628262
+    ],
+    &quot;test&quot;: &quot;test_the_wkb_error_falls_with_mode_number_steep-no-ground-profile2&quot;,
+    &quot;traverse_time&quot;: 156.51902423043526
+  }
+]</pre></div><div class="gate-detail" id="g-A08" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A08 — 8 check(s)</h3><pre>[
+  {
+    &quot;alpha&quot;: 1e-07,
+    &quot;exponential&quot;: [
+      1.5707963586258853,
+      4.71238899099502,
+      7.853981640340681,
+      10.995574292111561,
+      14.137166944690847
+    ],
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A08&quot;,
+    &quot;measured_over_predicted&quot;: [
+      1.0000000036234316,
+      1.0000000803565385,
+      1.0000000803565388,
+      1.0000002477742267,
+      1.0000004151919146
+    ],
+    &quot;passed&quot;: true,
+    &quot;predicted_first_order&quot;: [
+      2.0264236728467556e-08,
+      2.2515818587186172e-09,
+      8.105694691387022e-10,
+      4.1355585160137864e-10,
+      2.5017576207984633e-10
+    ],
+    &quot;relative_difference&quot;: [
+      2.0264236801893633e-08,
+      2.2515820396479418e-09,
+      8.105695342732591e-10,
+      4.1355595406985995e-10,
+      2.5017586595079996e-10
+    ],
+    &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
+    &quot;test&quot;: &quot;test_alpha_to_zero_approaches_the_uniform_string_at_the_derived_rate&quot;,
+    &quot;uniform&quot;: [
+      1.5707963267948966,
+      4.71238898038469,
+      7.853981633974483,
+      10.995574287564276,
+      14.137166941154069
+    ]
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;alpha&quot;: 3.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A08&quot;,
+    &quot;margin&quot;: 4.3365336789652185,
+    &quot;max_relative_error&quot;: 2.305989239402424e-06,
+    &quot;max_relative_error_at_N2000&quot;: 9.223951606736723e-06,
+    &quot;n_modes&quot;: 10,
+    &quot;omega_numeric&quot;: [
+      2.641779399248944,
+      5.22364463976392,
+      8.177216135402341,
+      11.230167446752933,
+      14.320867658543325,
+      17.42957875972888,
+      20.548216511723332,
+      23.67288745923836,
+      26.80149245693393,
+      29.93280203881393
+    ],
+    &quot;omega_truth&quot;: [
+      2.6417793936381537,
+      5.223644878483811,
+      8.177217342698416,
+      11.230170833076025,
+      14.320874919435445,
+      17.42959207523415,
+      20.548238546513712,
+      23.672921362570385,
+      26.801541861931877,
+      29.932871063692506
+    ],
+    &quot;passed&quot;: true,
+    &quot;relative_error&quot;: [
+      2.1238677492527632e-09,
+      4.5699869826373066e-08,
+      1.4764143156178528e-07,
+      3.015379857076236e-07,
+      5.07014561700274e-07,
+      7.639596620140652e-07,
+      1.072344489772106e-06,
+      1.432156661411056e-06,
+      1.843364019995887e-06,
+      2.305989239402424e-06
+    ],
+    &quot;root_residuals&quot;: [
+      7.498594147675962e-31,
+      2.041170040943385e-30,
+      3.4261359559436573e-31,
+      3.418876270830682e-30,
+      6.056263394873987e-30,
+      5.77698327637022e-30,
+      2.9342162060914792e-30,
+      1.260149791027512e-29,
+      7.85284851364548e-30,
+      1.6686366703949455e-29
+    ],
+    &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
+    &quot;test&quot;: &quot;test_eigenvalues_match_the_transcendental_roots&quot;,
+    &quot;tolerance&quot;: 1e-05
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;alpha&quot;: 0.5,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A08&quot;,
+    &quot;max_relative_error&quot;: 2.3181505128896075e-06,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
+    &quot;test&quot;: &quot;test_it_holds_across_the_profile_family_0.5&quot;,
+    &quot;tolerance&quot;: 1e-05
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;alpha&quot;: 1.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A08&quot;,
+    &quot;max_relative_error&quot;: 2.3163604268458223e-06,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
+    &quot;test&quot;: &quot;test_it_holds_across_the_profile_family_1.0&quot;,
+    &quot;tolerance&quot;: 1e-05
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;alpha&quot;: 3.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A08&quot;,
+    &quot;max_relative_error&quot;: 2.305989239402424e-06,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
+    &quot;test&quot;: &quot;test_it_holds_across_the_profile_family_3.0&quot;,
+    &quot;tolerance&quot;: 1e-05
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;alpha&quot;: 6.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A08&quot;,
+    &quot;max_relative_error&quot;: 2.280882655895735e-06,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
+    &quot;test&quot;: &quot;test_it_holds_across_the_profile_family_6.0&quot;,
+    &quot;tolerance&quot;: 1e-05
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A08&quot;,
+    &quot;min_f_below_first_bracket&quot;: 2.5e-09,
+    &quot;omega_1_numeric&quot;: 2.641779399179611,
+    &quot;omega_1_truth&quot;: 2.6417793936381537,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
+    &quot;test&quot;: &quot;test_the_bracketing_misses_no_mode&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A08&quot;,
+    &quot;passed&quot;: true,
+    &quot;residuals&quot;: [
+      7.498594147675962e-31,
+      2.041170040943385e-30,
+      3.4261359559436573e-31,
+      3.418876270830682e-30,
+      6.056263394873987e-30,
+      5.77698327637022e-30,
+      2.9342162060914792e-30,
+      1.260149791027512e-29,
+      7.85284851364548e-30,
+      1.6686366703949455e-29
+    ],
+    &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
+    &quot;test&quot;: &quot;test_the_roots_actually_solve_the_relation&quot;,
+    &quot;worst&quot;: 1.6686366703949455e-29
+  }
+]</pre></div><div class="gate-detail" id="g-A09" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A09 — 6 check(s)</h3><pre>[
+  {
+    &quot;cov&quot;: &quot;0&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A09&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;4.1&quot;,
+    &quot;test&quot;: &quot;test_the_lyapunov_solution_is_derived_not_asserted&quot;,
+    &quot;var_q&quot;: &quot;D/(2*Gamma*omega**2)&quot;,
+    &quot;var_qdot&quot;: &quot;D/(2*Gamma)&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gamma&quot;: [
+      0.08000000000000003,
+      0.07999999999999999,
+      0.07999999999999992,
+      0.08,
+      0.08000000000000006,
+      0.07999999999999999
+    ],
+    &quot;gate&quot;: &quot;A09&quot;,
+    &quot;modal_noise&quot;: [
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01
+    ],
+    &quot;n_modes&quot;: 6,
+    &quot;passed&quot;: true,
+    &quot;predicted_variance&quot;: 0.05072461050145403,
+    &quot;relative_error&quot;: 0.00048809811683099894,
+    &quot;sampled_variance&quot;: 0.05069985191459128,
+    &quot;spec&quot;: &quot;4.1&quot;,
+    &quot;test&quot;: &quot;test_the_membrane_reduces_to_modes_with_the_expected_variance&quot;,
+    &quot;tolerance&quot;: 0.1095445103250827
+  },
+  {
+    &quot;expected&quot;: 2.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A09&quot;,
+    &quot;passed&quot;: true,
+    &quot;ratios&quot;: [
+      2.0,
+      2.0,
+      2.0
+    ],
+    &quot;spec&quot;: &quot;4.1&quot;,
+    &quot;test&quot;: &quot;test_the_ratio_that_rice_needs_is_exact&quot;
+  },
+  {
+    &quot;D&quot;: 0.001,
+    &quot;T&quot;: 400000.0,
+    &quot;dt&quot;: 0.05,
+    &quot;failure&quot;: null,
+    &quot;gamma&quot;: 0.01,
+    &quot;gate&quot;: &quot;A09&quot;,
+    &quot;n_effective&quot;: 16000.0,
+    &quot;n_paths&quot;: 8,
+    &quot;omega&quot;: 0.5,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;4.1&quot;,
+    &quot;test&quot;: &quot;test_the_sampled_variance_matches_the_closed_form_0.5-0.01-0.001&quot;,
+    &quot;tolerance&quot;: 0.0670820393249937,
+    &quot;var_q_relative_error&quot;: 0.0011189434719854896,
+    &quot;var_q_sampled&quot;: 0.1997762113056029,
+    &quot;var_q_truth&quot;: 0.2,
+    &quot;var_qdot_relative_error&quot;: 0.001121091150885628,
+    &quot;var_qdot_sampled&quot;: 0.04994394544245572,
+    &quot;var_qdot_truth&quot;: 0.05
+  },
+  {
+    &quot;D&quot;: 0.02,
+    &quot;T&quot;: 80000.0,
+    &quot;dt&quot;: 0.05,
+    &quot;failure&quot;: null,
+    &quot;gamma&quot;: 0.05,
+    &quot;gate&quot;: &quot;A09&quot;,
+    &quot;n_effective&quot;: 16000.0,
+    &quot;n_paths&quot;: 8,
+    &quot;omega&quot;: 1.0,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;4.1&quot;,
+    &quot;test&quot;: &quot;test_the_sampled_variance_matches_the_closed_form_1.0-0.05-0.02&quot;,
+    &quot;tolerance&quot;: 0.0670820393249937,
+    &quot;var_q_relative_error&quot;: 0.0036043837483758227,
+    &quot;var_q_sampled&quot;: 0.20072087674967515,
+    &quot;var_q_truth&quot;: 0.19999999999999998,
+    &quot;var_qdot_relative_error&quot;: 0.00359495885916078,
+    &quot;var_qdot_sampled&quot;: 0.20071899177183214,
+    &quot;var_qdot_truth&quot;: 0.19999999999999998
+  },
+  {
+    &quot;D&quot;: 0.5,
+    &quot;T&quot;: 20000.0,
+    &quot;dt&quot;: 0.016666666666666666,
+    &quot;failure&quot;: null,
+    &quot;gamma&quot;: 0.2,
+    &quot;gate&quot;: &quot;A09&quot;,
+    &quot;n_effective&quot;: 16000.0,
+    &quot;n_paths&quot;: 8,
+    &quot;omega&quot;: 3.0,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;4.1&quot;,
+    &quot;test&quot;: &quot;test_the_sampled_variance_matches_the_closed_form_3.0-0.2-0.5&quot;,
+    &quot;tolerance&quot;: 0.0670820393249937,
+    &quot;var_q_relative_error&quot;: 0.0003632111289838757,
+    &quot;var_q_sampled&quot;: 0.13893933487902554,
+    &quot;var_q_truth&quot;: 0.1388888888888889,
+    &quot;var_qdot_relative_error&quot;: 1.8912394654968524e-05,
+    &quot;var_qdot_sampled&quot;: 1.2500236404933187,
+    &quot;var_qdot_truth&quot;: 1.25
+  }
+]</pre></div><div class="gate-detail" id="g-A10" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A10 — 6 check(s)</h3><pre>[
+  {
+    &quot;argmax_index&quot;: 6,
+    &quot;argmax_value&quot;: 0.5978147712009566,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A10&quot;,
+    &quot;left_end&quot;: null,
+    &quot;left_end_ci&quot;: [
+      null,
+      null
+    ],
+    &quot;maximum_is_interior&quot;: true,
+    &quot;non_finite_fields&quot;: [
+      &quot;left_end&quot;,
+      &quot;left_end_ci[0]&quot;,
+      &quot;left_end_ci[1]&quot;
+    ],
+    &quot;passed&quot;: true,
+    &quot;peak&quot;: 13.784563772954222,
+    &quot;peak_ci&quot;: [
+      13.448229316587243,
+      14.044867385165743
+    ],
+    &quot;right_end&quot;: 0.9274867554349167,
+    &quot;right_end_ci&quot;: [
+      -0.12409792048779407,
+      2.228632064909096
+    ],
+    &quot;separated_from_left&quot;: true,
+    &quot;separated_from_right&quot;: true,
+    &quot;significant_interior_maximum&quot;: true,
+    &quot;spec&quot;: &quot;4.2 / 4.4&quot;,
+    &quot;test&quot;: &quot;test_the_curve_is_an_inverted_u_and_not_a_ramp&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A10&quot;,
+    &quot;omega_eff&quot;: 1.0,
+    &quot;passed&quot;: true,
+    &quot;rows&quot;: [
+      {
+        &quot;measured_rate&quot;: 0.021754669823066012,
+        &quot;relative_error&quot;: 0.0024906582956151224,
+        &quot;rice_predicted_rate&quot;: 0.021539279301848634,
+        &quot;sigma&quot;: 0.5,
+        &quot;theta_over_sigma_inferred&quot;: 1.9950186834087698,
+        &quot;theta_over_sigma_true&quot;: 2.0
+      },
+      {
+        &quot;measured_rate&quot;: 0.007036001020858014,
+        &quot;relative_error&quot;: 0.0009863679637900802,
+        &quot;rice_predicted_rate&quot;: 0.006992780170465791,
+        &quot;sigma&quot;: 0.4,
+        &quot;theta_over_sigma_inferred&quot;: 2.497534080090525,
+        &quot;theta_over_sigma_true&quot;: 2.5
+      },
+      {
+        &quot;measured_rate&quot;: 0.0017846669256051642,
+        &quot;relative_error&quot;: 0.0010398282823092704,
+        &quot;rice_predicted_rate&quot;: 0.0017680517118520167,
+        &quot;sigma&quot;: 0.3333333333333333,
+        &quot;theta_over_sigma_inferred&quot;: 2.996880515153072,
+        &quot;theta_over_sigma_true&quot;: 3.0
+      }
+    ],
+    &quot;spec&quot;: &quot;4.2 / 4.4&quot;,
+    &quot;test&quot;: &quot;test_the_inversion_recovers_the_ratio_from_a_simulated_spontaneous_rate&quot;,
+    &quot;worst_relative_error&quot;: 0.0024906582956151224
+  },
+  {
+    &quot;drive_omega&quot;: 0.005,
+    &quot;event_rate&quot;: [
+      0.0,
+      9.947432629059187e-07,
+      4.078447377914266e-05,
+      0.0002631095930386155,
+      0.0010091670402180542,
+      0.0025629560168770995,
+      0.0049170159485439555,
+      0.007772923856346848,
+      0.010638281825147346,
+      0.013098779285945135,
+      0.015014654810301935,
+      0.016305334193922362,
+      0.017208063705009484,
+      0.01785962054221286
+    ],
+    &quot;failure&quot;: null,
+    &quot;gamma&quot;: 0.05,
+    &quot;gate&quot;: &quot;A10&quot;,
+    &quot;non_finite_fields&quot;: [
+      &quot;snr_ci[0][0]&quot;,
+      &quot;snr_ci[0][1]&quot;,
+      &quot;snr_db[0]&quot;
+    ],
+    &quot;omega0&quot;: 1.0,
+    &quot;passed&quot;: true,
+    &quot;relative_error&quot;: 0.09474631741563022,
+    &quot;sigma_grid&quot;: [
+      0.15,
+      0.1888732656864859,
+      0.23782073660718592,
+      0.29945319447309876,
+      0.3770580184025634,
+      0.47477452859311503,
+      0.5978147712009566,
+      0.7527415207489605,
+      0.9478183282777857,
+      1.1934502862622076,
+      1.5027390200054307,
+      1.892181507886234,
+      2.3825500044403474,
+      3.0
+    ],
+    &quot;sigma_opt_measured&quot;: 0.5473731587078151,
+    &quot;sigma_opt_predicted&quot;: 0.5,
+    &quot;snr_ci&quot;: [
+      [
+        null,
+        null
+      ],
+      [
+        4.821637332766435e-16,
+        4.821637332766435e-16
+      ],
+      [
+        2.051647368690414,
+        3.5262782150250467
+      ],
+      [
+        7.429801670317251,
+        8.839609037028064
+      ],
+      [
+        11.734174713517044,
+        12.430889734260088
+      ],
+      [
+        13.283284662281062,
+        13.997879119073133
+      ],
+      [
+        13.448229316587243,
+        14.044867385165743
+      ],
+      [
+        12.727910920737582,
+        13.330628087259836
+      ],
+      [
+        10.573907871791812,
+        11.33005735731085
+      ],
+      [
+        8.20742771510244,
+        9.103073115626165
+      ],
+      [
+        4.948643086643311,
+        6.698863489871219
+      ],
+      [
+        2.328309267374459,
+        4.890753066540553
+      ],
+      [
+        -0.22400742856600667,
+        2.9118645474129163
+      ],
+      [
+        -0.12409792048779407,
+        2.228632064909096
+      ]
+    ],
+    &quot;snr_db&quot;: [
+      null,
+      4.821637332766435e-16,
+      2.7784112175025877,
+      7.948681803764633,
+      12.148171784571634,
+      13.678198083208228,
+      13.784563772954222,
+      12.985470969330322,
+      10.865222726580015,
+      8.565457612633642,
+      5.835554169253852,
+      3.6404611741236605,
+      1.2783340633393512,
+      0.9274867554349167
+    ],
+    &quot;spec&quot;: &quot;4.2 / 4.4&quot;,
+    &quot;test&quot;: &quot;test_the_measured_optimum_matches_theta_over_two&quot;,
+    &quot;theta&quot;: 1.0,
+    &quot;tolerance&quot;: 0.15
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A10&quot;,
+    &quot;passed&quot;: true,
+    &quot;sigma_opt_symbolic&quot;: &quot;theta/2&quot;,
+    &quot;spec&quot;: &quot;4.2 / 4.4&quot;,
+    &quot;test&quot;: &quot;test_the_prediction_is_derived_symbolically&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A10&quot;,
+    &quot;passed&quot;: true,
+    &quot;ratios&quot;: [
+      1.5,
+      2.0,
+      2.5,
+      3.0,
+      3.9
+    ],
+    &quot;recovered&quot;: [
+      1.5,
+      2.0,
+      2.5,
+      3.0,
+      3.9
+    ],
+    &quot;spec&quot;: &quot;4.2 / 4.4&quot;,
+    &quot;test&quot;: &quot;test_the_rice_inversion_round_trips&quot;,
+    &quot;worst&quot;: 0.0
+  },
+  {
+    &quot;events_with_no_noise&quot;: 0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A10&quot;,
+    &quot;passed&quot;: true,
+    &quot;ratio&quot;: 0.3,
+    &quot;response_amplitude&quot;: 0.3,
+    &quot;spec&quot;: &quot;4.2 / 4.4&quot;,
+    &quot;test&quot;: &quot;test_the_tone_is_subthreshold&quot;,
+    &quot;theta&quot;: 1.0
+  }
+]</pre></div><div class="gate-detail" id="g-A11" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A11 — 14 check(s)</h3><pre>[
+  {
+    &quot;N&quot;: 2000,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;min_mass&quot;: 0.0005010010006670001,
+    &quot;min_volume&quot;: 0.00025,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;test&quot;: &quot;test_mass_is_positive_definite_2000&quot;
+  },
+  {
+    &quot;N&quot;: 250,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;min_mass&quot;: 0.00406451474162438,
+    &quot;min_volume&quot;: 0.002,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;test&quot;: &quot;test_mass_is_positive_definite_250&quot;
+  },
+  {
+    &quot;N&quot;: 2000,
+    &quot;case&quot;: &quot;exponential-3&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_stiffness_is_symmetric_2000-exponential-3-profile1&quot;,
+    &quot;tolerance&quot;: 1e-12
+  },
+  {
+    &quot;N&quot;: 2000,
+    &quot;case&quot;: &quot;reference-no-ground&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_stiffness_is_symmetric_2000-reference-no-ground-profile3&quot;,
+    &quot;tolerance&quot;: 1e-12
+  },
+  {
+    &quot;N&quot;: 2000,
+    &quot;case&quot;: &quot;reference&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_stiffness_is_symmetric_2000-reference-profile2&quot;,
+    &quot;tolerance&quot;: 1e-12
+  },
+  {
+    &quot;N&quot;: 2000,
+    &quot;case&quot;: &quot;steep&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_stiffness_is_symmetric_2000-steep-profile4&quot;,
+    &quot;tolerance&quot;: 1e-12
+  },
+  {
+    &quot;N&quot;: 2000,
+    &quot;case&quot;: &quot;uniform&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_stiffness_is_symmetric_2000-uniform-profile0&quot;,
+    &quot;tolerance&quot;: 1e-12
+  },
+  {
+    &quot;N&quot;: 250,
+    &quot;case&quot;: &quot;exponential-3&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_stiffness_is_symmetric_250-exponential-3-profile1&quot;,
+    &quot;tolerance&quot;: 1e-12
+  },
+  {
+    &quot;N&quot;: 250,
+    &quot;case&quot;: &quot;reference-no-ground&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_stiffness_is_symmetric_250-reference-no-ground-profile3&quot;,
+    &quot;tolerance&quot;: 1e-12
+  },
+  {
+    &quot;N&quot;: 250,
+    &quot;case&quot;: &quot;reference&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_stiffness_is_symmetric_250-reference-profile2&quot;,
+    &quot;tolerance&quot;: 1e-12
+  },
+  {
+    &quot;N&quot;: 250,
+    &quot;case&quot;: &quot;steep&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_stiffness_is_symmetric_250-steep-profile4&quot;,
+    &quot;tolerance&quot;: 1e-12
+  },
+  {
+    &quot;N&quot;: 250,
+    &quot;case&quot;: &quot;uniform&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_stiffness_is_symmetric_250-uniform-profile0&quot;,
+    &quot;tolerance&quot;: 1e-12
+  },
+  {
+    &quot;apex_volume&quot;: 0.00125,
+    &quot;continuum_mass&quot;: 1.0,
+    &quot;expected_total_mass&quot;: 0.99875,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;interior_volume&quot;: 0.0025,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;test&quot;: &quot;test_the_apex_owns_half_a_cell&quot;,
+    &quot;total_mass&quot;: 0.9987499999999998,
+    &quot;total_mass_defect_scheme&quot;: 0.9999999999999998
+  },
+  {
+    &quot;discriminates&quot;: false,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A11&quot;,
+    &quot;note&quot;: &quot;the defect is in M, not Sm. GATE-A12 is what sees it.&quot;,
+    &quot;passed&quot;: true,
+    &quot;scheme&quot;: &quot;lumped-full-cell&quot;,
+    &quot;spec&quot;: &quot;5.1&quot;,
+    &quot;symmetry_defect&quot;: 0.0,
+    &quot;test&quot;: &quot;test_the_deliberate_defect_is_still_symmetric&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-A12" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A12 — 6 check(s)</h3><pre>[
+  {
+    &quot;alpha&quot;: 3.0,
+    &quot;case&quot;: &quot;exponential&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A12&quot;,
+    &quot;grids&quot;: [
+      250,
+      500,
+      1000,
+      2000,
+      4000
+    ],
+    &quot;grids_dropped_at_precision_floor&quot;: [
+      4000
+    ],
+    &quot;mode&quot;: 1,
+    &quot;observed_order&quot;: 1.9982027695794211,
+    &quot;passed&quot;: true,
+    &quot;precision_floor&quot;: [
+      2.0004740086925597e-12,
+      7.977926319216543e-12,
+      3.18638736016757e-11,
+      1.2735993862379553e-10,
+      5.092487504027521e-10
+    ],
+    &quot;relative_errors&quot;: [
+      5.782559797686844e-07,
+      1.4457152130269762e-07,
+      3.613064214154239e-08,
+      9.073870689795163e-09,
+      2.097622944722303e-09
+    ],
+    &quot;richardson_limit&quot;: 2.641779393036375,
+    &quot;richardson_relative_error&quot;: 2.2779291426788157e-10,
+    &quot;spec&quot;: &quot;5.2&quot;,
+    &quot;test&quot;: &quot;test_the_exponential_profile_converges_at_second_order_1&quot;,
+    &quot;truth&quot;: 2.6417793936381537
+  },
+  {
+    &quot;alpha&quot;: 3.0,
+    &quot;case&quot;: &quot;exponential&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A12&quot;,
+    &quot;grids&quot;: [
+      250,
+      500,
+      1000,
+      2000,
+      4000
+    ],
+    &quot;grids_dropped_at_precision_floor&quot;: [],
+    &quot;mode&quot;: 3,
+    &quot;observed_order&quot;: 1.9999634885376636,
+    &quot;passed&quot;: true,
+    &quot;precision_floor&quot;: [
+      2.08792515977108e-13,
+      8.32668308226546e-13,
+      3.3256809681914103e-12,
+      1.329275057031698e-11,
+      5.315106689353127e-11
+    ],
+    &quot;relative_errors&quot;: [
+      3.779679510455496e-05,
+      9.449298972753163e-06,
+      2.36233476765057e-06,
+      5.90588133555636e-07,
+      1.476615461991553e-07
+    ],
+    &quot;richardson_limit&quot;: 8.177217342540184,
+    &quot;richardson_relative_error&quot;: 1.935041366175069e-11,
+    &quot;spec&quot;: &quot;5.2&quot;,
+    &quot;test&quot;: &quot;test_the_exponential_profile_converges_at_second_order_3&quot;,
+    &quot;truth&quot;: 8.177217342698416
+  },
+  {
+    &quot;A01_max_relative_error_at_N2000&quot;: 0.00025920899065224,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A12&quot;,
+    &quot;gate_verdicts_on_this_defect&quot;: {
+      &quot;A01_uniform_eigenvalues&quot;: &quot;red&quot;,
+      &quot;A02_orthogonality&quot;: &quot;green&quot;,
+      &quot;A03_oscillation&quot;: &quot;green&quot;,
+      &quot;A11_symmetry&quot;: &quot;green&quot;,
+      &quot;A12_convergence&quot;: &quot;red&quot;
+    },
+    &quot;grids&quot;: [
+      250,
+      500,
+      1000,
+      2000,
+      4000
+    ],
+    &quot;grids_dropped_at_precision_floor&quot;: [],
+    &quot;note&quot;: &quot;A01 says how far off. A12 says where: order 1 is a boundary, and the defect is at the apex -- the helicotrema, which is the physics.&quot;,
+    &quot;observed_order&quot;: 0.9996155037617789,
+    &quot;order_band&quot;: [
+      1.9,
+      2.1
+    ],
+    &quot;passed&quot;: true,
+    &quot;precision_floor&quot;: [
+      5.6244555480998594e-12,
+      2.2497822192399438e-11,
+      8.999128876959775e-11,
+      3.59965155078391e-10,
+      1.439860620313564e-09
+    ],
+    &quot;relative_errors&quot;: [
+      0.001997643082063633,
+      0.000999411007190528,
+      0.0004998527510605759,
+      0.0002499634954981495,
+      0.00012499148025134756
+    ],
+    &quot;scheme&quot;: &quot;lumped-full-cell&quot;,
+    &quot;spec&quot;: &quot;5.2&quot;,
+    &quot;test&quot;: &quot;test_the_gate_goes_red_on_the_deliberate_defect&quot;
+  },
+  {
+    &quot;case&quot;: &quot;uniform&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A12&quot;,
+    &quot;grids&quot;: [
+      250,
+      500,
+      1000,
+      2000,
+      4000
+    ],
+    &quot;grids_dropped_at_precision_floor&quot;: [
+      4000
+    ],
+    &quot;mode&quot;: 1,
+    &quot;observed_order&quot;: 2.001475058765559,
+    &quot;observed_order_all_grids&quot;: 2.030558885030083,
+    &quot;order_band&quot;: [
+      1.9,
+      2.1
+    ],
+    &quot;passed&quot;: true,
+    &quot;precision_floor&quot;: [
+      5.6244555480998594e-12,
+      2.2497822192399438e-11,
+      8.999128876959775e-11,
+      3.59965155078391e-10,
+      1.439860620313564e-09
+    ],
+    &quot;relative_errors&quot;: [
+      1.6449306172475413e-06,
+      4.1121633142254406e-07,
+      1.028723986257501e-07,
+      2.5608923300330672e-08,
+      5.790171667365149e-09
+    ],
+    &quot;richardson_limit&quot;: 1.5707963280767903,
+    &quot;richardson_relative_error&quot;: 8.160788769566916e-10,
+    &quot;spec&quot;: &quot;5.2&quot;,
+    &quot;test&quot;: &quot;test_uniform_converges_at_second_order_1&quot;,
+    &quot;truth&quot;: 1.5707963267948966
+  },
+  {
+    &quot;case&quot;: &quot;uniform&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A12&quot;,
+    &quot;grids&quot;: [
+      250,
+      500,
+      1000,
+      2000,
+      4000
+    ],
+    &quot;grids_dropped_at_precision_floor&quot;: [],
+    &quot;mode&quot;: 10,
+    &quot;observed_order&quot;: 1.9999431586343386,
+    &quot;observed_order_all_grids&quot;: 1.9999431586343386,
+    &quot;order_band&quot;: [
+      1.9,
+      2.1
+    ],
+    &quot;passed&quot;: true,
+    &quot;precision_floor&quot;: [
+      1.5580209274514847e-14,
+      6.232083709805939e-14,
+      2.4928334839223755e-13,
+      9.971333935689502e-13,
+      3.988533574275801e-12
+    ],
+    &quot;relative_errors&quot;: [
+      0.0005937154200196488,
+      0.0001484486879324671,
+      3.711341152302303e-05,
+      9.278430164112816e-06,
+      2.319609382848361e-06
+    ],
+    &quot;richardson_limit&quot;: 29.84513020902974,
+    &quot;richardson_relative_error&quot;: 2.4557602087894214e-12,
+    &quot;spec&quot;: &quot;5.2&quot;,
+    &quot;test&quot;: &quot;test_uniform_converges_at_second_order_10&quot;,
+    &quot;truth&quot;: 29.845130209103033
+  },
+  {
+    &quot;case&quot;: &quot;uniform&quot;,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A12&quot;,
+    &quot;grids&quot;: [
+      250,
+      500,
+      1000,
+      2000,
+      4000
+    ],
+    &quot;grids_dropped_at_precision_floor&quot;: [],
+    &quot;mode&quot;: 3,
+    &quot;observed_order&quot;: 1.9999904608612036,
+    &quot;observed_order_all_grids&quot;: 1.9999904608612036,
+    &quot;order_band&quot;: [
+      1.9,
+      2.1
+    ],
+    &quot;passed&quot;: true,
+    &quot;precision_floor&quot;: [
+      2.2497822192399437e-13,
+      8.999128876959775e-13,
+      3.59965155078391e-12,
+      1.439860620313564e-11,
+      5.759442481254256e-11
+    ],
+    &quot;relative_errors&quot;: [
+      4.1122844453423234e-05,
+      1.0280806276371755e-05,
+      2.5702064686738144e-06,
+      6.425544000265777e-07,
+      1.6064092090687079e-07
+    ],
+    &quot;richardson_limit&quot;: 7.853981633950179,
+    &quot;richardson_relative_error&quot;: 3.094495939682406e-12,
+    &quot;spec&quot;: &quot;5.2&quot;,
+    &quot;test&quot;: &quot;test_uniform_converges_at_second_order_3&quot;,
+    &quot;truth&quot;: 7.853981633974483
+  }
+]</pre></div><div class="gate-detail" id="g-A13" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A13 — 4 check(s)</h3><pre>[
+  {
+    &quot;continuous_truth&quot;: 0.19999999999999998,
+    &quot;dt&quot;: 0.031415926535897934,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A13&quot;,
+    &quot;n_effective&quot;: 1507.964473723101,
+    &quot;passed&quot;: true,
+    &quot;predicted_variance&quot;: 0.29168493987586597,
+    &quot;refine&quot;: 1,
+    &quot;relative_gap&quot;: 0.00015015048901842243,
+    &quot;sampled_variance&quot;: 0.2916411432395043,
+    &quot;sampling_tolerance&quot;: 0.2185096861184158,
+    &quot;spec&quot;: &quot;5.3&quot;,
+    &quot;test&quot;: &quot;test_a_sampled_run_shows_the_bias_the_algebra_predicts_1&quot;
+  },
+  {
+    &quot;continuous_truth&quot;: 0.19999999999999998,
+    &quot;dt&quot;: 0.007853981633974483,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A13&quot;,
+    &quot;n_effective&quot;: 1507.964473723101,
+    &quot;passed&quot;: true,
+    &quot;predicted_variance&quot;: 0.21705016555462073,
+    &quot;refine&quot;: 4,
+    &quot;relative_gap&quot;: 0.007006228410639567,
+    &quot;sampled_variance&quot;: 0.21857086859106353,
+    &quot;sampling_tolerance&quot;: 0.2185096861184158,
+    &quot;spec&quot;: &quot;5.3&quot;,
+    &quot;test&quot;: &quot;test_a_sampled_run_shows_the_bias_the_algebra_predicts_4&quot;
+  },
+  {
+    &quot;error_at_production_dt&quot;: 0.45842469937932995,
+    &quot;euler_meets_spec_at_production_step&quot;: false,
+    &quot;failure&quot;: null,
+    &quot;fitted_order_in_dt&quot;: 1.0962915816160677,
+    &quot;gate&quot;: &quot;A13&quot;,
+    &quot;note&quot;: &quot;Euler-Maruyama misses spec \u00a75.3&#x27;s own 1% bar at spec \u00a75.4&#x27;s own production step by a factor of ~46. Production uses the exact Van Loan scheme, which has no step-size bias at all.&quot;,
+    &quot;passed&quot;: true,
+    &quot;production_dt&quot;: 0.031415926535897934,
+    &quot;refinement_reaching_1_percent&quot;: 32,
+    &quot;relative_error_by_refinement&quot;: {
+      &quot;1&quot;: 0.45842469937932995,
+      &quot;16&quot;: 0.020029190238051442,
+      &quot;2&quot;: 0.1864249204004015,
+      &quot;32&quot;: 0.009915058873503635,
+      &quot;4&quot;: 0.08525082777310374,
+      &quot;8&quot;: 0.04087908202348722
+    },
+    &quot;spec&quot;: &quot;5.3&quot;,
+    &quot;test&quot;: &quot;test_the_euler_bias_falls_at_first_order_in_dt&quot;,
+    &quot;tolerance_at_production&quot;: &quot;1% (spec \u00a75.3)&quot;,
+    &quot;truth&quot;: 0.19999999999999998
+  },
+  {
+    &quot;exact_relative_error&quot;: {
+      &quot;dt=0.007854&quot;: 0.007224122816356788,
+      &quot;dt=0.031416&quot;: 0.002983319178537364
+    },
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A13&quot;,
+    &quot;passed&quot;: true,
+    &quot;scheme&quot;: &quot;van-loan&quot;,
+    &quot;spec&quot;: &quot;5.3&quot;,
+    &quot;test&quot;: &quot;test_the_exact_scheme_has_no_step_size_bias&quot;,
+    &quot;truth&quot;: 0.19999999999999998
+  }
+]</pre></div><div class="gate-detail" id="g-A14" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A14 — 3 check(s)</h3><pre>[
+  {
+    &quot;discriminates&quot;: true,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A14&quot;,
+    &quot;passed&quot;: true,
+    &quot;shift_db&quot;: 1.6714883569204124,
+    &quot;snr_full&quot;: 6.02426720846962,
+    &quot;snr_starved&quot;: 4.352778851549208,
+    &quot;spec&quot;: &quot;5.5&quot;,
+    &quot;starved_modes&quot;: 4,
+    &quot;test&quot;: &quot;test_a_deliberately_starved_basis_does_move_it&quot;,
+    &quot;tolerance_db&quot;: 0.2
+  },
+  {
+    &quot;event_rate_at_2n&quot;: 0.2453329183283572,
+    &quot;event_rate_at_n&quot;: 0.18950361531675167,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A14&quot;,
+    &quot;n_modes&quot;: 40,
+    &quot;n_modes_doubled&quot;: 80,
+    &quot;passed&quot;: true,
+    &quot;shift_db&quot;: 0.01867328421462844,
+    &quot;sigma&quot;: 0.85,
+    &quot;sigma_shift&quot;: 0.0,
+    &quot;snr_at_2n&quot;: 6.02426720846962,
+    &quot;snr_at_n&quot;: 6.042940492684249,
+    &quot;snr_ci_at_2n&quot;: [
+      5.648400964385746,
+      6.65715107346253
+    ],
+    &quot;snr_ci_at_n&quot;: [
+      5.563312993851601,
+      6.6143856411366135
+    ],
+    &quot;spec&quot;: &quot;5.5&quot;,
+    &quot;test&quot;: &quot;test_doubling_the_modes_does_not_move_the_snr&quot;,
+    &quot;tolerance_db&quot;: 0.2
+  },
+  {
+    &quot;drive_omega&quot;: 1.1913084799156437,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;A14&quot;,
+    &quot;highest_retained_omega&quot;: 53.12260446412502,
+    &quot;n_modes&quot;: 40,
+    &quot;noise_variance_captured&quot;: 0.9957217339107399,
+    &quot;noise_variance_required&quot;: 0.99,
+    &quot;omega_ratio&quot;: 44.59181258231841,
+    &quot;omega_ratio_required&quot;: 10.0,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;5.5&quot;,
+    &quot;test&quot;: &quot;test_the_truncation_criteria_are_met_and_reported&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-B02" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-B02 — 2 check(s)</h3><pre>[
+  {
+    &quot;argmax_index&quot;: 4,
+    &quot;argmax_value&quot;: 0.1,
+    &quot;arm&quot;: &quot;subthreshold&quot;,
+    &quot;drive_fraction&quot;: 0.5,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;B02&quot;,
+    &quot;left_end&quot;: null,
+    &quot;left_end_ci&quot;: [
+      null,
+      null
+    ],
+    &quot;maximum_is_interior&quot;: true,
+    &quot;non_finite_fields&quot;: [
+      &quot;left_end&quot;,
+      &quot;left_end_ci[0]&quot;,
+      &quot;left_end_ci[1]&quot;
+    ],
+    &quot;passed&quot;: true,
+    &quot;peak&quot;: 10.540798662366875,
+    &quot;peak_ci&quot;: [
+      9.992978145104809,
+      11.152199859754733
+    ],
+    &quot;right_end&quot;: 5.106363610165337,
+    &quot;right_end_ci&quot;: [
+      3.5922195242628434,
+      6.449143640415283
+    ],
+    &quot;separated_from_left&quot;: true,
+    &quot;separated_from_right&quot;: true,
+    &quot;significant_interior_maximum&quot;: true,
+    &quot;spec&quot;: &quot;4.3.4 / 11-R2&quot;,
+    &quot;test&quot;: &quot;test_b02_a_subthreshold_tone_shows_a_significant_interior_maximum&quot;
+  },
+  {
+    &quot;argmax_index&quot;: 0,
+    &quot;argmax_value&quot;: 0.0001,
+    &quot;arm&quot;: &quot;suprathreshold&quot;,
+    &quot;drive_fraction&quot;: 2.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;B02&quot;,
+    &quot;left_end&quot;: 51.23742269984054,
+    &quot;left_end_ci&quot;: [
+      50.42935132850848,
+      52.219514093669
+    ],
+    &quot;maximum_is_interior&quot;: false,
+    &quot;passed&quot;: true,
+    &quot;peak&quot;: 51.23742269984054,
+    &quot;peak_ci&quot;: [
+      50.42935132850848,
+      52.219514093669
+    ],
+    &quot;right_end&quot;: 5.377594931324712,
+    &quot;right_end_ci&quot;: [
+      3.8403255955465543,
+      6.663274170425515
+    ],
+    &quot;separated_from_left&quot;: false,
+    &quot;separated_from_right&quot;: true,
+    &quot;significant_interior_maximum&quot;: false,
+    &quot;spec&quot;: &quot;4.3.4 / 11-R2&quot;,
+    &quot;test&quot;: &quot;test_b02_a_suprathreshold_tone_does_not&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-C01" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-C01 — 6 check(s)</h3><pre>[
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C01&quot;,
+    &quot;grids&quot;: [
+      500,
+      1000,
+      2000,
+      4000
+    ],
+    &quot;observed_order&quot;: 2.0005905660125287,
+    &quot;order_band&quot;: [
+      1.9,
+      2.1
+    ],
+    &quot;passed&quot;: true,
+    &quot;relative_errors&quot;: [
+      4.653249416377572e-05,
+      1.1624520086648977e-05,
+      2.905130185169185e-06,
+      7.261620993343489e-07
+    ],
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_it_converges_at_second_order&quot;
+  },
+  {
+    &quot;decays_toward_apex&quot;: true,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C01&quot;,
+    &quot;passed&quot;: true,
+    &quot;pressure_at_first_node&quot;: 0.9996650298274905,
+    &quot;pressure_at_last_node&quot;: 0.003414685747252431,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_the_branch_of_the_square_root_is_the_physical_one&quot;,
+    &quot;wavenumber_imag&quot;: -0.5319030644195417
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C01&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;symbolically_verified&quot;: true,
+    &quot;test&quot;: &quot;test_the_closed_form_solves_the_equation&quot;
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;beta&quot;: 8.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C01&quot;,
+    &quot;impedance&quot;: [
+      0.91,
+      0.03
+    ],
+    &quot;max_relative_error&quot;: 6.113660809613365e-08,
+    &quot;omega&quot;: 0.3,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_the_solver_matches_the_closed_form_0.3&quot;,
+    &quot;tolerance&quot;: 1e-05,
+    &quot;wavenumber&quot;: [
+      2.514859047789635,
+      -0.041442463446706275
+    ]
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;beta&quot;: 8.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C01&quot;,
+    &quot;impedance&quot;: [
+      0.51,
+      0.06999999999999999
+    ],
+    &quot;max_relative_error&quot;: 7.261620993343489e-07,
+    &quot;omega&quot;: 0.7,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_the_solver_matches_the_closed_form_0.7&quot;,
+    &quot;tolerance&quot;: 1e-05,
+    &quot;wavenumber&quot;: [
+      7.786920342286077,
+      -0.5319030644195417
+    ]
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;beta&quot;: 8.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C01&quot;,
+    &quot;impedance&quot;: [
+      -0.9599999999999997,
+      0.13999999999999999
+    ],
+    &quot;max_relative_error&quot;: 1.245501569921947e-07,
+    &quot;omega&quot;: 1.4,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_the_solver_matches_the_closed_form_1.4&quot;,
+    &quot;tolerance&quot;: 1e-05,
+    &quot;wavenumber&quot;: [
+      0.822610124026804,
+      -11.341176692747425
+    ]
+  }
+]</pre></div><div class="gate-detail" id="g-C02" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-C02 — 3 check(s)</h3><pre>[
+  {
+    &quot;arm&quot;: &quot;control-string-with-ground-spring&quot;,
+    &quot;cochlear_orientation&quot;: [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C02&quot;,
+    &quot;passed&quot;: true,
+    &quot;rows&quot;: [
+      {
+        &quot;apical_is_propagating&quot;: true,
+        &quot;basal_is_propagating&quot;: false,
+        &quot;hz&quot;: 200.0,
+        &quot;peak_is_interior&quot;: false,
+        &quot;x_cf&quot;: 0.0005
+      },
+      {
+        &quot;apical_is_propagating&quot;: true,
+        &quot;basal_is_propagating&quot;: false,
+        &quot;hz&quot;: 500.0,
+        &quot;peak_is_interior&quot;: false,
+        &quot;x_cf&quot;: 0.0005
+      },
+      {
+        &quot;apical_is_propagating&quot;: true,
+        &quot;basal_is_propagating&quot;: false,
+        &quot;hz&quot;: 1500.0,
+        &quot;peak_is_interior&quot;: false,
+        &quot;x_cf&quot;: 0.0005
+      },
+      {
+        &quot;apical_is_propagating&quot;: true,
+        &quot;basal_is_propagating&quot;: false,
+        &quot;hz&quot;: 3000.0,
+        &quot;peak_is_interior&quot;: false,
+        &quot;x_cf&quot;: 0.0005
+      },
+      {
+        &quot;apical_is_propagating&quot;: true,
+        &quot;basal_is_propagating&quot;: false,
+        &quot;hz&quot;: 6000.0,
+        &quot;peak_is_interior&quot;: false,
+        &quot;x_cf&quot;: 0.0005
+      },
+      {
+        &quot;apical_is_propagating&quot;: true,
+        &quot;basal_is_propagating&quot;: false,
+        &quot;hz&quot;: 12000.0,
+        &quot;peak_is_interior&quot;: true,
+        &quot;x_cf&quot;: 0.839
+      }
+    ],
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_the_control_arm_still_fails&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gap&quot;: [
+      3.185115394022109e-05,
+      8.361188856242929e-05,
+      6.258805340836338e-05,
+      6.019962833697656e-05,
+      0.0003078111696654118,
+      0.00030542267739419593
+    ],
+    &quot;gate&quot;: &quot;C02&quot;,
+    &quot;hz&quot;: [
+      200.0,
+      500.0,
+      1500.0,
+      3000.0,
+      6000.0,
+      12000.0
+    ],
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_the_peak_sits_where_the_membrane_is_tuned&quot;,
+    &quot;worst_gap&quot;: 0.0003078111696654118
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;arm&quot;: &quot;treatment-transmission-line&quot;,
+    &quot;beta&quot;: 8.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C02&quot;,
+    &quot;passed&quot;: true,
+    &quot;rows&quot;: [
+      {
+        &quot;apical_is_propagating&quot;: false,
+        &quot;basal_is_propagating&quot;: true,
+        &quot;characteristic_place&quot;: 0.6675318511539402,
+        &quot;cochlear_orientation&quot;: true,
+        &quot;hz&quot;: 200.0,
+        &quot;omega&quot;: 0.00967254830113327,
+        &quot;peak_is_interior&quot;: true,
+        &quot;x_cf&quot;: 0.6675
+      },
+      {
+        &quot;apical_is_propagating&quot;: false,
+        &quot;basal_is_propagating&quot;: true,
+        &quot;characteristic_place&quot;: 0.5356663881114376,
+        &quot;cochlear_orientation&quot;: true,
+        &quot;hz&quot;: 500.0,
+        &quot;omega&quot;: 0.024181370752833175,
+        &quot;peak_is_interior&quot;: true,
+        &quot;x_cf&quot;: 0.5357500000000001
+      },
+      {
+        &quot;apical_is_propagating&quot;: false,
+        &quot;basal_is_propagating&quot;: true,
+        &quot;characteristic_place&quot;: 0.37756258805340837,
+        &quot;cochlear_orientation&quot;: true,
+        &quot;hz&quot;: 1500.0,
+        &quot;omega&quot;: 0.07254411225849952,
+        &quot;peak_is_interior&quot;: true,
+        &quot;x_cf&quot;: 0.3775
+      },
+      {
+        &quot;apical_is_propagating&quot;: false,
+        &quot;basal_is_propagating&quot;: true,
+        &quot;characteristic_place&quot;: 0.277810199628337,
+        &quot;cochlear_orientation&quot;: true,
+        &quot;hz&quot;: 3000.0,
+        &quot;omega&quot;: 0.14508822451699904,
+        &quot;peak_is_interior&quot;: true,
+        &quot;x_cf&quot;: 0.27775
+      },
+      {
+        &quot;apical_is_propagating&quot;: false,
+        &quot;basal_is_propagating&quot;: true,
+        &quot;characteristic_place&quot;: 0.1780578111696654,
+        &quot;cochlear_orientation&quot;: true,
+        &quot;hz&quot;: 6000.0,
+        &quot;omega&quot;: 0.2901764490339981,
+        &quot;peak_is_interior&quot;: true,
+        &quot;x_cf&quot;: 0.17775
+      },
+      {
+        &quot;apical_is_propagating&quot;: false,
+        &quot;basal_is_propagating&quot;: true,
+        &quot;characteristic_place&quot;: 0.0783054226773942,
+        &quot;cochlear_orientation&quot;: true,
+        &quot;hz&quot;: 12000.0,
+        &quot;omega&quot;: 0.5803528980679962,
+        &quot;peak_is_interior&quot;: true,
+        &quot;x_cf&quot;: 0.078
+      }
+    ],
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_the_treatment_has_the_cochlear_orientation&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-C03" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-C03 — 9 check(s)</h3><pre>[
+  {
+    &quot;N&quot;: 2000,
+    &quot;beta&quot;: 8.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C03&quot;,
+    &quot;hz&quot;: 12000.0,
+    &quot;omega&quot;: 0.5803528980679962,
+    &quot;passed&quot;: true,
+    &quot;power_dissipated&quot;: 4.580159693438364,
+    &quot;power_in&quot;: 4.580188163118958,
+    &quot;relative_residual&quot;: 6.215832096938821e-06,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_2000-12000.0&quot;,
+    &quot;tolerance&quot;: 0.001
+  },
+  {
+    &quot;N&quot;: 2000,
+    &quot;beta&quot;: 8.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C03&quot;,
+    &quot;hz&quot;: 3000.0,
+    &quot;omega&quot;: 0.14508822451699904,
+    &quot;passed&quot;: true,
+    &quot;power_dissipated&quot;: 1.354653972894207,
+    &quot;power_in&quot;: 1.3546542478135257,
+    &quot;relative_residual&quot;: 2.0294427089958416e-07,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_2000-3000.0&quot;,
+    &quot;tolerance&quot;: 0.001
+  },
+  {
+    &quot;N&quot;: 2000,
+    &quot;beta&quot;: 8.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C03&quot;,
+    &quot;hz&quot;: 500.0,
+    &quot;omega&quot;: 0.024181370752833175,
+    &quot;passed&quot;: true,
+    &quot;power_dissipated&quot;: 0.31837584245152384,
+    &quot;power_in&quot;: 0.31837584412856945,
+    &quot;relative_residual&quot;: 5.267502684071254e-09,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_2000-500.0&quot;,
+    &quot;tolerance&quot;: 0.001
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;beta&quot;: 8.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C03&quot;,
+    &quot;hz&quot;: 12000.0,
+    &quot;omega&quot;: 0.5803528980679962,
+    &quot;passed&quot;: true,
+    &quot;power_dissipated&quot;: 4.580165157717935,
+    &quot;power_in&quot;: 4.580172250495646,
+    &quot;relative_residual&quot;: 1.5485831805059246e-06,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_4000-12000.0&quot;,
+    &quot;tolerance&quot;: 0.001
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;beta&quot;: 8.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C03&quot;,
+    &quot;hz&quot;: 3000.0,
+    &quot;omega&quot;: 0.14508822451699904,
+    &quot;passed&quot;: true,
+    &quot;power_dissipated&quot;: 1.3546541027011425,
+    &quot;power_in&quot;: 1.354654171291302,
+    &quot;relative_residual&quot;: 5.0632966705215104e-08,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_4000-3000.0&quot;,
+    &quot;tolerance&quot;: 0.001
+  },
+  {
+    &quot;N&quot;: 4000,
+    &quot;beta&quot;: 8.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C03&quot;,
+    &quot;hz&quot;: 500.0,
+    &quot;omega&quot;: 0.024181370752833175,
+    &quot;passed&quot;: true,
+    &quot;power_dissipated&quot;: 0.3183758505870938,
+    &quot;power_in&quot;: 0.31837585100547167,
+    &quot;relative_residual&quot;: 1.3141005719133065e-09,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_4000-500.0&quot;,
+    &quot;tolerance&quot;: 0.001
+  },
+  {
+    &quot;converged_value&quot;: 4.205192671382633,
+    &quot;error_at_coarsest&quot;: 0.40627482624564426,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C03&quot;,
+    &quot;grids&quot;: [
+      2000,
+      8000,
+      32000
+    ],
+    &quot;passed&quot;: true,
+    &quot;peak_times_zeta&quot;: [
+      2.4967287494871973,
+      3.8847969975987167,
+      4.205192671382633
+    ],
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_the_one_over_zeta_law_is_grid_limited_at_small_damping&quot;,
+    &quot;zeta&quot;: 0.001
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C03&quot;,
+    &quot;passed&quot;: true,
+    &quot;peak_amplitude&quot;: {
+      &quot;0.01&quot;: 420.90975923207054,
+      &quot;0.05&quot;: 84.76719811624515,
+      &quot;0.2&quot;: 21.680971227807685,
+      &quot;0.4&quot;: 11.124302481502852
+    },
+    &quot;peak_dynamic_range&quot;: 37.83695741211158,
+    &quot;peak_times_zeta&quot;: {
+      &quot;0.01&quot;: 4.209097592320705,
+      &quot;0.05&quot;: 4.238359905812258,
+      &quot;0.2&quot;: 4.336194245561537,
+      &quot;0.4&quot;: 4.449720992601141
+    },
+    &quot;power_in&quot;: {
+      &quot;0.01&quot;: 1.3730605883845057,
+      &quot;0.05&quot;: 1.3546541523046114,
+      &quot;0.2&quot;: 1.290289407148255,
+      &quot;0.4&quot;: 1.214135006410095
+    },
+    &quot;power_spread&quot;: 0.13089613686727913,
+    &quot;product_spread&quot;: 0.05716745573194631,
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_the_peak_scales_as_one_over_damping&quot;,
+    &quot;zetas&quot;: [
+      0.01,
+      0.05,
+      0.2,
+      0.4
+    ]
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C03&quot;,
+    &quot;grids&quot;: [
+      500,
+      1000,
+      2000,
+      4000
+    ],
+    &quot;observed_order&quot;: 2.0067924904957235,
+    &quot;passed&quot;: true,
+    &quot;residuals&quot;: [
+      3.2872916632708996e-06,
+      8.150974814623267e-07,
+      2.0294427089958416e-07,
+      5.0632966705215104e-08
+    ],
+    &quot;spec&quot;: &quot;ADR-0002&quot;,
+    &quot;test&quot;: &quot;test_the_residual_falls_with_the_grid&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-C04" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-C04 — 8 check(s)</h3><pre>[
+  {
+    &quot;G_ab&quot;: [
+      -0.035904987360693405,
+      0.026848506580111
+    ],
+    &quot;G_ba&quot;: [
+      -0.03590498736069345,
+      0.026848506580111037
+    ],
+    &quot;a&quot;: 0.22,
+    &quot;b&quot;: 0.55,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C04&quot;,
+    &quot;passed&quot;: true,
+    &quot;relative_difference&quot;: 1.259749033187741e-15,
+    &quot;spec&quot;: &quot;ADR-0003&quot;,
+    &quot;test&quot;: &quot;test_the_greens_function_is_reciprocal&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C04&quot;,
+    &quot;passed&quot;: true,
+    &quot;probe_x&quot;: 0.15,
+    &quot;relative_difference&quot;: 0.00748127201563531,
+    &quot;spec&quot;: &quot;ADR-0003&quot;,
+    &quot;spectrum_peak_hz&quot;: 7234.976618887244,
+    &quot;spectrum_peak_omega&quot;: 0.34990330401878367,
+    &quot;test&quot;: &quot;test_the_noise_spectrum_peaks_at_the_probes_own_tuned_frequency_0.15&quot;,
+    &quot;tuned_place_of_that_frequency&quot;: 0.1511221908023453
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C04&quot;,
+    &quot;passed&quot;: true,
+    &quot;probe_x&quot;: 0.3,
+    &quot;relative_difference&quot;: 0.0005932059886522753,
+    &quot;spec&quot;: &quot;ADR-0003&quot;,
+    &quot;spectrum_peak_hz&quot;: 2574.512150521782,
+    &quot;spectrum_peak_omega&quot;: 0.12451046563888211,
+    &quot;test&quot;: &quot;test_the_noise_spectrum_peaks_at_the_probes_own_tuned_frequency_0.3&quot;,
+    &quot;tuned_place_of_that_frequency&quot;: 0.2998220382034043
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C04&quot;,
+    &quot;passed&quot;: true,
+    &quot;probe_x&quot;: 0.5,
+    &quot;relative_difference&quot;: 0.0005727938516481013,
+    &quot;spec&quot;: &quot;ADR-0003&quot;,
+    &quot;spectrum_peak_hz&quot;: 641.9005456068942,
+    &quot;spectrum_peak_omega&quot;: 0.03104407015953242,
+    &quot;test&quot;: &quot;test_the_noise_spectrum_peaks_at_the_probes_own_tuned_frequency_0.5&quot;,
+    &quot;tuned_place_of_that_frequency&quot;: 0.49971360307417595
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C04&quot;,
+    &quot;passed&quot;: true,
+    &quot;relative_change_from_finest&quot;: {
+      &quot;120&quot;: 6.199598430093227e-05,
+      &quot;240&quot;: 0.0,
+      &quot;60&quot;: 0.020576909622549884
+    },
+    &quot;spec&quot;: &quot;ADR-0003&quot;,
+    &quot;test&quot;: &quot;test_the_spectrum_grid_is_fine_enough&quot;,
+    &quot;variance_by_grid&quot;: {
+      &quot;120&quot;: 140219.5773187914,
+      &quot;240&quot;: 140228.27090847318,
+      &quot;60&quot;: 137342.80645146308
+    }
+  },
+  {
+    &quot;closed_form_variance&quot;: 140219.5773187914,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C04&quot;,
+    &quot;hz&quot;: 3000.0,
+    &quot;passed&quot;: true,
+    &quot;ratio&quot;: 0.988465985006589,
+    &quot;sampled_variance&quot;: 138602.2826116267,
+    &quot;spec&quot;: &quot;ADR-0003&quot;,
+    &quot;test&quot;: &quot;test_the_synthesised_variance_matches_the_spectrum_3000.0&quot;,
+    &quot;x_cf&quot;: 0.2775
+  },
+  {
+    &quot;closed_form_variance&quot;: 1609692.9897000473,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C04&quot;,
+    &quot;hz&quot;: 800.0,
+    &quot;passed&quot;: true,
+    &quot;ratio&quot;: 0.9877416563250647,
+    &quot;sampled_variance&quot;: 1589960.81982117,
+    &quot;spec&quot;: &quot;ADR-0003&quot;,
+    &quot;test&quot;: &quot;test_the_synthesised_variance_matches_the_spectrum_800.0&quot;,
+    &quot;x_cf&quot;: 0.468
+  },
+  {
+    &quot;closed_form_variance&quot;: 18541.281993072604,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;C04&quot;,
+    &quot;hz&quot;: 9000.0,
+    &quot;passed&quot;: true,
+    &quot;ratio&quot;: 0.9892534829248691,
+    &quot;sampled_variance&quot;: 18342.027789539232,
+    &quot;spec&quot;: &quot;ADR-0003&quot;,
+    &quot;test&quot;: &quot;test_the_synthesised_variance_matches_the_spectrum_9000.0&quot;,
+    &quot;x_cf&quot;: 0.11950000000000001
+  }
+]</pre></div><div class="gate-detail" id="g-H1" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-H1 — 1 check(s)</h3><pre>[
+  {
+    &quot;drives&quot;: [
+      1e-06,
+      1e-05,
+      0.0001,
+      0.001
+    ],
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H1&quot;,
+    &quot;max_relative_error&quot;: 0.0047686765415142635,
+    &quot;observed_exponent&quot;: 0.33395724395174115,
+    &quot;passed&quot;: true,
+    &quot;predicted_exponent&quot;: 0.3333333333333333,
+    &quot;spec&quot;: &quot;7.5&quot;,
+    &quot;test&quot;: &quot;test_h1_compression_exponent_is_one_third_at_criticality&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-H2" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-H2 — 1 check(s)</h3><pre>[
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H2&quot;,
+    &quot;max_relative_error&quot;: 0.012322045202989674,
+    &quot;observed_exponent&quot;: 0.9999999999997728,
+    &quot;observed_gain&quot;: 1.012322045202636,
+    &quot;passed&quot;: true,
+    &quot;predicted_gain&quot;: 1.0,
+    &quot;spec&quot;: &quot;7.5&quot;,
+    &quot;test&quot;: &quot;test_h2_response_is_linear_far_below_criticality&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-H3" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-H3 — 2 check(s)</h3><pre>[
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H3&quot;,
+    &quot;knee_ratio&quot;: 0.7905500999543889,
+    &quot;mu&quot;: -0.01,
+    &quot;observed_knee&quot;: 0.0007905500999543888,
+    &quot;passed&quot;: true,
+    &quot;predicted_knee&quot;: 0.001,
+    &quot;spec&quot;: &quot;7.5&quot;,
+    &quot;test&quot;: &quot;test_h3_the_compression_knee_sits_where_mu_puts_it_-0.01&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H3&quot;,
+    &quot;knee_ratio&quot;: 0.7901281329136489,
+    &quot;mu&quot;: -0.04,
+    &quot;observed_knee&quot;: 0.006321025063309191,
+    &quot;passed&quot;: true,
+    &quot;predicted_knee&quot;: 0.008,
+    &quot;spec&quot;: &quot;7.5&quot;,
+    &quot;test&quot;: &quot;test_h3_the_compression_knee_sits_where_mu_puts_it_-0.04&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-H4" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-H4 — 7 check(s)</h3><pre>[
+  {
+    &quot;add&quot;: 0.4292066373415305,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H4&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;4.5 / 7.5&quot;,
+    &quot;test&quot;: &quot;test_h4_prescribes_noise_for_a_quiet_ear_and_the_sum_reaches_the_optimum&quot;,
+    &quot;theta_over_sigma&quot;: 3.8989492070408103,
+    &quot;total_sigma_over_theta&quot;: 0.5
+  },
+  {
+    &quot;add&quot;: 0.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H4&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;4.5 / 7.5&quot;,
+    &quot;test&quot;: &quot;test_h4_prescribes_nothing_for_an_ear_past_the_optimum&quot;,
+    &quot;theta_over_sigma&quot;: 1.5517556536555206,
+    &quot;verdict&quot;: &quot;already at or past the optimum (theta/sigma 1.55 &lt;= 2.0); added noise is predicted to reduce, not improve, detection&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H4&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;4.5 / 7.5&quot;,
+    &quot;test&quot;: &quot;test_h4_ratio_matches_the_rice_inversion_exactly&quot;,
+    &quot;theta_over_sigma&quot;: 2.6482288033023056,
+    &quot;truth&quot;: 2.6482288033023056
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H4&quot;,
+    &quot;passed&quot;: true,
+    &quot;refusals&quot;: [
+      &quot;silent fibre&quot;,
+      &quot;uncertainty &lt; 1&quot;,
+      &quot;non-positive knee&quot;
+    ],
+    &quot;spec&quot;: &quot;4.5 / 7.5&quot;,
+    &quot;test&quot;: &quot;test_h4_refuses_what_it_cannot_estimate&quot;
+  },
+  {
+    &quot;add&quot;: 0.3945002117757639,
+    &quot;add_hi&quot;: 0.4292066373415305,
+    &quot;add_lo&quot;: 0.2882635940460276,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H4&quot;,
+    &quot;hi&quot;: 3.8989492070408103,
+    &quot;lo&quot;: 2.4477468306808166,
+    &quot;mid&quot;: 3.2552472614374586,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;4.5 / 7.5&quot;,
+    &quot;test&quot;: &quot;test_h4_the_interval_is_asymmetric_and_ordered&quot;
+  },
+  {
+    &quot;checked_mu&quot;: [
+      -0.01,
+      -0.04,
+      -0.25
+    ],
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H4&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;4.5 / 7.5&quot;,
+    &quot;test&quot;: &quot;test_h4_the_knee_round_trips_through_the_normal_form&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;H4&quot;,
+    &quot;passed&quot;: true,
+    &quot;rate_needed_for_optimum&quot;: {
+      &quot;1000.0&quot;: 135.3352832366127,
+      &quot;4000.0&quot;: 541.3411329464508,
+      &quot;500.0&quot;: 67.66764161830635
+    },
+    &quot;spec&quot;: &quot;4.5 / 7.5&quot;,
+    &quot;test&quot;: &quot;test_h4_whether_the_optimum_is_reachable_depends_on_frequency&quot;
+  }
+]</pre></div>
+
+<h2>Attested runs</h2>
+<div class="scroll"><table><tr><th>run</th><th>result sha256</th><th>commit</th>
+<th>at</th><th>OMP threads</th></tr><tr><td class='mono'>e5-tl-resonance</td><td class='mono'>b7d9a2f3a069…</td><td class='mono'>1503c49f</td><td>2026-08-15 15:46 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e5-tl-resonance</td><td class='mono'>8c7dac608ad9…</td><td class='mono'>1503c49f</td><td>2026-08-15 15:42 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e5-tl-resonance</td><td class='mono'>6683ee4c49c9…</td><td class='mono'>1503c49f</td><td>2026-08-15 15:21 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e4-physiological</td><td class='mono'>14bf748f07be…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:29 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>e3-sr-curve</td><td class='mono'>6bcecf029e8e…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:29 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>e2-tonotopy</td><td class='mono'>6afa3cc8c386…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:13 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>b3-interactions</td><td class='mono'>305a314da5b8…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:11 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>b3-interactions</td><td class='mono'>ff6e7c9ea92d…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:10 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>b3-interactions</td><td class='mono'>56fb59acbeb1…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:09 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e4-physiological</td><td class='mono'>8b7443500160…</td><td class='mono'>917db2af</td><td>2026-08-14 18:33 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e3-sr-curve</td><td class='mono'>10e43434587d…</td><td class='mono'>5e972d12</td><td>2026-08-14 17:07 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e2-tonotopy</td><td class='mono'>51dd5c3e79dd…</td><td class='mono'>5e972d12</td><td>2026-08-14 16:47 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e2-tonotopy</td><td class='mono'>f7d2d205da0e…</td><td class='mono'>0b7aba8e</td><td>2026-08-14 13:53 UTC</td><td class='mono'>(unset)</td></tr></table></div>
+
+<h2>What was tried and killed</h2>
+<div class="scroll"><table><tr><th>ADR</th><th>decision</th><th>status</th></tr>
+<tr><td class='mono'>0001-the</td><td>ADR-0001 — The place code needs a term the spec absorbs</td><td style='color:var(--dim)'>**falsified by its own experiment, 2026-08-14** — superseded by [ADR-0002](0002-the-place-code-needs-fluid-cou</td></tr><tr><td class='mono'>0002-the</td><td>ADR-0002 — The place code needs fluid coupling, not a ground spring</td><td style='color:var(--dim)'>**built and accepted, 2026-08-14** — its pre-registered condition was met</td></tr><tr><td class='mono'>0003-the</td><td>ADR-0003 — The noise and the place code sit on different operators</td><td style='color:var(--dim)'>**resolved, 2026-08-15** — the unification is built and accepted</td></tr><tr><td class='mono'>0004-the</td><td>ADR-0004 — The narrowed model: a free-end string with variable mass, Fourier, and SR</td><td style='color:var(--dim)'>built and measured. The narrowing holds for everything except §R2 —</td></tr><tr><td class='mono'>0005-the</td><td>ADR-0005 — The calibration engine, and the prediction that falls out of it</td><td style='color:var(--dim)'>built, gated, and measured. The prediction is **not yet tested**</td></tr></table></div>
+
+<h2>The ledger</h2>
+<pre id="ledger-raw">{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e2-tonotopy-f7d2d205da0e/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A11&quot;,&quot;A12&quot;],&quot;prev_hash&quot;:null,&quot;sha256&quot;:&quot;f7d2d205da0e771ed5d788a7c285146d02998f887bad65145bd49277cf3253c5&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786715591.8555892}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e2-tonotopy-f7d2d205da0e/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;146e7f783604d87a2fa52ab6c00456f01940f7638764f7e3c63ebd85915be33b&quot;,&quot;sha256&quot;:&quot;b589fa67d31bca00309856b9c1574a3a68e2530aa2c0a2855734dab07fffc5b2&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786715591.8555892}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e2-tonotopy-51dd5c3e79dd/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;fd663b637e9579436bcda7bb9ca08217010266a76778dfe526e9dae84e42fcbe&quot;,&quot;sha256&quot;:&quot;51dd5c3e79ddc2ef6ec245b5ed43a6bc124dc814cabba28ce42e40f4bebb0533&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786726079.38366}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e2-tonotopy-51dd5c3e79dd/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;2fa4dcfc9131fc95ce34c3085783e59e71dc65a411767ba84bee0cb660ff519b&quot;,&quot;sha256&quot;:&quot;bc17cabedc1218b5bd4514330eabce6e6c98fb95b3212c1643ccd4cb515a77ae&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786726079.38366}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e3-sr-curve-10e43434587d/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;231c08132dbe234c1d1d8da1c3d566aac3ae67084eda79b48deda93aaa7a73be&quot;,&quot;sha256&quot;:&quot;10e43434587d8bd9e39fe57089c3a53b2df725c299d4ba4a9993eddeb1c5afa4&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786727223.9863622}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e3-sr-curve-10e43434587d/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;07acd035d36cc5294d59b60c20976da8ce99b9ae452adcbe98fe519eb72a0003&quot;,&quot;sha256&quot;:&quot;7acd67408837665a025dd035f93d49b593d35d1af49665ed9f7b5a96177796fb&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786727223.9863622}
+{&quot;actor&quot;:&quot;LITERATURA&quot;,&quot;artifact&quot;:&quot;runs/e4-physiological-8b7443500160/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;6dca887183e5bb908eba9667a06999cdfadc34062db91001dc13fd546f19ab2b&quot;,&quot;sha256&quot;:&quot;8b7443500160ea6a90dc72a3e8cb758b657aa919b4c16fe8907b87438671508d&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786732426.81978}
+{&quot;actor&quot;:&quot;LITERATURA&quot;,&quot;artifact&quot;:&quot;runs/e4-physiological-8b7443500160/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;2a216c002594217bd5486196d232dc1fb52390c5eb2058bbeab8bc18f31f2d1c&quot;,&quot;sha256&quot;:&quot;9ac985dc474c069b4a4c31d1f7be7ac5930cb3e3646045d37daf5e6c47c9a428&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786732426.81978}
+{&quot;actor&quot;:&quot;SINTETIZADOR&quot;,&quot;artifact&quot;:&quot;runs/b3-interactions-56fb59acbeb1/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A05&quot;,&quot;A06&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;08cc3570d7b907214de5b0cd3545f9fe3a3f40c3b056519d0421b6e8ad927ab3&quot;,&quot;sha256&quot;:&quot;56fb59acbeb1b60be8113af8cc399212307418626050c4bdd8d793c506d2f91d&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786734565.644937}
+{&quot;actor&quot;:&quot;SINTETIZADOR&quot;,&quot;artifact&quot;:&quot;runs/b3-interactions-56fb59acbeb1/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;f3077a76754e0cca49fe7711bb9e185e694cc1a8575d4869cb0f844631bc66eb&quot;,&quot;sha256&quot;:&quot;83d87cd44719ab7a8be490762e1f17c0f6205e0c49d7a1a20f4c177e07c3e06e&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786734565.644937}
+{&quot;actor&quot;:&quot;SINTETIZADOR&quot;,&quot;artifact&quot;:&quot;runs/b3-interactions-ff6e7c9ea92d/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A05&quot;,&quot;A06&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;95606ed9c0c3703dfa793d649844b403344f4fcd4bad4c49ceeb6c60f5fce0ab&quot;,&quot;sha256&quot;:&quot;ff6e7c9ea92d1d6f9982313714944b53b00b3a9653da4269575c3682f580cb67&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786734622.0606909}
+{&quot;actor&quot;:&quot;SINTETIZADOR&quot;,&quot;artifact&quot;:&quot;runs/b3-interactions-ff6e7c9ea92d/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;bd769cd828be59e419c4dc1f8ba8ff52ca096a130e66d5f5ff0a94bf166b9de2&quot;,&quot;sha256&quot;:&quot;8f8f2439b73fb6c3ee85c99536888b766e2fac1abf0ffdcbb46646a9eefe2c3d&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786734622.0606909}
+{&quot;actor&quot;:&quot;SINTETIZADOR&quot;,&quot;artifact&quot;:&quot;runs/b3-interactions-305a314da5b8/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A05&quot;,&quot;A06&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;4fc3e2df340a2c6107ee746ba1c17739b83f6a5aa4bb9ca208d125209dd9797f&quot;,&quot;sha256&quot;:&quot;305a314da5b8c90bbc459dc8e34c2dbce80c1193183385034f76a3de41dc68ce&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786734677.6628218}
+{&quot;actor&quot;:&quot;SINTETIZADOR&quot;,&quot;artifact&quot;:&quot;runs/b3-interactions-305a314da5b8/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;6c1f024b2c07200d6f180b733d6318b362d6052a68458e71490028f0a80fe881&quot;,&quot;sha256&quot;:&quot;49931b7861ffad7c78c307a6e33743204aeb58727b78cec740c56cd238418a25&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786734677.6628218}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e2-tonotopy-6afa3cc8c386/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A05&quot;,&quot;A06&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;a96cd8607eb9bb3ad65b7e8358d3f5348be9f1d139316d582314bbbbdeea6bff&quot;,&quot;sha256&quot;:&quot;6afa3cc8c3864a5a1dce929cf969fc3853db1d2d75435696ab1930e783daf05a&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786734796.526016}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e2-tonotopy-6afa3cc8c386/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;962ebabca092437addc823575fbca04ddf271833a43724edfad242c033901f9f&quot;,&quot;sha256&quot;:&quot;5f34e7d1cdd85a9d6272809e879128b108e49fa66d434d688b4ae26f6660d11c&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786734796.526016}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e3-sr-curve-6bcecf029e8e/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A05&quot;,&quot;A06&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;54e6dc851b092f8f747231436d6c247172604a5be234bc04458fba8a0a46bb83&quot;,&quot;sha256&quot;:&quot;6bcecf029e8e3640e4d961f7497ac1dced68ba08e970506cffbca5ad82d037d6&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786735793.353537}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e3-sr-curve-6bcecf029e8e/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;120ce4b525c2e3fab1d7e9334dc26dfd46cef267f5fb67f729efbbfa31eeba63&quot;,&quot;sha256&quot;:&quot;391a29658a9c63000d8bb526b9fb07302a0389e90126a125f656ef1a40ba83b2&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786735793.353537}
+{&quot;actor&quot;:&quot;LITERATURA&quot;,&quot;artifact&quot;:&quot;runs/e4-physiological-14bf748f07be/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A05&quot;,&quot;A06&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;a7d5cd606c728f212ccbb439fca685f7e1ed762937e229ec8b60fd8b7b7ae6d1&quot;,&quot;sha256&quot;:&quot;14bf748f07be36467df2892c07a7002f126dbacdb20157a3b5773404a6b3898b&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786735793.7365959}
+{&quot;actor&quot;:&quot;LITERATURA&quot;,&quot;artifact&quot;:&quot;runs/e4-physiological-14bf748f07be/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;8ea228f002adf3b07b69d660b4621d08d4724887ade22ad78d2bafc3bf3cadc8&quot;,&quot;sha256&quot;:&quot;d89c2023bcaa5be1f9561b3d721ec8e5b51b362301b7f4d12e82ee47196ad289&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786735793.7365959}
+{&quot;actor&quot;:&quot;AUDITOR&quot;,&quot;artifact&quot;:&quot;runs/e2-tonotopy-51dd5c3e79dd/result.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;da75aecca66c6019c37a69c5eba86865f787ea7454ed7c5ab2b12a792b99f588&quot;,&quot;reason&quot;:&quot;Written before src/coclea/attest.json_safe existed, so it contains Python NaN/-Infinity literals that JSON does not have. The replacement run has bit-identical numbers and valid JSON; verified by diffing every leaf.&quot;,&quot;sha256&quot;:&quot;51dd5c3e79ddc2ef6ec245b5ed43a6bc124dc814cabba28ce42e40f4bebb0533&quot;,&quot;state&quot;:&quot;superseded&quot;,&quot;superseded_by&quot;:&quot;runs/e2-tonotopy-6afa3cc8c386&quot;,&quot;ts&quot;:1786736450.315985}
+{&quot;actor&quot;:&quot;AUDITOR&quot;,&quot;artifact&quot;:&quot;runs/e3-sr-curve-10e43434587d/result.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;d882e34a3c24a3e65c65d3b6dc552087c0c26580da1bb6ecf55b736f98c526d6&quot;,&quot;reason&quot;:&quot;Written before src/coclea/attest.json_safe existed, so it contains Python NaN/-Infinity literals that JSON does not have. The replacement run has bit-identical numbers and valid JSON; verified by diffing every leaf.&quot;,&quot;sha256&quot;:&quot;10e43434587d8bd9e39fe57089c3a53b2df725c299d4ba4a9993eddeb1c5afa4&quot;,&quot;state&quot;:&quot;superseded&quot;,&quot;superseded_by&quot;:&quot;runs/e3-sr-curve-6bcecf029e8e&quot;,&quot;ts&quot;:1786736450.316446}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e5-tl-resonance-6683ee4c49c9/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A05&quot;,&quot;A06&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;33327ad068b6954de2b5d1b2f8df3464a3af54047322e3d8ddc43ac986be097e&quot;,&quot;sha256&quot;:&quot;6683ee4c49c92b4eb1eb601e437dccb81ee7ca4044122f56bfaf497925c06523&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786807319.70896}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e5-tl-resonance-6683ee4c49c9/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;10e77de3c15a384bb14474be070be60a99984eff837571aae6e078bd796e7dc2&quot;,&quot;sha256&quot;:&quot;c4614ac5b5a4aeb0103f7d9800513a76d2eaa1681b73eef2da8be51c8ae26bf0&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786807319.70896}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e5-tl-resonance-8c7dac608ad9/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A05&quot;,&quot;A06&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;1ed2a72c1522657a215d54e48d02c08b5d711e9cb1644c6096a7376e0b8e4a47&quot;,&quot;sha256&quot;:&quot;8c7dac608ad91fcefc7c047455bcb1879cda0de9cfa461704945af807cd0c96f&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786808549.946068}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e5-tl-resonance-8c7dac608ad9/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;a6d34d35ef25cde17e26920810ca88b3036c7fe12e10a6095470a80b6f4c849d&quot;,&quot;sha256&quot;:&quot;20824792876106a5faa2b41bc2fcbb6b7e313233af34eef5caba1db2a2d0a68a&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786808549.946068}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e5-tl-resonance-b7d9a2f3a069/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A05&quot;,&quot;A06&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A09&quot;,&quot;A10&quot;,&quot;A11&quot;,&quot;A12&quot;,&quot;A13&quot;,&quot;A14&quot;,&quot;C01&quot;,&quot;C02&quot;],&quot;prev_hash&quot;:&quot;b411f18b201ffbbb42e67cbc605aeed8453e166fca6e243e03afb06cdd756af8&quot;,&quot;sha256&quot;:&quot;b7d9a2f3a069c0740f1478e096856b94783a162eb5fbef11ecff6b5f8608efa6&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786808768.772305}
+{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e5-tl-resonance-b7d9a2f3a069/manifest.json&quot;,&quot;gates_passed&quot;:[],&quot;prev_hash&quot;:&quot;a5e7685ea8edfb23092d66cf0361004cc4809424b6921536cc95e75cab7d9060&quot;,&quot;sha256&quot;:&quot;fd15b4d02c8a20aea52d2d01c6933263333259032b90588ffd0f48b0b264b2e5&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786808768.772305}
+</pre>
+
+<p class="sub" style="margin-top:28px">Generated by <code>render_evidence.py</code>
+from <code>ledger.jsonl</code>, <code>runs/*/manifest.json</code> and
+<code>gates/reports/*.json</code>. No number on this page was typed.</p>
+
+</div><script>
+// The same walk verify_ledger.py does, in the visitor's browser.
+// The ledger text is embedded, not fetched: a page that fetched its own evidence
+// could be served a different file than the one it was rendered from.
+async function sha256(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function verify(){
+  const out = document.getElementById('vout');
+  const raw = document.getElementById('ledger-raw').textContent;
+  const lines = raw.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!lines.length){ out.innerHTML = '<span class="badge bad">no ledger to check</span>'; return; }
+  // The first entry's prev_hash is JSON null, matching Python's `prev = None`.
+  // The first draft of this compared String(e.prev_hash) against the literal
+  // "None" -- Python's repr, not its value -- and reported "chain broken" on
+  // entry 0 of a perfectly good ledger. Caught by running this walk in node
+  // against the same file and diffing it with verify_ledger.py, which is the
+  // only way a cross-language check gets verified rather than assumed.
+  let prev = null, problems = [];
+  for(let i=0;i<lines.length;i++){
+    let e; try { e = JSON.parse(lines[i]); }
+    catch(err){ problems.push(`entry ${i}: not JSON`); break; }
+    const declared = e.prev_hash === undefined ? null : e.prev_hash;
+    if(declared !== prev){
+      const show = v => v === null ? 'null' : String(v).slice(0,12) + '…';
+      problems.push(`entry ${i}: prev_hash ${show(declared)} does not follow ${show(prev)}`);
+    }
+    // The link is the hash of the entry as written, with prev_hash included --
+    // the same bytes verify_ledger.py hashes.
+    prev = await sha256(lines[i]);
+  }
+  out.innerHTML = problems.length
+    ? `<span class="badge bad">chain broken</span><br><code>${problems.map(p=>p.replace(/</g,'&lt;')).join('<br>')}</code>`
+    : `<span class="badge ok">chain intact — ${lines.length} entries re-linked in your browser</span>`;
+}
+function showGate(id){
+  document.querySelectorAll('.gate-detail').forEach(n=>n.style.display='none');
+  const n = document.getElementById('g-'+id);
+  if(n) n.style.display = n.style.display === 'block' ? 'none' : 'block';
+}
+</script></body></html>

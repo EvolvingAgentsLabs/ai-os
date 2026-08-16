@@ -79,6 +79,8 @@ found.
                           gates/test_A08*.py gates/test_A11*.py -q   # 28 checks, ~1.7s
 python3 verify_ledger.py                 # the chain, in stdlib only
 python3 gates/check_reports.py           # reports with no test behind them
+python3 render_evidence.py               # report/evidence.html, from the ledger
+.venv/bin/python -m pytest tests/ -q     # the viewer's own tests, incl. the tamper test
 ```
 
 **Run `check_reports.py` after renaming or moving a test.** `gates/reports/` is
