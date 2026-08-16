@@ -1,13 +1,16 @@
 # 16 · A workload with an oracle
 
-> **Reference for the seam, specification for the shape.** `ai-flows/src/gates.ts`
-> runs and is tested against gate reports that Python produced — 18 tests, and
-> six of them read the real files off disk. The `Gated` flow shape it argues for
-> is **not built**: `FLOW_SHAPES` still has one entry.
+> **Reference.** `ai-flows/src/gates.ts` runs and is tested against gate reports
+> that Python produced — 18 tests, and six of them read the real files off disk.
+>
+> The `Gated` flow shape this chapter argues for was **built on 2026-08-15** and
+> the argument below is what it was built from; the shape itself, and the three
+> refusals it makes, are in [17](17-a-project-is-born.md).
 >
 > The workload it describes, [`projects/coclea-sr/`](../projects/coclea-sr/),
-> runs: 45 gates green **[ran]**, one hypothesis falsified by its own control arm
-> **[ran]**.
+> runs: 111 gate checks **[ran]**, one hypothesis falsified by its own control
+> arm **[ran]**, and a §R2 answer that the narrowed model could not reproduce
+> ([ADR-0004](../projects/coclea-sr/decisions/0004-the-narrowed-model-three-ingredients.md)).
 
 ## The hole this closes, quoted from the code that left it
 
@@ -302,9 +305,15 @@ was present, machine-readable, and wrong.
 **The lesson for any attested store: content addressing removes the ordering you
 did not know you were relying on.** Sort by something that means time.
 
-## What this argues should be built next
+## What this argued should be built next — and was, on 2026-08-15
 
-**A `Gated` flow shape.** `FLOW_SHAPES = ["open"]` today, and
+> Built. `FLOW_SHAPES = ["open", "gated"]`, the engine refuses to complete a
+> gated flow over a red or never-run gate, and the desk carries the reason.
+> [17 · A project is born](17-a-project-is-born.md) has the measured refusals.
+> The argument below is left as it was written, because it is what the shape was
+> built from.
+
+**A `Gated` flow shape.** `FLOW_SHAPES = ["open"]` at the time of writing, and
 [NEXT.md](../NEXT.md) lists the missing shapes without a reason to pick one
 first. This is the reason: a `Gated` flow declares its required gates at
 creation, its steps carry observations with real values, and it **cannot reach

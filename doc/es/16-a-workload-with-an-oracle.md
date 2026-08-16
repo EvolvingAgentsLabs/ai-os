@@ -1,14 +1,17 @@
 # 16 · Una carga de trabajo con oráculo
 
-> **Referencia para la costura, especificación para la forma.**
-> `ai-flows/src/gates.ts` corre y está testeado contra reportes de gate que
-> produjo Python — 18 tests, seis de ellos leyendo los archivos reales del disco.
-> La flow shape `Gated` que argumenta **no está construida**: `FLOW_SHAPES` sigue
-> teniendo una sola entrada.
+> **Referencia.** `ai-flows/src/gates.ts` corre y está testeado contra reportes
+> de gate que produjo Python — 18 tests, seis de ellos leyendo los archivos
+> reales del disco.
+>
+> La flow shape `Gated` que este capítulo argumenta se **construyó el
+> 2026-08-15** y el argumento de abajo es de lo que se construyó; la forma en sí,
+> y los tres rechazos que hace, están en [17](17-a-project-is-born.md).
 >
 > La carga de trabajo que describe, [`projects/coclea-sr/`](../../projects/coclea-sr/),
-> sí corre: 45 gates en verde **[ran]**, una hipótesis falsada por su propio
-> brazo de control **[ran]**.
+> sí corre: 111 chequeos de gate **[ran]**, una hipótesis falsada por su propio
+> brazo de control **[ran]**, y una respuesta a §R2 que el modelo acotado no pudo
+> reproducir ([ADR-0004](../../projects/coclea-sr/decisions/0004-the-narrowed-model-three-ingredients.md)).
 >
 > El inglés es canónico. Cuando no coincidan, el inglés tiene razón.
 
@@ -318,9 +321,15 @@ legible por máquina, y equivocada.
 elimina el orden del que no sabías que dependías.** Ordená por algo que signifique
 tiempo.
 
-## Qué argumenta que se construya después
+## Qué argumentó que se construyera después — y se construyó, el 2026-08-15
 
-**Una flow shape `Gated`.** Hoy `FLOW_SHAPES = ["open"]`, y
+> Construida. `FLOW_SHAPES = ["open", "gated"]`, el motor se niega a completar
+> un flow gated sobre un gate rojo o sin correr, y el escritorio lleva el
+> motivo. [17 · Nace un proyecto](17-a-project-is-born.md) tiene los rechazos
+> medidos. El argumento de abajo queda como se escribió, porque es de lo que se
+> construyó la shape.
+
+**Una flow shape `Gated`.** Al escribirse, `FLOW_SHAPES = ["open"]`, y
 [NEXT.md](../../NEXT.md) lista las shapes faltantes sin una razón para elegir
 cuál primero. Ésta es la razón: un flow `Gated` declara sus gates requeridos al
 crearse, sus pasos llevan observaciones con valores reales, y **no puede llegar a

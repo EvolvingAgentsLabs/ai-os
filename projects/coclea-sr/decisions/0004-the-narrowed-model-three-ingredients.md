@@ -87,7 +87,7 @@ interior maximum *only* at or beside `x_cf`.
 **The narrowed model is the default for everything except §R2, and the
 transmission line is required — not optional — for §R2.**
 
-- H1–H3, the 45 gates, E3 and A9/A10/A14 sit on the string already and are
+- H1–H3, the A-series gates, E3 and A9/A10/A14 sit on the string already and are
   unaffected. So is the place map, which needs neither the ground term nor the
   fluid coupling.
 - **Co-tuning is a property of the traveling-wave operator, not of a resonant

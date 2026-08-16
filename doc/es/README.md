@@ -27,13 +27,14 @@ documento que cambia de clase se reescribe el cartel el mismo día.
 |---|---|
 | [01 · Arquitectura](01-architecture.md) | Los cuatro pilares, cómo encajan y dónde se engancha cada uno a la base |
 | [02 · ai-base](02-ai-base.md) | Qué da QM realmente — verificado contra el código, no contra su README — y los seams sobre los que se construye |
-| [03 · ai-flows](03-ai-flows.md) | El modelo de flow: objetivo, pasos, intentos, observaciones. **`Open` corre; las otras cinco formas son especificación** |
+| [03 · ai-flows](03-ai-flows.md) | El modelo de flow: objetivo, pasos, intentos, observaciones. `Open` y `Gated` corren; las otras cuatro formas son especificación |
 | [04 · ai-ui](04-ai-ui.md) | El escritorio: documentos, cubitos de agentes, la cara de traza. Construido; su propia falsificación no se corrió |
 | [15 · Interacción generada](15-generated-interaction.md) | Zoom semántico, el menú que se auto-revela, deixis y fork — lo que un modelo puede hacer y una GUI no podía. Fases 1–4 construidas, fase 5 especificada |
 | [09 · Escalas](09-scales.md) | Individual, colectiva, proyecto, sistema — un solo eje para flows y memoria, y es `scopeId` |
 | [10 · Observabilidad](10-observability.md) | Si el progreso de un flow se puede leer siquiera. Deriva contra ilegible, y el piso de ruido medido entre las dos |
 | [12 · Conformación](12-conformation.md) | Proyectos, agentes y carpetas: qué es el workspace en capas, y por qué la membresía nunca vive ahí |
-| [16 · Una carga de trabajo con oráculo](16-a-workload-with-an-oracle.md) | La primera carga de trabajo con métrica declarada, la costura que la lee entre lenguajes, y las tres formas en que mintieron sus instrumentos. **La shape `Gated` que argumenta no está construida** |
+| [16 · Una carga de trabajo con oráculo](16-a-workload-with-an-oracle.md) | La primera carga de trabajo con métrica declarada, la costura que la lee entre lenguajes, y las tres formas en que mintieron sus instrumentos. La shape `Gated` que argumenta ya está construida — ver 17 |
+| [17 · Nace un proyecto](17-a-project-is-born.md) | Empezar, dotar y amueblar un proyecto desde el escritorio; el proyecto que escribe su propio roster; skills perezosas con 95.8% medido; memoria que sobrevive la sesión. **Incluye la ruta que confirmó su propia escritura con su propio lector** |
 
 ## Especificación — no construido
 
