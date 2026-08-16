@@ -1,0 +1,33 @@
+{
+  "argmax_index": 6,
+  "argmax_value": 0.5978147712009566,
+  "failure": null,
+  "gate": "A10",
+  "left_end": null,
+  "left_end_ci": [
+    null,
+    null
+  ],
+  "maximum_is_interior": true,
+  "non_finite_fields": [
+    "left_end",
+    "left_end_ci[0]",
+    "left_end_ci[1]"
+  ],
+  "passed": true,
+  "peak": 13.784563772954222,
+  "peak_ci": [
+    13.448229316587243,
+    14.044867385165743
+  ],
+  "right_end": 0.9274867554349167,
+  "right_end_ci": [
+    -0.12409792048779407,
+    2.228632064909096
+  ],
+  "separated_from_left": true,
+  "separated_from_right": true,
+  "significant_interior_maximum": true,
+  "spec": "4.2 / 4.4",
+  "test": "test_the_curve_is_an_inverted_u_and_not_a_ramp"
+}

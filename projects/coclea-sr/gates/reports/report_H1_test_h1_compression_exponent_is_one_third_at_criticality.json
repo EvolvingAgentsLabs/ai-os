@@ -1,0 +1,16 @@
+{
+  "drives": [
+    1e-06,
+    1e-05,
+    0.0001,
+    0.001
+  ],
+  "failure": null,
+  "gate": "H1",
+  "max_relative_error": 0.0047686765415142635,
+  "observed_exponent": 0.33395724395174115,
+  "passed": true,
+  "predicted_exponent": 0.3333333333333333,
+  "spec": "7.5",
+  "test": "test_h1_compression_exponent_is_one_third_at_criticality"
+}

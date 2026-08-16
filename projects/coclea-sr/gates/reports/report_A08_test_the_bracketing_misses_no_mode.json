@@ -1,0 +1,10 @@
+{
+  "failure": null,
+  "gate": "A08",
+  "min_f_below_first_bracket": 2.5e-09,
+  "omega_1_numeric": 2.641779399179611,
+  "omega_1_truth": 2.6417793936381537,
+  "passed": true,
+  "spec": "2.6 / 2.11",
+  "test": "test_the_bracketing_misses_no_mode"
+}

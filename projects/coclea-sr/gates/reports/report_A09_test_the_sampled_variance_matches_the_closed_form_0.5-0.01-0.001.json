@@ -1,0 +1,21 @@
+{
+  "D": 0.001,
+  "T": 400000.0,
+  "dt": 0.05,
+  "failure": null,
+  "gamma": 0.01,
+  "gate": "A09",
+  "n_effective": 16000.0,
+  "n_paths": 8,
+  "omega": 0.5,
+  "passed": true,
+  "spec": "4.1",
+  "test": "test_the_sampled_variance_matches_the_closed_form_0.5-0.01-0.001",
+  "tolerance": 0.0670820393249937,
+  "var_q_relative_error": 0.0011189434719854896,
+  "var_q_sampled": 0.1997762113056029,
+  "var_q_truth": 0.2,
+  "var_qdot_relative_error": 0.001121091150885628,
+  "var_qdot_sampled": 0.04994394544245572,
+  "var_qdot_truth": 0.05
+}

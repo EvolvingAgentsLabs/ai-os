@@ -1,0 +1,8 @@
+{
+  "failure": null,
+  "gate": "A10",
+  "passed": true,
+  "sigma_opt_symbolic": "theta/2",
+  "spec": "4.2 / 4.4",
+  "test": "test_the_prediction_is_derived_symbolically"
+}

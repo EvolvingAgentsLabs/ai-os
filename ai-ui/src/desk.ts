@@ -134,6 +134,16 @@ function jsonForScript(value: unknown): string {
     .replace(/-->/g, "--\\u003e");
 }
 
+const NEWFORM_CSS = `
+.newform { position:absolute; top:34px; left:12px; width:420px; z-index:60; }
+.newform .win-body { padding:10px 12px 12px; }
+.newform label { display:block; margin:0 0 8px; font-size:12px; }
+.newform input { display:block; width:100%; margin-top:3px; box-sizing:border-box;
+  font:inherit; font-size:12px; padding:3px 5px; border:1px solid #808080;
+  border-top-color:#404040; border-left-color:#404040; background:#fff; }
+.newform .row { display:flex; gap:8px; margin-top:10px; }
+`;
+
 const DESK_CSS = `
 body{overflow:hidden}
 .desk{position:relative;width:100vw;height:calc(100vh - 30px);overflow:auto}
@@ -626,8 +636,8 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
             say('Forked at step ' + at + '. The original keeps its history; the fork is yours to change.', 5000);
             void r;
           } else if (a.route === '/advance') {
-            await post('/advance', { flowId: doc.id });
-            say('Advanced.');
+            const r = await post('/advance', { flowId: doc.id });
+            say(r.reason ? 'Halted — ' + r.reason : 'Advanced.', r.reason ? 8000 : 2500);
           } else if (a.route === '/ask') {
             const q = p.querySelector('#q');
             if (q) { q.value = a.label; q.focus(); }
@@ -771,7 +781,7 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
         const label = b.textContent;
         b.onclick = async () => {
           b.disabled = true; b.textContent = 'Working…';
-          try { const r = await post('/advance', { flowId: doc.id }); say('Step ' + r.outcome + '.'); await refresh(); }
+          try { const r = await post('/advance', { flowId: doc.id }); say(r.reason ? 'Halted — ' + r.reason : 'Step ' + r.outcome + '.', r.reason ? 8000 : 2500); await refresh(); }
           catch (e) { say('Advance failed: ' + e.message, 5000); b.disabled = false; b.textContent = label; }
         };
       }
@@ -1362,6 +1372,132 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + String.raw`
   });
   document.getElementById('reload').addEventListener('click', () => refresh());
 
+  // Create a document. The gesture the desk was missing: every other action
+  // here operates on work that already exists, so starting a project meant
+  // leaving the interface.
+  //
+  // An inline form and not window.prompt, for two reasons. A modal dialog is
+  // the wrong idiom for a surface built on direct manipulation -- it takes the
+  // desk away to ask about it. And a native prompt blocks the page's event loop
+  // entirely, which makes the gesture untestable by anything driving a browser,
+  // including the check that it works at all.
+  var newForm = document.getElementById('newform');
+  var newTitle = document.getElementById('newtitle');
+  var newGoal = document.getElementById('newgoal');
+
+  function closeNew() { newForm.style.display = 'none'; newTitle.value = ''; newGoal.value = ''; }
+
+  document.getElementById('newdoc').addEventListener('click', function () {
+    var open = newForm.style.display !== 'none';
+    if (open) { closeNew(); return; }
+    newForm.style.display = 'block';
+    newTitle.focus();
+  });
+  document.getElementById('newcancel').addEventListener('click', closeNew);
+
+  /**
+   * Starting a project, from the desk.
+   *
+   * The page navigates into the new scope rather than re-rendering in place:
+   * the scope is a query parameter here, so staying put would leave the chrome
+   * naming one project and the surface showing another.
+   */
+  var projForm = document.getElementById('newprojform');
+  var projName = document.getElementById('newprojname');
+  function closeProj() { projForm.style.display = 'none'; projName.value = ''; }
+  document.getElementById('newproj').addEventListener('click', function () {
+    if (projForm.style.display !== 'none') { closeProj(); return; }
+    projForm.style.display = 'block';
+    projName.focus();
+  });
+  document.getElementById('newprojcancel').addEventListener('click', closeProj);
+
+  /** Writing an agent, from the desk. The file IS the agent — nothing else happens. */
+  var agForm = document.getElementById('newagentform');
+  function closeAg() { agForm.style.display = 'none'; }
+  document.getElementById('newagent').addEventListener('click', function () {
+    if (agForm.style.display !== 'none') { closeAg(); return; }
+    agForm.style.display = 'block';
+    document.getElementById('agname').focus();
+  });
+  document.getElementById('agcancel').addEventListener('click', closeAg);
+  document.getElementById('agcreate').addEventListener('click', async () => {
+    var list = (v) => (v || '').split(',').map((x) => x.trim()).filter(Boolean);
+    try {
+      var r = await post('/agent', {
+        scopeId: S.scopeId,
+        name: (document.getElementById('agname').value || '').trim(),
+        description: document.getElementById('agdesc').value || '',
+        tools: list(document.getElementById('agtools').value),
+        subagents: list(document.getElementById('agsubs').value),
+        instructions: document.getElementById('aginstr').value || ''
+      });
+      closeAg();
+      say('Wrote ' + r.path + '. Drop it on a document to give it a step.', 6000);
+      await refresh();
+    } catch (e) {
+      // The refusal comes from ai-flows and is shown verbatim: it names the
+      // field and the reason, and a desk that replaced it with "invalid" would
+      // be hiding the only useful part.
+      say(e.message, 8000);
+    }
+  });
+
+  /** Putting material in. Goes to the sandbox, and says what the sandbox saw. */
+  var flForm = document.getElementById('newfileform');
+  function closeFl() { flForm.style.display = 'none'; }
+  document.getElementById('newfile').addEventListener('click', function () {
+    if (flForm.style.display !== 'none') { closeFl(); return; }
+    flForm.style.display = 'block';
+    document.getElementById('flpath').focus();
+  });
+  document.getElementById('flcancel').addEventListener('click', closeFl);
+  document.getElementById('flcreate').addEventListener('click', async () => {
+    try {
+      var r = await post('/file', {
+        scopeId: S.scopeId,
+        path: (document.getElementById('flpath').value || '').trim(),
+        content: document.getElementById('flbody').value || ''
+      });
+      closeFl();
+      // What the sandbox reported, not what was sent. The desk must not be able
+      // to say "written" about a write it did not observe.
+      say(r.path + ' — ' + r.verifiedInSandbox, 7000);
+    } catch (e) { say(e.message, 8000); }
+  });
+  document.getElementById('newprojcreate').addEventListener('click', async () => {
+    var name = (projName.value || '').trim();
+    if (!name) { say('A project needs a name.'); return; }
+    try {
+      var r = await post('/project', {
+        name: name,
+        ownerId: S.people && S.people[0] ? S.people[0] : 'you'
+      });
+      closeProj();
+      say('Started "' + name + '". It is empty — nothing has happened in it yet.', 6000);
+      if (r.scopeId) location.search = '?scope=' + encodeURIComponent(r.scopeId);
+    } catch (e) { say('Could not start it: ' + e.message); }
+  });
+
+  document.getElementById('newcreate').addEventListener('click', async () => {
+    var title = (newTitle.value || '').trim();
+    var goal = (newGoal.value || '').trim();
+    // The goal is required and is NOT defaulted from the title. A document whose
+    // goal restates its name says nothing about what done means, which is the
+    // first thing doc/03 says a flow exists to supply.
+    if (!title || !goal) { say('A document needs a name and a goal.'); return; }
+    try {
+      var r = await post('/flow', {
+        scopeId: S.scopeId, actorId: S.people && S.people[0] ? S.people[0] : 'you',
+        title: title, goal: goal
+      });
+      closeNew();
+      say('Created "' + (r.title || title) + '". Drop an agent on it to give it a step.');
+      await refresh();
+      if (r.flowId) select(r.flowId);
+    } catch (e) { say('Could not create it: ' + e.message); }
+  });
+
   render();
   // A document can be addressed directly: ?select=<flowId>. Sharing "look at
   // this one" should be a link rather than an instruction to find it, and it is
@@ -1428,7 +1564,7 @@ export function renderDeskHtml(view: DeskView): string {
   return `<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ai-os — the desk</title>
-<style>${CHROME_CSS}${CREATURE_CSS}${DESK_CSS}${view.simulate ? TOUR_CSS + MASCOT_CSS : ""}</style>
+<style>${CHROME_CSS}${CREATURE_CSS}${DESK_CSS}${NEWFORM_CSS}${view.simulate ? TOUR_CSS + MASCOT_CSS : ""}</style>
 <div class="menubar">
   <span class="apple">ai-os</span>
   ${view.simulate ? `<span class="sim">Simulated — no core, no model, nothing stored</span><span class="dim">reloading starts over</span>` : ""}
@@ -1441,8 +1577,49 @@ export function renderDeskHtml(view: DeskView): string {
     .join("")}</select></label>
   <span class="sep">|</span>
   <span id="counts">${esc(view.docs.length)} document(s) · ${esc(view.agents.length)} agent(s) · ${esc(view.people.length)} person(s)</span>
+  <button id="newproj">New project</button>
+  <button id="newagent">New agent</button>
+  <button id="newfile">Add material</button>
+  <button id="newdoc">New document</button>
   <button id="reload">Refresh</button>
   <span class="right">harness ${esc(view.harness)} · <span id="stamp">${esc(new Date(view.at).toISOString())}</span></span>
+</div>
+<div class="win newform" id="newagentform" style="display:none">
+  <div class="bar"><span class="box"></span><h2>New agent</h2><span class="box zoom"></span></div>
+  <div class="win-body">
+    <label>Name <input id="agname" type="text" placeholder="DERIVADOR"></label>
+    <label>What it is for <input id="agdesc" type="text" placeholder="Derives the closed forms every gate is checked against"></label>
+    <label>Tools <input id="agtools" type="text" value="read, execute" placeholder="read, write, execute, publish, memory, history, background"></label>
+    <label>Subagents <input id="agsubs" type="text" placeholder="VERIFICADOR-MATH (optional)"></label>
+    <label>Instructions <textarea id="aginstr" rows="5" placeholder="You derive the analytic truth. You never check your own derivation against the solver."></textarea></label>
+    <p class="dim">An agent is a markdown file. This writes agents/&lt;name&gt;.md into this project.</p>
+    <div class="row"><button id="agcreate">Write it</button><button id="agcancel">Cancel</button></div>
+  </div>
+</div>
+<div class="win newform" id="newfileform" style="display:none">
+  <div class="bar"><span class="box"></span><h2>Add material</h2><span class="box zoom"></span></div>
+  <div class="win-body">
+    <label>Path <input id="flpath" type="text" placeholder="COCLEA-SR-SPEC.md"></label>
+    <label>Contents <textarea id="flbody" rows="8" placeholder="Paste the specification, the dataset, the note…"></textarea></label>
+    <p class="dim">Goes into this project's sandbox — where its agents can read and run it — and is confirmed from inside it.</p>
+    <div class="row"><button id="flcreate">Put it in</button><button id="flcancel">Cancel</button></div>
+  </div>
+</div>
+<div class="win newform" id="newprojform" style="display:none">
+  <div class="bar"><span class="box"></span><h2>New project</h2><span class="box zoom"></span></div>
+  <div class="win-body">
+    <label>Name <input id="newprojname" type="text" placeholder="COCLEA-SR"></label>
+    <p class="dim">It starts empty — no documents, no agents. Nothing has happened in it yet.</p>
+    <div class="row"><button id="newprojcreate">Create</button><button id="newprojcancel">Cancel</button></div>
+  </div>
+</div>
+<div class="win newform" id="newform" style="display:none">
+  <div class="bar"><span class="box"></span><h2>New document</h2><span class="box zoom"></span></div>
+  <div class="win-body">
+    <label>Name <input id="newtitle" type="text" placeholder="Passive membrane"></label>
+    <label>What would make it done? <input id="newgoal" type="text" placeholder="every required gate green, and frozen only if they are"></label>
+    <div class="row"><button id="newcreate">Create</button><button id="newcancel">Cancel</button></div>
+  </div>
 </div>
 <div class="desk deskbg hasdrawer">
   <div class="surface" id="surface">

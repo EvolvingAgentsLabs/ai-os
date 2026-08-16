@@ -1,0 +1,12 @@
+{
+  "failure": null,
+  "fraction_lost_by_zeta": {
+    "0.01": 0.7981119017392835,
+    "0.05": 0.9996657165448777,
+    "0.2": 0.9999999999999883
+  },
+  "gate": "A06",
+  "passed": true,
+  "spec": "2.4",
+  "test": "test_more_damping_dissipates_more"
+}

@@ -1,0 +1,9 @@
+{
+  "failure": null,
+  "gate": "A01",
+  "max_relation_residual": 2.939771298590236e-15,
+  "passed": true,
+  "relation": "Eq(cos(L*omega/c), 0)",
+  "spec": "2.2 / 2.4",
+  "test": "test_the_derivation_behind_the_truth_value_still_holds"
+}

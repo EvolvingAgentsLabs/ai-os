@@ -61,6 +61,62 @@ export interface FlowsClient {
       members: string[];
     }>;
   }>;
+  /**
+   * Create a flow. Required by the desk's `New document` gesture.
+   *
+   * Declared on the interface rather than only on the HTTP client so the
+   * in-page simulated backend has to implement it too — otherwise the demo
+   * would offer a button that works against a server and throws in the browser,
+   * which is exactly the drift `build-demo.ts` exists to prevent.
+   */
+  /**
+   * Create a project, and return the scope its work happens in.
+   *
+   * On the interface rather than only on the HTTP client, for the same reason
+   * `createFlow` is: the simulated backend has to implement it too, or the demo
+   * ships a button that works against a server and throws in the browser.
+   *
+   * This is the gesture that was missing for a project to **start** inside
+   * ai-os. Until it existed, every scope on the desk had been created by a seed
+   * script run from a shell — which makes the desk a viewer of projects someone
+   * else made rather than a place work begins.
+   */
+  createProject(input: {
+    name: string;
+    ownerId: string;
+  }): Promise<{ id: string; name: string; scopeId: string }>;
+  /**
+   * Write an agent into a scope. The gesture that furnishes a new project.
+   *
+   * Without it a project started from the desk is permanently empty: a document
+   * needs an agent to run a step, and every agent in this system had been
+   * written by a seed script. Starting a project you cannot staff is starting
+   * nothing.
+   */
+  writeAgent(
+    scopeId: string,
+    draft: {
+      name: string;
+      description: string;
+      tools: string[];
+      subagents?: string[];
+      instructions: string;
+    },
+  ): Promise<{ name: string; path: string }>;
+  /**
+   * Put material into a scope — a specification, a dataset, a note.
+   *
+   * The other half of furnishing a project. Agents with nothing to read answer
+   * that they have nothing to read, which was measured rather than assumed.
+   */
+  writeFile(scopeId: string, path: string, content: string): Promise<{ path: string; verifiedInSandbox: string }>;
+  createFlow(input: {
+    scopeId: string;
+    actorId: string;
+    title: string;
+    goal: string;
+    steps?: string[];
+  }): Promise<{ id: string; title: string; state: string }>;
   flows(scopeId: string): Promise<
     Array<{
       id: string;
@@ -106,7 +162,7 @@ export interface FlowsClient {
    * pulsed forever over a run that had finished minutes earlier.
    */
   resume(flowId: string): Promise<{ resumed: number }>;
-  advance(flowId: string): Promise<{ kind: string }>;
+  advance(flowId: string): Promise<{ kind: string; reason?: string }>;
   /**
    * Copy steps `0..atStep` into a new flow carrying `forkedFrom`.
    *
@@ -405,6 +461,112 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         return send(200, { ok: true });
       }
 
+      if (req.method === "POST" && url.pathname === "/project") {
+        /**
+         * Start a project from the desk.
+         *
+         * The gesture the desk did not have, and the one that decides whether
+         * this is a system or a viewer. Every scope shown here until now was
+         * minted by a seed script run from a shell; a person sitting at the desk
+         * could open work somebody else had started and could not start their
+         * own.
+         *
+         * The response carries the `scopeId` so the page can navigate straight
+         * into the new project. It is deliberately **empty** when it gets there
+         * — no agents, no documents, no layout. Seeding it with a starter flow
+         * would make the first thing a person sees something they did not write,
+         * and the emptiness is honest: the project exists and nothing has
+         * happened in it yet.
+         */
+        const body = JSON.parse((await readBody(req)) || "{}");
+        const name = typeof body?.name === "string" ? body.name.trim() : "";
+        const ownerId = typeof body?.ownerId === "string" ? body.ownerId.trim() : "";
+        if (!name) return send(400, { error: "a project needs a name" });
+        if (!ownerId) {
+          return send(400, {
+            error: "ownerId is required — a project records who it belongs to",
+          });
+        }
+        const created = await opts.flows.createProject({ name, ownerId });
+        return send(200, { ok: true, ...created });
+      }
+
+      if (req.method === "POST" && url.pathname === "/agent") {
+        /**
+         * Write an agent into the current scope.
+         *
+         * The validation lives in `ai-flows/src/agent-file.ts` and is applied
+         * there, not here. Two validators would be two answers to "is this a
+         * valid agent", and the desk's copy would be the one that drifts.
+         */
+        const body = JSON.parse((await readBody(req)) || "{}");
+        if (!body?.scopeId) return send(400, { error: "scopeId is required" });
+        try {
+          const written = await opts.flows.writeAgent(body.scopeId, {
+            name: String(body.name ?? ""),
+            description: String(body.description ?? ""),
+            tools: Array.isArray(body.tools) ? body.tools : [],
+            subagents: Array.isArray(body.subagents) ? body.subagents : [],
+            instructions: String(body.instructions ?? ""),
+          });
+          return send(200, { ok: true, ...written });
+        } catch (e) {
+          return send(400, { error: (e as Error).message });
+        }
+      }
+
+      if (req.method === "POST" && url.pathname === "/file") {
+        const body = JSON.parse((await readBody(req)) || "{}");
+        if (!body?.scopeId) return send(400, { error: "scopeId is required" });
+        try {
+          const w = await opts.flows.writeFile(
+            body.scopeId,
+            String(body.path ?? ""),
+            typeof body.content === "string" ? body.content : "",
+          );
+          return send(200, { ok: true, ...w });
+        } catch (e) {
+          return send(400, { error: (e as Error).message });
+        }
+      }
+
+      if (req.method === "POST" && url.pathname === "/flow") {
+        /**
+         * Create a document from the desk.
+         *
+         * Named `/flow` rather than `/flows` so it cannot be confused with the
+         * upstream collection route in `ai-flows`: this one is the desk's
+         * gesture, it validates what a *person* can supply, and it is the only
+         * place the desk mints work rather than acting on work that exists.
+         *
+         * The goal is required and not defaulted from the title. A flow whose
+         * goal is its own title states nothing about what "done" means, which
+         * is the first of the four things `doc/03` says a session lacks and a
+         * flow is supposed to fix.
+         */
+        const body = JSON.parse((await readBody(req)) || "{}");
+        const { scopeId, title, goal, actorId, steps } = body ?? {};
+        if (!scopeId || !title || !goal) {
+          return send(400, { error: "scopeId, title and goal are required" });
+        }
+        if (!actorId) {
+          return send(400, {
+            error: "actorId is required — a flow records the principal it acts for",
+          });
+        }
+        if (!Array.isArray(steps ?? []) || (steps ?? []).some((s: unknown) => typeof s !== "string")) {
+          return send(400, { error: "steps must be an array of strings" });
+        }
+        const created = await opts.flows.createFlow({
+          scopeId,
+          actorId,
+          title,
+          goal,
+          ...(steps?.length ? { steps } : {}),
+        });
+        return send(200, { ok: true, flowId: created.id, title: created.title });
+      }
+
       if (req.method === "POST" && url.pathname === "/assign") {
         const body = JSON.parse((await readBody(req)) || "{}");
         const { scopeId, flowId, agent } = body ?? {};
@@ -485,7 +647,11 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         // and the flow ends up with two running attempts nobody asked for.
         await opts.flows.resume(body.flowId);
         const outcome = await opts.flows.advance(body.flowId);
-        return send(200, { ok: true, outcome: outcome.kind });
+        return send(200, {
+          ok: true,
+          outcome: outcome.kind,
+          ...(outcome.reason ? { reason: outcome.reason } : {}),
+        });
       }
 
       /**

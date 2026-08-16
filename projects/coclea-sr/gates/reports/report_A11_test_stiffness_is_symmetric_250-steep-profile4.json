@@ -1,0 +1,11 @@
+{
+  "N": 250,
+  "case": "steep",
+  "failure": null,
+  "gate": "A11",
+  "passed": true,
+  "spec": "5.1",
+  "symmetry_defect": 0.0,
+  "test": "test_stiffness_is_symmetric_250-steep-profile4",
+  "tolerance": 1e-12
+}

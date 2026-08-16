@@ -461,16 +461,35 @@ export function lint(wiki: Wiki): string[] {
  * starts scoring semantically it has become a second retrieval system nobody
  * measured.
  */
+/**
+ * Fold a keyword to the form both sides can agree on.
+ *
+ * Case and separators only — no stemming, no synonyms. The writer of a note and
+ * whoever queries it are different turns and often different models, and they
+ * disagree on `ground spring` / `ground-spring` / `Ground Spring` while meaning
+ * one thing. Exact matching made that disagreement **return nothing, silently**,
+ * which is the failure mode of a memory nobody can tell is broken: it looks
+ * exactly like a memory that does not cover the question.
+ *
+ * Measured: a note stored with `ground spring` was invisible to `ground-spring`
+ * while `total: 2` was reported one line above it.
+ *
+ * Stopping here is deliberate. Stemming would make `tuned` match `tuning` and
+ * also `tune-up`, and a recall that matches too much is a recall that decided
+ * nothing — with no way to see which of the two it did.
+ */
+const fold = (k: string): string => k.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
 export function candidates(
   wiki: Wiki,
   keywords: string[],
   limit = 12,
 ): Note[] {
-  const want = new Set(keywords.map((k) => k.toLowerCase()));
+  const want = new Set(keywords.map(fold).filter(Boolean));
   return Object.values(wiki.notes)
     .map((n) => ({
       n,
-      hits: n.keywords.filter((k) => want.has(k.toLowerCase())).length,
+      hits: n.keywords.filter((k) => want.has(fold(k))).length,
     }))
     .filter((r) => r.hits > 0)
     .sort((a, b) => b.hits - a.hits || a.n.id.localeCompare(b.n.id))

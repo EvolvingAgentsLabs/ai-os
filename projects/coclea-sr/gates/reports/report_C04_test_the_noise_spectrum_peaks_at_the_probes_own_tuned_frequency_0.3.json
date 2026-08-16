@@ -1,0 +1,12 @@
+{
+  "failure": null,
+  "gate": "C04",
+  "passed": true,
+  "probe_x": 0.3,
+  "relative_difference": 0.0005932059886522753,
+  "spec": "ADR-0003",
+  "spectrum_peak_hz": 2574.512150521782,
+  "spectrum_peak_omega": 0.12451046563888211,
+  "test": "test_the_noise_spectrum_peaks_at_the_probes_own_tuned_frequency_0.3",
+  "tuned_place_of_that_frequency": 0.2998220382034043
+}

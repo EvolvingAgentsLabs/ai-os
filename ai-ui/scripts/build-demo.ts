@@ -18,6 +18,7 @@ import { actionsFor } from "../src/actions.ts";
 import { DEMO_AT, demoWorld } from "../src/simulate.ts";
 import { dspAgents, dspFlows } from "../src/dsp-demo.ts";
 import { memoryAgents, memoryFlows } from "../src/memory-demo.ts";
+import { cochleaAgents, cochleaFlows } from "../src/cochlea-demo.ts";
 import { channelsFor, workChannel } from "../../ai-flows/src/channels.ts";
 import { propose } from "../src/layout.ts";
 import { MEMORY_LEVELS } from "../src/memory.ts";
@@ -115,6 +116,22 @@ const layout = layoutFor(
   world.agents.map((a) => a["name"] as string),
 );
 
+/**
+ * The cochlea lab: the same desk, on a research project with an external oracle.
+ *
+ * The other three scopes are about whether a step did its work. This one is about
+ * whether a *result* may be published: two identical-looking chains, one frozen
+ * and one held at `blocked` by a gate. Its numbers come from an independent
+ * eigensolver in `cochlea-demo.ts` and are checked against the Python suite in
+ * `projects/coclea-sr/` by `test/cochlea-demo.test.ts`, so neither half can drift
+ * from the other.
+ */
+const coc = {
+  scopeId: "group:cochlea-lab",
+  agents: cochleaAgents(),
+  raw: cochleaFlows(DEMO_AT) as unknown as Array<Record<string, unknown>>,
+};
+
 /** The knowledge base being built: the same desk, pointed at reading. */
 const mem = {
   scopeId: "group:memory-lab",
@@ -130,10 +147,15 @@ const memNames = mem.agents.map((a) => a.name);
 const memDocs = projectDocs(mem.raw, memNames);
 const memLayout = layoutFor(mem.scopeId, mem.raw, memNames);
 
+const cocNames = coc.agents.map((a) => a.name);
+const cocDocs = projectDocs(coc.raw, cocNames);
+const cocLayout = layoutFor(coc.scopeId, coc.raw, cocNames);
+
 const SCOPES = [
   { scopeId: "group:web-project-demo", label: "group:web-project-demo" },
   { scopeId: dsp.scopeId, label: dsp.scopeId },
   { scopeId: mem.scopeId, label: mem.scopeId },
+  { scopeId: coc.scopeId, label: coc.scopeId },
 ];
 
 const html = renderDeskHtml({
@@ -195,6 +217,13 @@ const worlds = {
     notes: [],
     channels: channelsOf(mem.scopeId, memDocs),
   },
+  [coc.scopeId]: {
+    docs: cocDocs,
+    agents: coc.agents,
+    layout: cocLayout,
+    notes: [],
+    channels: channelsOf(coc.scopeId, cocDocs),
+  },
 };
 const withWorlds = html.replace(
   marker,
@@ -213,4 +242,7 @@ console.log(
 );
 console.log(
   `  ${memDocs.length} document(s), ${mem.agents.length} agent(s) in the memory lab, no server`,
+);
+console.log(
+  `  ${cocDocs.length} document(s), ${coc.agents.length} agent(s) in the cochlea lab`,
 );

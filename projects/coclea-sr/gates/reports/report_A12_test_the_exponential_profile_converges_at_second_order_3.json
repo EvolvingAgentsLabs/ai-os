@@ -1,0 +1,36 @@
+{
+  "alpha": 3.0,
+  "case": "exponential",
+  "failure": null,
+  "gate": "A12",
+  "grids": [
+    250,
+    500,
+    1000,
+    2000,
+    4000
+  ],
+  "grids_dropped_at_precision_floor": [],
+  "mode": 3,
+  "observed_order": 1.9999634885376636,
+  "passed": true,
+  "precision_floor": [
+    2.08792515977108e-13,
+    8.32668308226546e-13,
+    3.3256809681914103e-12,
+    1.329275057031698e-11,
+    5.315106689353127e-11
+  ],
+  "relative_errors": [
+    3.779679510455496e-05,
+    9.449298972753163e-06,
+    2.36233476765057e-06,
+    5.90588133555636e-07,
+    1.476615461991553e-07
+  ],
+  "richardson_limit": 8.177217342540184,
+  "richardson_relative_error": 1.935041366175069e-11,
+  "spec": "5.2",
+  "test": "test_the_exponential_profile_converges_at_second_order_3",
+  "truth": 8.177217342698416
+}

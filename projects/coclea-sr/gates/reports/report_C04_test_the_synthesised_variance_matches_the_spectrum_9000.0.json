@@ -1,0 +1,12 @@
+{
+  "closed_form_variance": 18541.281993072604,
+  "failure": null,
+  "gate": "C04",
+  "hz": 9000.0,
+  "passed": true,
+  "ratio": 0.9892534829248691,
+  "sampled_variance": 18342.027789539232,
+  "spec": "ADR-0003",
+  "test": "test_the_synthesised_variance_matches_the_spectrum_9000.0",
+  "x_cf": 0.11950000000000001
+}

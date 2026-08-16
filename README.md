@@ -39,7 +39,7 @@ Español: [Correr ai-os](doc/es/manual.md).
 
 ## State
 
-`ai-base`, `ai-flows` and `ai-ui` run — **502 tests of our own**, on top of the
+`ai-base`, `ai-flows` and `ai-ui` run — **538 tests of our own**, on top of the
 3,768 `ai-base` carries from upstream. `ai-storage` is specified and not built,
 though the first piece of its argument now runs inside `ai-flows`: a project
 knowledge base an eight-thousand-token window can navigate — a flat file of the
@@ -57,6 +57,7 @@ every screenshot is from a live instance.
 | [`ai-flows/`](ai-flows/) | Flows, composition, the measurement harness, the knowledge base and the [system agents](ai-flows/agents/system/memory/) | Apache 2.0 |
 | [`ai-memory/`](ai-memory/) | The memory agents, as a tree that runs as a tree | Apache 2.0 |
 | [`ai-ui/`](ai-ui/) | The desk | Apache 2.0 |
+| [`projects/`](projects/) | Work running **on** the OS. Today: [`coclea-sr/`](projects/coclea-sr/), Python, 80 gates | Apache 2.0 |
 | `ai-storage/` | Not built | — |
 
 `ai-base/` stays byte-identical to upstream. Anything we change there needs a

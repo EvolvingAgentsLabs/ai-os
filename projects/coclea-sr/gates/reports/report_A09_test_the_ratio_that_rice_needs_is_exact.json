@@ -1,0 +1,13 @@
+{
+  "expected": 2.0,
+  "failure": null,
+  "gate": "A09",
+  "passed": true,
+  "ratios": [
+    2.0,
+    2.0,
+    2.0
+  ],
+  "spec": "4.1",
+  "test": "test_the_ratio_that_rice_needs_is_exact"
+}

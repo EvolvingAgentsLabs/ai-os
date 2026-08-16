@@ -1,0 +1,15 @@
+{
+  "N": 4000,
+  "beta": 8.0,
+  "failure": null,
+  "gate": "C03",
+  "hz": 3000.0,
+  "omega": 0.14508822451699904,
+  "passed": true,
+  "power_dissipated": 1.3546541027011425,
+  "power_in": 1.354654171291302,
+  "relative_residual": 5.0632966705215104e-08,
+  "spec": "ADR-0002",
+  "test": "test_power_in_equals_power_dissipated_4000-3000.0",
+  "tolerance": 0.001
+}

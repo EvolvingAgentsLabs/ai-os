@@ -1,0 +1,33 @@
+{
+  "at": 1786734565.644937,
+  "environment": {
+    "machine": "arm64",
+    "numpy": "2.5.2",
+    "omp_num_threads": "(unset)",
+    "platform": "macOS-15.7.7-arm64-arm-64bit",
+    "python": "3.12.13",
+    "scipy": "1.18.0"
+  },
+  "gates": {
+    "A01": true,
+    "A02": true,
+    "A03": true,
+    "A04": true,
+    "A05": true,
+    "A06": true,
+    "A07": true,
+    "A08": true,
+    "A09": true,
+    "A10": true,
+    "A11": true,
+    "A12": true,
+    "A13": true,
+    "A14": true,
+    "C01": true,
+    "C02": true,
+    "C03": false
+  },
+  "git_commit": "b3154ee1986487dad313af82ba7807f72fdef37a",
+  "result_sha256": "56fb59acbeb1b60be8113af8cc399212307418626050c4bdd8d793c506d2f91d",
+  "run_id": "b3-interactions"
+}

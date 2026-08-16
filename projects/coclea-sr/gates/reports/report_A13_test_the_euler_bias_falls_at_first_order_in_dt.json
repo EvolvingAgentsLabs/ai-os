@@ -1,0 +1,23 @@
+{
+  "error_at_production_dt": 0.45842469937932995,
+  "euler_meets_spec_at_production_step": false,
+  "failure": null,
+  "fitted_order_in_dt": 1.0962915816160677,
+  "gate": "A13",
+  "note": "Euler-Maruyama misses spec \u00a75.3's own 1% bar at spec \u00a75.4's own production step by a factor of ~46. Production uses the exact Van Loan scheme, which has no step-size bias at all.",
+  "passed": true,
+  "production_dt": 0.031415926535897934,
+  "refinement_reaching_1_percent": 32,
+  "relative_error_by_refinement": {
+    "1": 0.45842469937932995,
+    "16": 0.020029190238051442,
+    "2": 0.1864249204004015,
+    "32": 0.009915058873503635,
+    "4": 0.08525082777310374,
+    "8": 0.04087908202348722
+  },
+  "spec": "5.3",
+  "test": "test_the_euler_bias_falls_at_first_order_in_dt",
+  "tolerance_at_production": "1% (spec \u00a75.3)",
+  "truth": 0.19999999999999998
+}

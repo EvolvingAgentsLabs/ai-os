@@ -23,6 +23,13 @@ const SCHEMA = [
    * guessed actor, and those flows are simply not advanceable.
    */
   `ALTER TABLE flow_flows ADD COLUMN IF NOT EXISTS actor_id TEXT`,
+  /**
+   * The checks a `gated` flow must satisfy. Added after the table shipped, so
+   * nullable: an existing `open` flow has none and that is not a defect.
+   * Stored as JSON text rather than an array column — the set is small, read
+   * whole, and never queried by element.
+   */
+  `ALTER TABLE flow_flows ADD COLUMN IF NOT EXISTS required_gates TEXT`,
   `CREATE INDEX IF NOT EXISTS flow_flows_scope_idx ON flow_flows(scope_id, seq DESC)`,
   `CREATE TABLE IF NOT EXISTS flow_steps(
      id TEXT PRIMARY KEY,
@@ -67,6 +74,7 @@ function toFlow(r: Row): Flow {
     title: r.title as string,
     goal: r.goal as string,
     shape: r.shape as Flow["shape"],
+    requiredGates: r.required_gates ? (JSON.parse(String(r.required_gates)) as string[]) : null,
     state: r.state as FlowState,
     forkedFrom: parentId === null ? null : { flowId: parentId, atStep: Number(r.forked_from_at_step) },
     createdAt: Number(r.created_at),
@@ -155,8 +163,8 @@ export function createPostgresFlowStore(
     async createFlow(input: CreateFlowInput): Promise<Flow> {
       const at = now();
       const rows = await q(
-        `INSERT INTO flow_flows(id, scope_id, actor_id, title, goal, shape, state, forked_from_flow_id, forked_from_at_step, created_at, updated_at)
-         VALUES ($1,$2,$3,$4,$5,$6,'draft',$7,$8,$9,$9) RETURNING *`,
+        `INSERT INTO flow_flows(id, scope_id, actor_id, title, goal, shape, state, forked_from_flow_id, forked_from_at_step, created_at, updated_at, required_gates)
+         VALUES ($1,$2,$3,$4,$5,$6,'draft',$7,$8,$9,$9,$10) RETURNING *`,
         [
           nextId(),
           input.scopeId,
@@ -167,6 +175,7 @@ export function createPostgresFlowStore(
           input.forkedFrom?.flowId ?? null,
           input.forkedFrom?.atStep ?? null,
           at,
+          input.requiredGates ? JSON.stringify(input.requiredGates) : null,
         ],
       );
       return toFlow(rows[0]!);
@@ -319,11 +328,14 @@ export function createPostgresFlowStore(
         if (input.atStep < 0 || input.atStep >= steps.rows.length) return null;
         const id = nextId();
         await c.query(
-          `INSERT INTO flow_flows(id, scope_id, actor_id, title, goal, shape, state, forked_from_flow_id, forked_from_at_step, created_at, updated_at)
-           VALUES ($1,$2,$3,$4,$5,$6,'draft',$7,$8,$9,$9)`,
+          `INSERT INTO flow_flows(id, scope_id, actor_id, title, goal, shape, state, forked_from_flow_id, forked_from_at_step, created_at, updated_at, required_gates)
+           VALUES ($1,$2,$3,$4,$5,$6,'draft',$7,$8,$9,$9,$10)`,
           // A fork inherits its ancestor's actor: the same person is continuing
           // the same work down a different branch.
-          [id, row.scope_id, row.actor_id, input.title ?? row.title, row.goal, row.shape, input.flowId, input.atStep, at],
+          // A fork inherits its ancestor's required gates too: the same work
+          // down a different branch is held to the same checks.
+          [id, row.scope_id, row.actor_id, input.title ?? row.title, row.goal, row.shape,
+           input.flowId, input.atStep, at, row.required_gates ?? null],
         );
         for (const [index, step] of steps.rows.slice(0, input.atStep + 1).entries()) {
           await c.query(

@@ -1,0 +1,11 @@
+{
+  "discriminates": false,
+  "failure": null,
+  "gate": "A11",
+  "note": "the defect is in M, not Sm. GATE-A12 is what sees it.",
+  "passed": true,
+  "scheme": "lumped-full-cell",
+  "spec": "5.1",
+  "symmetry_defect": 0.0,
+  "test": "test_the_deliberate_defect_is_still_symmetric"
+}

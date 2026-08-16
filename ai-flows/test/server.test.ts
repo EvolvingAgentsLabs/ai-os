@@ -35,7 +35,7 @@ function stubCore(mode: "ok" | "pending" = "ok"): CoreClient {
 function serverOn(
   mode: "ok" | "pending" = "ok",
   secret: string | undefined = SECRET,
-  extra: { ask?: (prompt: string) => Promise<string> } = {},
+  extra: Partial<Parameters<typeof createFlowServer>[0]> = {},
 ) {
   const store = createMemoryFlowStore();
   const engine = createEngine({
@@ -356,5 +356,133 @@ describe("asking about a flow", () => {
     const id = await flowThatRan(server);
     await signed(server, "POST", `/flows/${id}/ask`, { question: "why?", step: 0 });
     assert.match(prompt, /^>> step 0 /m);
+  });
+});
+
+/**
+ * Furnishing a project: agents into the workspace, material into the sandbox.
+ *
+ * These are two different stores and the tests exist because that was learned
+ * the expensive way. The first version of the material route wrote through the
+ * workspace, read the file back through the workspace, answered
+ * `201 … bytes: 37691` — and the agent asked to summarise that file replied it
+ * did not exist. The route had confirmed its own write with its own reader.
+ */
+describe("furnishing a project", () => {
+  const draft = {
+    name: "DERIVADOR",
+    description: "Derives the closed forms.",
+    tools: ["read", "execute"],
+    instructions: "You derive the analytic truth.",
+  };
+
+  it("writes an agent as markdown, at the path the roster reads", async () => {
+    const written: Array<[string, string, string]> = [];
+    const { server } = serverOn("ok", SECRET, {
+      async writeAgent(scopeId, path, md) {
+        written.push([scopeId, path, md]);
+      },
+    });
+    const res = await call(server, "POST", "/scopes/group%3Aacme/agents", draft, { secret: SECRET });
+    assert.equal(res.status, 201);
+    assert.equal(written.length, 1);
+    assert.equal(written[0]![0], "group:acme", "the scope id is decoded, not left percent-escaped");
+    assert.equal(written[0]![1], "agents/DERIVADOR.md");
+    assert.match(written[0]![2], /^---\ndescription: Derives the closed forms\./);
+  });
+
+  it("refuses a misspelled tool rather than writing a file that declares nothing", async () => {
+    const written: string[] = [];
+    const { server } = serverOn("ok", SECRET, {
+      async writeAgent(_s, path) {
+        written.push(path);
+      },
+    });
+    const res = await call(
+      server,
+      "POST",
+      "/scopes/group%3Aacme/agents",
+      { ...draft, tools: ["read", "excecute"] },
+      { secret: SECRET },
+    );
+    assert.equal(res.status, 400);
+    assert.match(JSON.stringify(res.body), /excecute/);
+    assert.equal(written.length, 0, "nothing may be written on a rejected draft");
+  });
+
+  /**
+   * The load-bearing one. A write the sandbox does not have is a **failure**,
+   * and the route must say so — a furnished project that is empty is precisely
+   * what this route exists to make impossible.
+   */
+  it("answers 500, not 201, when the sandbox does not have what it was sent", async () => {
+    const { server } = serverOn("ok", SECRET, {
+      async putMaterial() {
+        return { verified: false, detail: "0 of 39485 bytes present" };
+      },
+    });
+    const res = await call(
+      server,
+      "POST",
+      "/scopes/group%3Aacme/files",
+      { path: "SPEC.md", content: "hello" },
+      { secret: SECRET },
+    );
+    assert.equal(res.status, 500);
+    assert.match(JSON.stringify(res.body), /0 of 39485/);
+  });
+
+  it("carries the sandbox's own confirmation rather than restating the request", async () => {
+    const { server } = serverOn("ok", SECRET, {
+      async putMaterial(_s, _p, content) {
+        return { verified: true, detail: `${content.length} of ${content.length} bytes present` };
+      },
+    });
+    const res = await call(
+      server,
+      "POST",
+      "/scopes/group%3Aacme/files",
+      { path: "SPEC.md", content: "hello" },
+      { secret: SECRET },
+    );
+    assert.equal(res.status, 201);
+    assert.match(JSON.stringify(res.body), /verifiedInSandbox/);
+  });
+
+  it("refuses a path that climbs out of the scope rather than repairing it", async () => {
+    let called = 0;
+    const { server } = serverOn("ok", SECRET, {
+      async putMaterial() {
+        called += 1;
+        return { verified: true, detail: "ok" };
+      },
+    });
+    for (const path of ["../../etc/passwd", "/etc/passwd", "a/../../b"]) {
+      const res = await call(
+        server,
+        "POST",
+        "/scopes/group%3Aacme/files",
+        { path, content: "x" },
+        { secret: SECRET },
+      );
+      assert.equal(res.status, 400, `"${path}" must be refused`);
+    }
+    assert.equal(called, 0, "a refused path never reaches the sandbox");
+  });
+
+  /**
+   * 501 rather than a silent success. A caller that cannot tell "nothing is
+   * wired" from "it worked" will report a furnished project and have none.
+   */
+  it("answers 501 when no sandbox is wired, rather than pretending", async () => {
+    const { server } = serverOn();
+    const res = await call(
+      server,
+      "POST",
+      "/scopes/group%3Aacme/files",
+      { path: "SPEC.md", content: "x" },
+      { secret: SECRET },
+    );
+    assert.equal(res.status, 501);
   });
 });

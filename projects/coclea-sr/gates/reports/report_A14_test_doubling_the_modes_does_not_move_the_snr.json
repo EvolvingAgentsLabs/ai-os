@@ -1,0 +1,25 @@
+{
+  "event_rate_at_2n": 0.2453329183283572,
+  "event_rate_at_n": 0.18950361531675167,
+  "failure": null,
+  "gate": "A14",
+  "n_modes": 40,
+  "n_modes_doubled": 80,
+  "passed": true,
+  "shift_db": 0.01867328421462844,
+  "sigma": 0.85,
+  "sigma_shift": 0.0,
+  "snr_at_2n": 6.02426720846962,
+  "snr_at_n": 6.042940492684249,
+  "snr_ci_at_2n": [
+    5.648400964385746,
+    6.65715107346253
+  ],
+  "snr_ci_at_n": [
+    5.563312993851601,
+    6.6143856411366135
+  ],
+  "spec": "5.5",
+  "test": "test_doubling_the_modes_does_not_move_the_snr",
+  "tolerance_db": 0.2
+}

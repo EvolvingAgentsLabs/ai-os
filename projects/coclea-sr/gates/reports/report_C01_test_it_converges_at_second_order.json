@@ -1,0 +1,24 @@
+{
+  "failure": null,
+  "gate": "C01",
+  "grids": [
+    500,
+    1000,
+    2000,
+    4000
+  ],
+  "observed_order": 2.0005905660125287,
+  "order_band": [
+    1.9,
+    2.1
+  ],
+  "passed": true,
+  "relative_errors": [
+    4.653249416377572e-05,
+    1.1624520086648977e-05,
+    2.905130185169185e-06,
+    7.261620993343489e-07
+  ],
+  "spec": "ADR-0002",
+  "test": "test_it_converges_at_second_order"
+}

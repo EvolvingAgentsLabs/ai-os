@@ -239,12 +239,26 @@ export const SIMULATION_JS = String.raw`
       headers: { 'content-type': 'application/json' },
     });
 
+  /**
+   * The checks this fabricated world has a green report for.
+   *
+   * Inside the shim rather than in the module, because the shim ships as a
+   * string and runs in a page with no build step -- a module-scope constant is
+   * simply not in scope there. The seeded gated flow names one gate that is
+   * **not** in this set, and desk.test.ts executes this shim and asserts that
+   * the halt names exactly that one, so the two cannot drift apart unnoticed.
+   */
+  const GREEN_GATES = new Set(['A01', 'A08', 'A12']);
+  // Upstream's set, verbatim. A tool named search was here once, invented,
+  // and it is what let a model-written roster install agents with no tools.
+  const KNOWN_TOOLS = ['execute', 'read', 'write', 'publish', 'memory', 'history', 'background'];
+
   const real = window.fetch.bind(window);
   window.fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : (input && input.url) || '';
     // Anything not one of the desk's own three endpoints goes to the network,
     // so this shim cannot silently swallow a call somebody adds later.
-    if (!/^\/(state|layout|assign|unassign|advance|fork|ask)/.test(url)) return real(input, init);
+    if (!/^\/(state|layout|project|agent|file|flow|assign|unassign|advance|fork|ask)/.test(url)) return real(input, init);
     const body = init && init.body ? JSON.parse(init.body) : {};
 
     if (url.indexOf('/state') === 0) return json(stateBody());
@@ -252,6 +266,102 @@ export const SIMULATION_JS = String.raw`
     if (url.indexOf('/layout') === 0) {
       world.layout = body.layout;
       return json({ ok: true });
+    }
+
+    if (url.indexOf('/project') === 0) {
+      // Starting a project, in the page.
+      //
+      // The new scope is added to the selector and to the embedded worlds, and
+      // it is **empty** -- no documents, no agents. That is what the real route
+      // returns, and a mock that handed back a furnished project would teach
+      // that starting one gives you something to look at.
+      var pname = (body.name || '').trim();
+      if (!pname) return json({ error: 'a project needs a name' }, 400);
+      if (!body.actorId && !body.ownerId) return json({ error: 'ownerId is required — a project records who it belongs to' }, 400);
+      var slug = pname.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'project';
+      var pid = 'p' + (Object.keys(worlds).length + 1);
+      var newScope = 'group:' + slug + '-' + pid;
+      worlds[newScope] = { docs: [], agents: [], layout: { scopeId: newScope, docs: {}, cubes: {} }, notes: [] };
+      const sel = document.getElementById('scope');
+      if (sel) {
+        const opt = document.createElement('option');
+        opt.value = newScope; opt.textContent = newScope;
+        sel.appendChild(opt);
+      }
+      return json({ ok: true, id: pid, name: pname, scopeId: newScope });
+    }
+
+    if (url.indexOf('/agent') === 0) {
+      // Writing an agent, in the page. The validation is the same rule the real
+      // route applies, and the unknown-tool refusal is the one that matters:
+      // tools: [excecute] loads without complaint and the agent silently cannot
+      // run anything.
+      var an = (body.name || '').trim();
+      if (!/^[A-Za-z][A-Za-z0-9-]{0,39}$/.test(an)) return json({ error: 'an agent needs a name' }, 400);
+      if (!(body.description || '').trim()) return json({ error: 'an agent needs a description — it is what a person reads when choosing one' }, 400);
+      if (!(body.instructions || '').trim()) return json({ error: 'an agent needs instructions — a file with frontmatter and no body declares a name and no behaviour' }, 400);
+      var tools = body.tools || [];
+      if (!tools.length) return json({ error: 'an agent needs at least one tool, from: read, write, execute, search' }, 400);
+      var bad = tools.filter((t) => KNOWN_TOOLS.indexOf(t) < 0);
+      if (bad.length) return json({ error: 'unknown tool(s): ' + bad.join(', ') + '. Known: ' + KNOWN_TOOLS.join(', ') }, 400);
+      world.agents.push({
+        name: an, description: body.description,
+        tools: tools, subagents: body.subagents || [], missing: false,
+      });
+      return json({ ok: true, name: an, path: 'agents/' + an + '.md' });
+    }
+
+    if (url.indexOf('/file') === 0) {
+      // Material goes to the sandbox. There is no sandbox in a page, so the mock
+      // reports what one would have reported -- and refuses the same paths,
+      // because a path refused in production and accepted here is the drift
+      // this whole shim exists to prevent.
+      var fp = (body.path || '').trim();
+      if (!fp) return json({ error: 'path is required' }, 400);
+      if (fp.charAt(0) === '/' || fp.split('/').indexOf('..') >= 0) {
+        return json({ error: 'path must be relative and may not climb out of the scope' }, 400);
+      }
+      var n = (body.content || '').length;
+      return json({ ok: true, path: fp, verifiedInSandbox: n + ' of ' + n + ' bytes present' });
+    }
+
+    if (url.indexOf('/flow') === 0) {
+      // Creating a document, in the page.
+      //
+      // Implemented here and not only against a server for the reason the
+      // whole demo exists: if the desk grows a gesture the simulated backend
+      // does not have, the demo ships a button that works in production and
+      // throws in the browser -- and it looks right until somebody presses it.
+      // The FlowsClient interface declares createFlow so the compiler asks for
+      // this implementation too, rather than leaving it to be remembered.
+      if (!body.scopeId || !body.title || !body.goal) {
+        return json({ error: 'scopeId, title and goal are required' }, 400);
+      }
+      if (!body.actorId) {
+        return json({ error: 'actorId is required — a flow records the principal it acts for' }, 400);
+      }
+      // A counter, not a hash of the title: two documents may legitimately
+      // share a name, and an id derived from the name would silently collide.
+      var id = 'flow-new-' + (world.docs.length + 1);
+      if (body.shape === 'gated' && !(body.requiredGates && body.requiredGates.length)) {
+        return json({ error: 'a gated flow requires a non-empty requiredGates array of names' }, 400);
+      }
+      world.docs.push({
+        id: id,
+        title: body.title,
+        goal: body.goal,
+        shape: body.shape === 'gated' ? 'gated' : 'open',
+        requiredGates: body.shape === 'gated' ? body.requiredGates.slice() : null,
+        // draft, not waiting: nothing is queued yet, and a document that claims
+        // to be waiting for work nobody assigned is the kind of picture that
+        // renders cleanly and is wrong.
+        state: 'draft',
+        updatedAt: DEMO_AT,
+        done: 0,
+        total: 0,
+        steps: [],
+      });
+      return json({ ok: true, flowId: id, title: body.title });
     }
 
     if (url.indexOf('/assign') === 0) {
@@ -302,6 +412,22 @@ export const SIMULATION_JS = String.raw`
       if (!doc) return json({ error: 'no such flow' }, 404);
       const next = doc.steps.find((s) => s.state === 'pending');
       if (!next) {
+        // The gate decides at the completion path and nowhere else -- the same
+        // place the real engine checks it. A gated flow whose checks are not all
+        // green **refuses to finish**, naming them. The mock carries this
+        // because a demo that can only ever succeed teaches the wrong gesture:
+        // the desk's own affordance for a held freeze is what is being tested.
+        if (doc.shape === 'gated') {
+          const missing = (doc.requiredGates || []).filter((g) => !GREEN_GATES.has(g));
+          if (missing.length) {
+            doc.state = 'blocked';
+            return json({
+              ok: true,
+              outcome: 'halted',
+              reason: 'the flow may not freeze — never ran: ' + missing.join(', '),
+            });
+          }
+        }
         doc.state = 'done';
         return json({ ok: true, outcome: 'complete' });
       }
@@ -426,6 +552,10 @@ export function demoWorld(): {
       : [],
   });
 
+  /**
+   * The checks this fabricated world has a green report for. `B02` is not here
+   * on purpose -- see `flow-coclea-freeze`.
+   */
   return {
     docs: [
       {
@@ -450,6 +580,37 @@ export function demoWorld(): {
             "Rewrote /root/workspace/ledger.txt to ledger_with_currency.txt. Every amount now carries its USD prefix; column spacing preserved exactly.",
           ),
           step(2, "ReviewAgent", "pending", null),
+        ],
+      },
+      {
+        /**
+         * A `gated` flow, and the reason the mock has one.
+         *
+         * The desk's other documents can only succeed, so the demo teaches a
+         * gesture the real system does not have: click advance, watch it go
+         * green. A gated flow **refuses to finish** while a check it named is
+         * red or has never run, and that refusal is the whole point of the
+         * shape. It has to be playable or the affordance is untested.
+         *
+         * `B02` is deliberately absent from GREEN_GATES: the freeze is held by
+         * a check nobody has run yet, which is the ordinary case.
+         */
+        id: "flow-coclea-freeze",
+        title: "Freeze the passive membrane",
+        goal: "freeze the eigensolver only once every check it names is green",
+        shape: "gated",
+        requiredGates: ["A01", "A08", "A12", "B02"],
+        state: "waiting",
+        updatedAt: hoursAgo(2),
+        done: 1,
+        total: 1,
+        steps: [
+          step(
+            0,
+            "MembraneAgent",
+            "done",
+            "Ran the gate suite in the project sandbox: 45 checks, 44 green. B02 has no report — it has never been run.",
+          ),
         ],
       },
       {

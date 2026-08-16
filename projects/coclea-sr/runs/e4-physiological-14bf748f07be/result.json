@@ -1,0 +1,517 @@
+{
+  "acceptance_band": [
+    1.583084881430035,
+    2.233177214314685
+  ],
+  "empirical_ranges": {
+    "source": "COCLEA-SR-SPEC.md \u00a74.5 \u2014 not independently verified in this pass",
+    "spontaneous_rate_sp_per_s": [
+      0.0,
+      100.0
+    ],
+    "stereocilia_brownian_noise_nm_rms": [
+      1.0,
+      3.0
+    ],
+    "threshold_bm_displacement_nm": [
+      0.1,
+      1.0
+    ]
+  },
+  "grid": [
+    {
+      "cf_hz": 125.0,
+      "distance_from_predicted_optimum": 0.6615446003436449,
+      "in_band": false,
+      "rate": 0.5,
+      "theta_over_sigma": 3.32308920068729
+    },
+    {
+      "cf_hz": 125.0,
+      "distance_from_predicted_optimum": 0.4379093428902874,
+      "in_band": false,
+      "rate": 2.0,
+      "theta_over_sigma": 2.8758186857805748
+    },
+    {
+      "cf_hz": 125.0,
+      "distance_from_predicted_optimum": 0.12377236224874633,
+      "in_band": false,
+      "rate": 10.0,
+      "theta_over_sigma": 2.2475447244974927
+    },
+    {
+      "cf_hz": 125.0,
+      "distance_from_predicted_optimum": 0.015636759268679246,
+      "in_band": true,
+      "rate": 18.0,
+      "theta_over_sigma": 1.9687264814626415
+    },
+    {
+      "cf_hz": 125.0,
+      "distance_from_predicted_optimum": 0.2452039072741683,
+      "in_band": false,
+      "rate": 40.0,
+      "theta_over_sigma": 1.5095921854516634
+    },
+    {
+      "cf_hz": 125.0,
+      "distance_from_predicted_optimum": 0.39420747153823354,
+      "in_band": false,
+      "rate": 60.0,
+      "theta_over_sigma": 1.211585056923533
+    },
+    {
+      "cf_hz": 125.0,
+      "distance_from_predicted_optimum": 0.5276192729225613,
+      "in_band": false,
+      "rate": 80.0,
+      "theta_over_sigma": 0.9447614541548776
+    },
+    {
+      "cf_hz": 125.0,
+      "distance_from_predicted_optimum": 0.6659763845817114,
+      "in_band": false,
+      "rate": 100.0,
+      "theta_over_sigma": 0.6680472308365772
+    },
+    {
+      "cf_hz": 250.0,
+      "distance_from_predicted_optimum": 0.7627546764116371,
+      "in_band": false,
+      "rate": 0.5,
+      "theta_over_sigma": 3.525509352823274
+    },
+    {
+      "cf_hz": 250.0,
+      "distance_from_predicted_optimum": 0.5537557300461198,
+      "in_band": false,
+      "rate": 2.0,
+      "theta_over_sigma": 3.1075114600922396
+    },
+    {
+      "cf_hz": 250.0,
+      "distance_from_predicted_optimum": 0.26863624117951956,
+      "in_band": false,
+      "rate": 10.0,
+      "theta_over_sigma": 2.537272482359039
+    },
+    {
+      "cf_hz": 250.0,
+      "distance_from_predicted_optimum": 0.14697191769591322,
+      "in_band": false,
+      "rate": 18.0,
+      "theta_over_sigma": 2.2939438353918264
+    },
+    {
+      "cf_hz": 250.0,
+      "distance_from_predicted_optimum": 0.042769237919008884,
+      "in_band": true,
+      "rate": 40.0,
+      "theta_over_sigma": 1.9144615241619822
+    },
+    {
+      "cf_hz": 250.0,
+      "distance_from_predicted_optimum": 0.15527627130518418,
+      "in_band": true,
+      "rate": 60.0,
+      "theta_over_sigma": 1.6894474573896316
+    },
+    {
+      "cf_hz": 250.0,
+      "distance_from_predicted_optimum": 0.2452039072741683,
+      "in_band": false,
+      "rate": 80.0,
+      "theta_over_sigma": 1.5095921854516634
+    },
+    {
+      "cf_hz": 250.0,
+      "distance_from_predicted_optimum": 0.3231356369721645,
+      "in_band": false,
+      "rate": 100.0,
+      "theta_over_sigma": 1.353728726055671
+    },
+    {
+      "cf_hz": 500.0,
+      "distance_from_predicted_optimum": 0.8584610944249191,
+      "in_band": false,
+      "rate": 0.5,
+      "theta_over_sigma": 3.7169221888498383
+    },
+    {
+      "cf_hz": 500.0,
+      "distance_from_predicted_optimum": 0.6615446003436449,
+      "in_band": false,
+      "rate": 2.0,
+      "theta_over_sigma": 3.32308920068729
+    },
+    {
+      "cf_hz": 500.0,
+      "distance_from_predicted_optimum": 0.39857481126826855,
+      "in_band": false,
+      "rate": 10.0,
+      "theta_over_sigma": 2.797149622536537
+    },
+    {
+      "cf_hz": 500.0,
+      "distance_from_predicted_optimum": 0.2892316200989695,
+      "in_band": false,
+      "rate": 18.0,
+      "theta_over_sigma": 2.578463240197939
+    },
+    {
+      "cf_hz": 500.0,
+      "distance_from_predicted_optimum": 0.12377236224874633,
+      "in_band": false,
+      "rate": 40.0,
+      "theta_over_sigma": 2.2475447244974927
+    },
+    {
+      "cf_hz": 500.0,
+      "distance_from_predicted_optimum": 0.029627004356454156,
+      "in_band": true,
+      "rate": 60.0,
+      "theta_over_sigma": 2.0592540087129083
+    },
+    {
+      "cf_hz": 500.0,
+      "distance_from_predicted_optimum": 0.042769237919008884,
+      "in_band": true,
+      "rate": 80.0,
+      "theta_over_sigma": 1.9144615241619822
+    },
+    {
+      "cf_hz": 500.0,
+      "distance_from_predicted_optimum": 0.10293871100294927,
+      "in_band": true,
+      "rate": 100.0,
+      "theta_over_sigma": 1.7941225779941015
+    },
+    {
+      "cf_hz": 1000.0,
+      "distance_from_predicted_optimum": 0.9494746035204051,
+      "in_band": false,
+      "rate": 0.5,
+      "theta_over_sigma": 3.8989492070408103
+    },
+    {
+      "cf_hz": 1000.0,
+      "distance_from_predicted_optimum": 0.7627546764116371,
+      "in_band": false,
+      "rate": 2.0,
+      "theta_over_sigma": 3.525509352823274
+    },
+    {
+      "cf_hz": 1000.0,
+      "distance_from_predicted_optimum": 0.5174271293851462,
+      "in_band": false,
+      "rate": 10.0,
+      "theta_over_sigma": 3.0348542587702925
+    },
+    {
+      "cf_hz": 1000.0,
+      "distance_from_predicted_optimum": 0.41728323229444375,
+      "in_band": false,
+      "rate": 18.0,
+      "theta_over_sigma": 2.8345664645888875
+    },
+    {
+      "cf_hz": 1000.0,
+      "distance_from_predicted_optimum": 0.26863624117951956,
+      "in_band": false,
+      "rate": 40.0,
+      "theta_over_sigma": 2.537272482359039
+    },
+    {
+      "cf_hz": 1000.0,
+      "distance_from_predicted_optimum": 0.18604610297408675,
+      "in_band": false,
+      "rate": 60.0,
+      "theta_over_sigma": 2.3720922059481735
+    },
+    {
+      "cf_hz": 1000.0,
+      "distance_from_predicted_optimum": 0.12377236224874633,
+      "in_band": false,
+      "rate": 80.0,
+      "theta_over_sigma": 2.2475447244974927
+    },
+    {
+      "cf_hz": 1000.0,
+      "distance_from_predicted_optimum": 0.07298301314467359,
+      "in_band": true,
+      "rate": 100.0,
+      "theta_over_sigma": 2.145966026289347
+    },
+    {
+      "cf_hz": 2000.0,
+      "distance_from_predicted_optimum": 1.0364245186235146,
+      "in_band": false,
+      "rate": 0.5,
+      "theta_over_sigma": 4.072849037247029
+    },
+    {
+      "cf_hz": 2000.0,
+      "distance_from_predicted_optimum": 0.8584610944249191,
+      "in_band": false,
+      "rate": 2.0,
+      "theta_over_sigma": 3.7169221888498383
+    },
+    {
+      "cf_hz": 2000.0,
+      "distance_from_predicted_optimum": 0.6276236307187293,
+      "in_band": false,
+      "rate": 10.0,
+      "theta_over_sigma": 3.2552472614374586
+    },
+    {
+      "cf_hz": 2000.0,
+      "distance_from_predicted_optimum": 0.5346873788569966,
+      "in_band": false,
+      "rate": 18.0,
+      "theta_over_sigma": 3.069374757713993
+    },
+    {
+      "cf_hz": 2000.0,
+      "distance_from_predicted_optimum": 0.39857481126826855,
+      "in_band": false,
+      "rate": 40.0,
+      "theta_over_sigma": 2.797149622536537
+    },
+    {
+      "cf_hz": 2000.0,
+      "distance_from_predicted_optimum": 0.3241144016511528,
+      "in_band": false,
+      "rate": 60.0,
+      "theta_over_sigma": 2.6482288033023056
+    },
+    {
+      "cf_hz": 2000.0,
+      "distance_from_predicted_optimum": 0.26863624117951956,
+      "in_band": false,
+      "rate": 80.0,
+      "theta_over_sigma": 2.537272482359039
+    },
+    {
+      "cf_hz": 2000.0,
+      "distance_from_predicted_optimum": 0.22387341534040828,
+      "in_band": false,
+      "rate": 100.0,
+      "theta_over_sigma": 2.4477468306808166
+    },
+    {
+      "cf_hz": 4000.0,
+      "distance_from_predicted_optimum": 1.119810937402434,
+      "in_band": false,
+      "rate": 0.5,
+      "theta_over_sigma": 4.239621874804868
+    },
+    {
+      "cf_hz": 4000.0,
+      "distance_from_predicted_optimum": 0.9494746035204051,
+      "in_band": false,
+      "rate": 2.0,
+      "theta_over_sigma": 3.8989492070408103
+    },
+    {
+      "cf_hz": 4000.0,
+      "distance_from_predicted_optimum": 0.7308183826022854,
+      "in_band": false,
+      "rate": 10.0,
+      "theta_over_sigma": 3.4616367652045708
+    },
+    {
+      "cf_hz": 4000.0,
+      "distance_from_predicted_optimum": 0.6437271492260908,
+      "in_band": false,
+      "rate": 18.0,
+      "theta_over_sigma": 3.2874542984521815
+    },
+    {
+      "cf_hz": 4000.0,
+      "distance_from_predicted_optimum": 0.5174271293851462,
+      "in_band": false,
+      "rate": 40.0,
+      "theta_over_sigma": 3.0348542587702925
+    },
+    {
+      "cf_hz": 4000.0,
+      "distance_from_predicted_optimum": 0.44908679482630154,
+      "in_band": false,
+      "rate": 60.0,
+      "theta_over_sigma": 2.898173589652603
+    },
+    {
+      "cf_hz": 4000.0,
+      "distance_from_predicted_optimum": 0.39857481126826855,
+      "in_band": false,
+      "rate": 80.0,
+      "theta_over_sigma": 2.797149622536537
+    },
+    {
+      "cf_hz": 4000.0,
+      "distance_from_predicted_optimum": 0.35810151574061955,
+      "in_band": false,
+      "rate": 100.0,
+      "theta_over_sigma": 2.716203031481239
+    },
+    {
+      "cf_hz": 8000.0,
+      "distance_from_predicted_optimum": 1.2000390907006535,
+      "in_band": false,
+      "rate": 0.5,
+      "theta_over_sigma": 4.400078181401307
+    },
+    {
+      "cf_hz": 8000.0,
+      "distance_from_predicted_optimum": 1.0364245186235146,
+      "in_band": false,
+      "rate": 2.0,
+      "theta_over_sigma": 4.072849037247029
+    },
+    {
+      "cf_hz": 8000.0,
+      "distance_from_predicted_optimum": 0.8281974356819242,
+      "in_band": false,
+      "rate": 10.0,
+      "theta_over_sigma": 3.6563948713638483
+    },
+    {
+      "cf_hz": 8000.0,
+      "distance_from_predicted_optimum": 0.745970369560407,
+      "in_band": false,
+      "rate": 18.0,
+      "theta_over_sigma": 3.491940739120814
+    },
+    {
+      "cf_hz": 8000.0,
+      "distance_from_predicted_optimum": 0.6276236307187293,
+      "in_band": false,
+      "rate": 40.0,
+      "theta_over_sigma": 3.2552472614374586
+    },
+    {
+      "cf_hz": 8000.0,
+      "distance_from_predicted_optimum": 0.5641055364712242,
+      "in_band": false,
+      "rate": 60.0,
+      "theta_over_sigma": 3.1282110729424484
+    },
+    {
+      "cf_hz": 8000.0,
+      "distance_from_predicted_optimum": 0.5174271293851462,
+      "in_band": false,
+      "rate": 80.0,
+      "theta_over_sigma": 3.0348542587702925
+    },
+    {
+      "cf_hz": 8000.0,
+      "distance_from_predicted_optimum": 0.48020718730079825,
+      "in_band": false,
+      "rate": 100.0,
+      "theta_over_sigma": 2.9604143746015965
+    }
+  ],
+  "load_bearing_assumption": "omega_eff is taken as 2*pi*CF \u2014 the internal noise bandwidth is assumed equal to the fibre's characteristic frequency. It is NOT verified here. A broader-band internal noise raises the required rate proportionally and moves the verdict against the hypothesis; a narrower one moves it in favour. Attack this number first.",
+  "model_optimum": {
+    "e3_run": "e3-sr-curve-6bcecf029e8e",
+    "grid_resolution": 0.2331772143146852,
+    "n_curves": 24,
+    "theta_over_sigma_measured_median": 1.7920132050096786,
+    "theta_over_sigma_measured_range": [
+      1.7920132050096786,
+      1.7920132050096786
+    ],
+    "theta_over_sigma_predicted": 2.0
+  },
+  "not_used": "The stereocilia Brownian-noise range (1-3 nm RMS) and the threshold displacement range (0.1-1 nm) are recorded but NOT used in the verdict: both are displacements, and the model has no displacement scale to compare them against. Using them would require inventing u_ref.",
+  "required_rate_by_cf": [
+    {
+      "cf_hz": 125.0,
+      "rate_at_predicted_optimum": 16.916910404576587,
+      "rate_band_sp_per_s": [
+        10.327120592655062,
+        35.703005267182384
+      ],
+      "reachable_within_empirical_ceiling": true
+    },
+    {
+      "cf_hz": 250.0,
+      "rate_at_predicted_optimum": 33.833820809153174,
+      "rate_band_sp_per_s": [
+        20.654241185310124,
+        71.40601053436477
+      ],
+      "reachable_within_empirical_ceiling": true
+    },
+    {
+      "cf_hz": 500.0,
+      "rate_at_predicted_optimum": 67.66764161830635,
+      "rate_band_sp_per_s": [
+        41.30848237062025,
+        142.81202106872954
+      ],
+      "reachable_within_empirical_ceiling": true
+    },
+    {
+      "cf_hz": 1000.0,
+      "rate_at_predicted_optimum": 135.3352832366127,
+      "rate_band_sp_per_s": [
+        82.6169647412405,
+        285.62404213745907
+      ],
+      "reachable_within_empirical_ceiling": true
+    },
+    {
+      "cf_hz": 2000.0,
+      "rate_at_predicted_optimum": 270.6705664732254,
+      "rate_band_sp_per_s": [
+        165.233929482481,
+        571.2480842749181
+      ],
+      "reachable_within_empirical_ceiling": false
+    },
+    {
+      "cf_hz": 4000.0,
+      "rate_at_predicted_optimum": 541.3411329464508,
+      "rate_band_sp_per_s": [
+        330.467858964962,
+        1142.4961685498363
+      ],
+      "reachable_within_empirical_ceiling": false
+    },
+    {
+      "cf_hz": 8000.0,
+      "rate_at_predicted_optimum": 1082.6822658929016,
+      "rate_band_sp_per_s": [
+        660.935717929924,
+        2284.9923370996726
+      ],
+      "reachable_within_empirical_ceiling": false
+    }
+  ],
+  "run_id": "e4-physiological",
+  "sensitivity_at_1kHz_60sp": {
+    "factor": 10.0,
+    "rate_ceiling": 999.9999999999999,
+    "relative_change_if_rate_divided_by_factor": 0.34849245648165433,
+    "relative_change_if_rate_multiplied_by_factor": 0.5738919212076897,
+    "theta_over_sigma": 2.3720922059481735,
+    "upward_arm_crosses_ceiling": false
+  },
+  "verdict": {
+    "compatible_at_cf_hz": [
+      125.0,
+      250.0,
+      500.0,
+      1000.0
+    ],
+    "crossover_cf_hz": 1000.0,
+    "incompatible_at_cf_hz": [
+      2000.0,
+      4000.0,
+      8000.0
+    ],
+    "statement": "The stochastic-resonance optimum is reachable by auditory-nerve fibres at characteristic frequencies up to about 1000 Hz and is not reachable above it: the required spontaneous rate scales with the effective bandwidth, and above the crossover it exceeds the highest rate the empirical range allows."
+  }
+}

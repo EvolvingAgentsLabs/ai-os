@@ -14,7 +14,7 @@
  * `GET /` renders the same page `scripts/view.ts` writes to a file, so the
  * control arm for M5 is reachable without a build step or a second process.
  */
-import { readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { loadConfig } from "../../ai-base/src/config.ts";
 import { buildApp } from "../../ai-base/src/wiring.ts";
@@ -42,6 +42,8 @@ const DB = config.databaseUrl;
 if (!DB) throw new Error("DATABASE_URL is required — flows are not durable without it");
 
 const PORT = Number(process.env.FLOWS_PORT ?? 8097);
+import { createGateVerdict } from "./gate-verdict.ts";
+
 const store = createPostgresFlowStore(DB);
 const core = createCoreClient({
   baseUrl: process.env.CORE_API_URL ?? "http://localhost:8080",
@@ -50,6 +52,15 @@ const core = createCoreClient({
 const engine = createEngine({
   store,
   core,
+  /**
+   * Whether a gated flow may finish. Unset when `GATE_REPORTS_DIR` is not
+   * configured, and the engine then blocks every gated flow — a deployment that
+   * cannot check is not a deployment where everything passes.
+   */
+  ...(() => {
+    const g = createGateVerdict(process.env.GATE_REPORTS_DIR);
+    return g ? { gateVerdict: g } : {};
+  })(),
   /**
    * A step runs IN THE FLOW'S SCOPE, and getting this wrong is silent.
    *
@@ -108,7 +119,7 @@ const engine = createEngine({
 // The conformation half of the page, rebuilt per render. Cheap, and it means the
 // page can never show a scope list from a previous process.
 const built = buildApp({ ...config, port: 0 });
-const { workspace, projects, sessions } = built;
+const { workspace, projects, sessions, sandbox } = built;
 
 async function conformation() {
   const wiringHoles: Hole[] = [];
@@ -205,6 +216,93 @@ const server = createFlowServer({
   // its own. Two projections would be two answers to "what does this system
   // look like", and the desk would draw cubes the explorer does not have.
   conformation,
+  /**
+   * Where a project starts.
+   *
+   * The scope id is derived the same way `scripts/seed-cochlea.ts` derives it —
+   * `group:<slug>-<projectId>` — rather than invented here. A second rule for
+   * naming scopes would mean a project created from the desk and one created by
+   * a seed script land in namespaces that only look alike.
+   */
+  /**
+   * Furnish a scope. `workspace.write` directly rather than through a turn —
+   * the file is the artefact, and asking a model to type it back spends a turn
+   * to produce a file we already have.
+   */
+  async writeAgent(scopeId, path, markdown) {
+    await workspace.write(scopeId, path, markdown);
+  },
+  /**
+   * Material goes into the sandbox and is verified from inside it.
+   *
+   * `wc -c` run in the sandbox, compared against the bytes sent. Reading it
+   * back through the writer's own API would confirm nothing — that is exactly
+   * how this route reported `bytes: 37691` for a file the agent could not see.
+   */
+  /**
+   * The seed tree plus whatever the scope wrote for itself.
+   *
+   * A scope's own `skills/` adds to the catalogue rather than shadowing it: a
+   * research project accumulates procedure — how this suite is run, what a gate
+   * number means — and that is a skill by every definition in `src/skills.ts`.
+   */
+  readWorkspaceFile: (scopeId, path) => workspace.read(scopeId, path),
+  async skillFiles(scopeId) {
+    const files: Array<{ path: string; raw: string }> = [];
+    const seed = join(import.meta.dirname, "..", "..", "ai-base", "skills-seed");
+    const walk = async (dir: string, rel: string) => {
+      let entries;
+      try {
+        entries = await readdir(dir, { withFileTypes: true });
+      } catch {
+        return;
+      }
+      for (const e of entries) {
+        const p = join(dir, e.name);
+        if (e.isDirectory()) await walk(p, rel ? `${rel}/${e.name}` : e.name);
+        else if (e.name === "SKILL.md") files.push({ path: `${rel}/SKILL.md`, raw: await readFile(p, "utf8") });
+      }
+    };
+    await walk(seed, "");
+    const root = workspace.scopeDir(scopeId);
+    for (const abs of await workspace.list(scopeId)) {
+      if (!abs.startsWith(`${root}/skills/`) || !abs.endsWith("/SKILL.md")) continue;
+      const relToScope = abs.slice(root.length + 1);
+      const raw = await workspace.read(scopeId, relToScope);
+      if (raw !== null) files.push({ path: relToScope.slice("skills/".length), raw });
+    }
+    return files;
+  },
+  /** Read back out of the sandbox — where an agent's own output lands. */
+  async readMaterial(scopeId, path) {
+    const handle = await sandbox.provision([{ scopeId, mode: "rw", mountPath: "" }]);
+    const res = await sandbox.run(handle, `cat ${JSON.stringify(path)}`, { timeoutMs: 60_000 });
+    return res.code === 0 ? (res.stdout ?? "") : null;
+  },
+  async putMaterial(scopeId, path, content) {
+    const handle = await sandbox.provision([{ scopeId, mode: "rw", mountPath: "" }]);
+    const bytes = new TextEncoder().encode(content);
+    await sandbox.writeFileBytes(handle, path, bytes);
+    const res = await sandbox.run(handle, `wc -c < ${JSON.stringify(path)}`, { timeoutMs: 60_000 });
+    const seen = Number.parseInt((res.stdout ?? "").trim(), 10);
+    return {
+      verified: res.code === 0 && seen === bytes.length,
+      detail:
+        res.code === 0
+          ? `${seen} of ${bytes.length} bytes present`
+          : `exit ${res.code}: ${(res.stderr ?? "").trim().slice(0, 200)}`,
+    };
+  },
+  async createProject({ name, ownerId }) {
+    const project = await projects.create({ name, ownerId });
+    const slug =
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 40) || "project";
+    return { id: project.id, name: project.name, scopeId: `group:${slug}-${project.id}` };
+  },
   /**
    * The model seam behind `POST /flows/:id/ask` ([ask.ts](../src/ask.ts)).
    *

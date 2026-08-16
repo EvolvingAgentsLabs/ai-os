@@ -1,0 +1,27 @@
+[project]
+name = "coclea-sr"
+version = "0.1.0"
+description = "The basilar membrane as a frequency decoder, with stochastic resonance"
+requires-python = ">=3.12"
+dependencies = [
+  "numpy>=2.5",
+  "scipy>=1.18",
+  "sympy>=1.14",
+  "mpmath>=1.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["gates"]
+# BLAS threads are pinned in `gates/conftest.py`, not here.
+#
+# An `env = [...]` key looked right and did nothing: it needs the `pytest-env`
+# plugin, which is not a dependency, so pytest emitted `Unknown config option:
+# env` and carried on with whatever thread count the machine had. A setting that
+# reads as "threads are pinned" while pinning nothing is worse than no setting,
+# because the manifest's reproducibility claim would have rested on it. The
+# reason it matters is spec §8.3: a multithreaded BLAS reduction is not
+# bit-reproducible, and a gate whose last digit moves between machines cannot be
+# what a freeze depends on.

@@ -1,0 +1,11 @@
+{
+  "N": 250,
+  "case": "uniform",
+  "failure": null,
+  "gate": "A11",
+  "passed": true,
+  "spec": "5.1",
+  "symmetry_defect": 0.0,
+  "test": "test_stiffness_is_symmetric_250-uniform-profile0",
+  "tolerance": 1e-12
+}

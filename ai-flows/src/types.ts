@@ -1,4 +1,17 @@
-export const FLOW_SHAPES = ["open"] as const;
+/**
+ * `gated` is the first shape that declares a metric.
+ *
+ * [16-a-workload-with-an-oracle](../../doc/16-a-workload-with-an-oracle.md)
+ * argued for it from a measured need rather than from the list in `doc/03`: a
+ * workload with an **external oracle** — closed-form eigenvalues that a module
+ * forbidden to import the solver produces — can say whether a step was right,
+ * and `open` cannot. A `gated` flow names the checks it must satisfy and
+ * **cannot reach `done` while one of them is red or has never run**.
+ *
+ * That is spec §6.1 of `projects/coclea-sr`, eval-gated freeze, in the OS's own
+ * vocabulary: no artefact becomes frozen until every applicable gate is green.
+ */
+export const FLOW_SHAPES = ["open", "gated"] as const;
 export type FlowShape = (typeof FLOW_SHAPES)[number];
 
 export const FLOW_STATES = ["draft", "running", "waiting", "blocked", "done", "abandoned"] as const;
@@ -95,6 +108,16 @@ export interface Flow {
   goal: string;
   shape: FlowShape;
   state: FlowState;
+  /**
+   * The checks a `gated` flow must satisfy before it may finish. `null` on every
+   * other shape, and on `gated` flows created before the field existed.
+   *
+   * An empty array is NOT the same as `null` and both are refused rather than
+   * treated as "nothing to check": a gated flow with no gates is a flow whose
+   * whole point has been configured away, and letting it finish silently is the
+   * failure the shape exists to prevent.
+   */
+  requiredGates: string[] | null;
   forkedFrom: FlowLineage | null;
   createdAt: number;
   updatedAt: number;
@@ -111,5 +134,7 @@ export interface CreateFlowInput {
   title: string;
   goal: string;
   shape?: FlowShape;
+  /** Required when `shape` is `gated`; ignored otherwise. */
+  requiredGates?: string[];
   forkedFrom?: FlowLineage;
 }

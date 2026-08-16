@@ -1,0 +1,10 @@
+{
+  "cov": "0",
+  "failure": null,
+  "gate": "A09",
+  "passed": true,
+  "spec": "4.1",
+  "test": "test_the_lyapunov_solution_is_derived_not_asserted",
+  "var_q": "D/(2*Gamma*omega**2)",
+  "var_qdot": "D/(2*Gamma)"
+}

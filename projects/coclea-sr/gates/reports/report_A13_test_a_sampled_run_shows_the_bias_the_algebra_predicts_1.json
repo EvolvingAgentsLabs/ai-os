@@ -1,0 +1,15 @@
+{
+  "continuous_truth": 0.19999999999999998,
+  "dt": 0.031415926535897934,
+  "failure": null,
+  "gate": "A13",
+  "n_effective": 1507.964473723101,
+  "passed": true,
+  "predicted_variance": 0.29168493987586597,
+  "refine": 1,
+  "relative_gap": 0.00015015048901842243,
+  "sampled_variance": 0.2916411432395043,
+  "sampling_tolerance": 0.2185096861184158,
+  "spec": "5.3",
+  "test": "test_a_sampled_run_shows_the_bias_the_algebra_predicts_1"
+}

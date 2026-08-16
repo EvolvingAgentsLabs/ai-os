@@ -136,6 +136,69 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
       );
     },
 
+    /**
+     * Create a flow. The one thing the desk could not do.
+     *
+     * Everything else the desk offers acts on a document that already exists:
+     * assign, unassign, advance, fork, ask. So a person could arrange work and
+     * could not *start* it — the first step of every project had to be a curl
+     * command or a seed script, which is a strange shape for an interface whose
+     * whole claim is that work outlives the conversation.
+     *
+     * `actorId` is required and has no default, for the reason
+     * [ADR-0009](../../doc/adr/0009-a-flow-records-who-it-acts-for.md) gives:
+     * a flow with no actor is not created rather than created and attributed to
+     * a service account.
+     */
+    async createProject(input: { name: string; ownerId: string }) {
+      const r = await call<{ id: string; name: string; scopeId: string }>(
+        "POST",
+        "/projects",
+        input,
+      );
+      return { id: r.id, name: r.name, scopeId: r.scopeId };
+    },
+
+    async writeAgent(scopeId: string, draft: {
+      name: string;
+      description: string;
+      tools: string[];
+      subagents?: string[];
+      instructions: string;
+    }) {
+      const r = await call<{ name: string; path: string }>(
+        "POST",
+        `/scopes/${encodeURIComponent(scopeId)}/agents`,
+        draft,
+      );
+      return { name: r.name, path: r.path };
+    },
+
+    async writeFile(scopeId: string, path: string, content: string) {
+      const r = await call<{ path: string; verifiedInSandbox: string }>(
+        "POST",
+        `/scopes/${encodeURIComponent(scopeId)}/files`,
+        { path, content },
+      );
+      // The confirmation the sandbox gave, carried rather than restated. The
+      // desk must not be able to say "written" on a write it did not observe.
+      return { path: r.path, verifiedInSandbox: r.verifiedInSandbox };
+    },
+
+    async createFlow(input: {
+      scopeId: string;
+      actorId: string;
+      title: string;
+      goal: string;
+      steps?: string[];
+    }) {
+      return await call<{ id: string; title: string; state: string }>(
+        "POST",
+        "/flows",
+        input,
+      );
+    },
+
     async appendStep(flowId: string, intent: string) {
       const step = await call<{ index: number }>(
         "POST",
@@ -180,11 +243,14 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
     },
 
     async advance(flowId: string) {
-      const r = await call<{ outcome: { kind: string } }>(
+      const r = await call<{ outcome: { kind: string; reason?: string } }>(
         "POST",
         `/flows/${encodeURIComponent(flowId)}/advance`,
       );
-      return { kind: r.outcome?.kind ?? "unknown" };
+      // The reason is carried, not dropped. A `gated` flow halts naming the gate
+      // that stopped it, and "halted" alone sends the person to a log file to
+      // find out which -- which is the desk failing at the one thing it is for.
+      return { kind: r.outcome?.kind ?? "unknown", reason: r.outcome?.reason };
     },
 
     async fork(flowId: string, atStep: number) {

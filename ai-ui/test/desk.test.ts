@@ -12,6 +12,7 @@ import { type DeskDoc, type DeskView, renderDeskHtml } from "../src/desk.ts";
 import { propose } from "../src/layout.ts";
 import { digestOf } from "../src/zoom.ts";
 import { actionsFor } from "../src/actions.ts";
+import { SIMULATION_JS, demoWorld } from "../src/simulate.ts";
 
 /**
  * Fill in the derived halves of a document with the real functions.
@@ -742,5 +743,166 @@ describe("the tour crossing a real scope change", () => {
     // would throw on the desk it is most likely to run against.
     const html = renderDeskHtml({ ...view(), simulate: true });
     assert.match(html, /if \(!wanted\) return;/);
+  });
+});
+
+/**
+ * The gated shape, exercised by **running the shipped shim** rather than by
+ * reading its source.
+ *
+ * A test asserting that `SIMULATION_JS` contains the string `gated` would pass
+ * over a shim whose branch is unreachable. This installs it over a stub
+ * `window`, calls `fetch('/advance')` the way the page does, and reads what
+ * comes back.
+ */
+describe("a gated flow on the simulated desk", () => {
+  async function installShim() {
+    const world = demoWorld();
+    const win: Record<string, unknown> = {
+      __DESK__: {
+        scopeId: "demo",
+        docs: world.docs,
+        agents: world.agents,
+        layout: {},
+        notes: [],
+      },
+      __WORLDS__: {},
+      fetch: async () => {
+        throw new Error("the shim passed a desk route through to the network");
+      },
+      location: { search: "" },
+      addEventListener: () => {},
+      setTimeout: () => 0,
+    };
+    const doc = {
+      getElementById: () => null,
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      addEventListener: () => {},
+    };
+    const fn = new Function(
+      "window",
+      "document",
+      "location",
+      "URLSearchParams",
+      "Response",
+      "console",
+      SIMULATION_JS,
+    );
+    fn(win, doc, win.location, URLSearchParams, Response, console);
+    return { win, world };
+  }
+
+  it("refuses to finish while a check it named has never run, and says which", async () => {
+    const { win, world } = await installShim();
+    const gated = world.docs.find((d) => d.id === "flow-coclea-freeze");
+    assert.ok(gated, "the demo world seeds a gated flow");
+    const r = await (win.fetch as typeof fetch)("/advance", {
+      method: "POST",
+      body: JSON.stringify({ flowId: "flow-coclea-freeze" }),
+    });
+    const out = (await r.json()) as { outcome: string; reason?: string };
+    assert.equal(out.outcome, "halted");
+    // Naming the gate is the requirement. "halted" alone sends the person to a
+    // log file to find out which check stopped the freeze.
+    assert.match(String(out.reason), /B02/);
+    assert.doesNotMatch(String(out.reason), /A01|A08|A12/);
+  });
+
+  it("starts a project, and hands back an empty scope rather than a furnished one", async () => {
+    const { win } = await installShim();
+    const r = await (win.fetch as typeof fetch)("/project", {
+      method: "POST",
+      body: JSON.stringify({ name: "COCLEA-SR", ownerId: "matias" }),
+    });
+    const out = (await r.json()) as { scopeId: string };
+    assert.match(out.scopeId, /^group:coclea-sr-/);
+    // Empty is the point. A mock that handed back a furnished project would
+    // teach that starting one gives you something to look at.
+    const w = (win.__WORLDS__ as Record<string, { docs: unknown[]; agents: unknown[] }>)[
+      out.scopeId
+    ];
+    assert.ok(w, "the new scope is reachable");
+    assert.equal(w.docs.length, 0);
+    assert.equal(w.agents.length, 0);
+  });
+
+  it("writes an agent, and the new cube is on the desk", async () => {
+    const { win } = await installShim();
+    const count = async () => {
+      const st = await (win.fetch as typeof fetch)("/state");
+      return ((await st.json()) as { agents: unknown[] }).agents.length;
+    };
+    const before = await count();
+    const r = await (win.fetch as typeof fetch)("/agent", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "DERIVADOR",
+        description: "Derives the closed forms.",
+        tools: ["read", "execute"],
+        instructions: "You derive the analytic truth.",
+      }),
+    });
+    const out = (await r.json()) as { path: string };
+    assert.equal(out.path, "agents/DERIVADOR.md");
+    // Read through /state, the way the page does. Reaching into __DESK__ would
+    // assert about a copy and pass over a shim that never told the desk.
+    assert.equal(await count(), before + 1);
+  });
+
+  /**
+   * The refusal that matters. `tools: [excecute]` produces a file that loads
+   * without complaint and an agent that silently cannot run anything, and a
+   * mock that accepted it would teach the gesture as safe.
+   */
+  it("refuses a misspelled tool, here as in production", async () => {
+    const { win } = await installShim();
+    const r = await (win.fetch as typeof fetch)("/agent", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "TYPO",
+        description: "d",
+        tools: ["read", "excecute"],
+        instructions: "i",
+      }),
+    });
+    assert.equal(r.status, 400);
+    assert.match(JSON.stringify(await r.json()), /excecute/);
+  });
+
+  it("refuses material on a path that climbs out of the scope", async () => {
+    const { win } = await installShim();
+    for (const path of ["../../etc/passwd", "/etc/passwd"]) {
+      const r = await (win.fetch as typeof fetch)("/file", {
+        method: "POST",
+        body: JSON.stringify({ path, content: "x" }),
+      });
+      assert.equal(r.status, 400, `"${path}" must be refused here too`);
+    }
+  });
+
+  it("refuses to start a project with no owner", async () => {
+    const { win } = await installShim();
+    const r = await (win.fetch as typeof fetch)("/project", {
+      method: "POST",
+      body: JSON.stringify({ name: "COCLEA-SR" }),
+    });
+    assert.equal(r.status, 400);
+  });
+
+  it("refuses to create a gated document that names no checks", async () => {
+    const { win } = await installShim();
+    const r = await (win.fetch as typeof fetch)("/flow", {
+      method: "POST",
+      body: JSON.stringify({
+        scopeId: "demo",
+        actorId: "matias",
+        title: "x",
+        goal: "y",
+        shape: "gated",
+        requiredGates: [],
+      }),
+    });
+    assert.equal(r.status, 400);
   });
 });

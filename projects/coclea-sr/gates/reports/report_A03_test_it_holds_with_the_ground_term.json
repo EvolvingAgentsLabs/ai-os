@@ -1,0 +1,33 @@
+{
+  "case": "reference-with-ground-term",
+  "counts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "coupling": 0.02,
+  "expected": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "failure": null,
+  "gate": "A03",
+  "passed": true,
+  "spec": "2.3 property 3",
+  "test": "test_it_holds_with_the_ground_term"
+}

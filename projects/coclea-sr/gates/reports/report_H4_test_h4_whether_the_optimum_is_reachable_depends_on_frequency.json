@@ -1,0 +1,12 @@
+{
+  "failure": null,
+  "gate": "H4",
+  "passed": true,
+  "rate_needed_for_optimum": {
+    "1000.0": 135.3352832366127,
+    "4000.0": 541.3411329464508,
+    "500.0": 67.66764161830635
+  },
+  "spec": "4.5 / 7.5",
+  "test": "test_h4_whether_the_optimum_is_reachable_depends_on_frequency"
+}

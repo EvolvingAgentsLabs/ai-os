@@ -1,0 +1,72 @@
+{
+  "N": 4000,
+  "arm": "treatment-transmission-line",
+  "beta": 8.0,
+  "failure": null,
+  "gate": "C02",
+  "passed": true,
+  "rows": [
+    {
+      "apical_is_propagating": false,
+      "basal_is_propagating": true,
+      "characteristic_place": 0.6675318511539402,
+      "cochlear_orientation": true,
+      "hz": 200.0,
+      "omega": 0.00967254830113327,
+      "peak_is_interior": true,
+      "x_cf": 0.6675
+    },
+    {
+      "apical_is_propagating": false,
+      "basal_is_propagating": true,
+      "characteristic_place": 0.5356663881114376,
+      "cochlear_orientation": true,
+      "hz": 500.0,
+      "omega": 0.024181370752833175,
+      "peak_is_interior": true,
+      "x_cf": 0.5357500000000001
+    },
+    {
+      "apical_is_propagating": false,
+      "basal_is_propagating": true,
+      "characteristic_place": 0.37756258805340837,
+      "cochlear_orientation": true,
+      "hz": 1500.0,
+      "omega": 0.07254411225849952,
+      "peak_is_interior": true,
+      "x_cf": 0.3775
+    },
+    {
+      "apical_is_propagating": false,
+      "basal_is_propagating": true,
+      "characteristic_place": 0.277810199628337,
+      "cochlear_orientation": true,
+      "hz": 3000.0,
+      "omega": 0.14508822451699904,
+      "peak_is_interior": true,
+      "x_cf": 0.27775
+    },
+    {
+      "apical_is_propagating": false,
+      "basal_is_propagating": true,
+      "characteristic_place": 0.1780578111696654,
+      "cochlear_orientation": true,
+      "hz": 6000.0,
+      "omega": 0.2901764490339981,
+      "peak_is_interior": true,
+      "x_cf": 0.17775
+    },
+    {
+      "apical_is_propagating": false,
+      "basal_is_propagating": true,
+      "characteristic_place": 0.0783054226773942,
+      "cochlear_orientation": true,
+      "hz": 12000.0,
+      "omega": 0.5803528980679962,
+      "peak_is_interior": true,
+      "x_cf": 0.078
+    }
+  ],
+  "spec": "ADR-0002",
+  "test": "test_the_treatment_has_the_cochlear_orientation"
+}

@@ -4,3 +4,4 @@ node_modules/
 .env
 ai-flows/*.html
 ai-base/data-*/
+.run/

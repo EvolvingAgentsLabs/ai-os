@@ -1,0 +1,17 @@
+{
+  "N": 2000,
+  "case": "uniform",
+  "cross_tolerance": 0.0001,
+  "failure": null,
+  "gate": "A02",
+  "max_cross_offdiagonal": 4.587747280128212e-13,
+  "min_abs_cross_diagonal": 0.9999999999999987,
+  "n_modes": 10,
+  "passed": true,
+  "simpson_gram_note": "same continuous integral under a quadrature the solver does not use; its size is the grid's discretisation error, and it falls with N.",
+  "simpson_gram_offdiagonal": 1.3388843500538977e-15,
+  "spec": "2.3 property 2",
+  "structural_gram_note": "identity by construction: eigh_tridiagonal returns an orthonormal basis and eigenmodes scales it by M^-1/2. Diagnostic, not evidence.",
+  "structural_gram_offdiagonal": 2.220446049250313e-15,
+  "test": "test_numeric_modes_are_orthogonal_to_the_closed_form_family"
+}

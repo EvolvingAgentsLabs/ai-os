@@ -1,0 +1,44 @@
+{
+  "A01_max_relative_error_at_N2000": 0.00025920899065224,
+  "failure": null,
+  "gate": "A12",
+  "gate_verdicts_on_this_defect": {
+    "A01_uniform_eigenvalues": "red",
+    "A02_orthogonality": "green",
+    "A03_oscillation": "green",
+    "A11_symmetry": "green",
+    "A12_convergence": "red"
+  },
+  "grids": [
+    250,
+    500,
+    1000,
+    2000,
+    4000
+  ],
+  "grids_dropped_at_precision_floor": [],
+  "note": "A01 says how far off. A12 says where: order 1 is a boundary, and the defect is at the apex -- the helicotrema, which is the physics.",
+  "observed_order": 0.9996155037617789,
+  "order_band": [
+    1.9,
+    2.1
+  ],
+  "passed": true,
+  "precision_floor": [
+    5.6244555480998594e-12,
+    2.2497822192399438e-11,
+    8.999128876959775e-11,
+    3.59965155078391e-10,
+    1.439860620313564e-09
+  ],
+  "relative_errors": [
+    0.001997643082063633,
+    0.000999411007190528,
+    0.0004998527510605759,
+    0.0002499634954981495,
+    0.00012499148025134756
+  ],
+  "scheme": "lumped-full-cell",
+  "spec": "5.2",
+  "test": "test_the_gate_goes_red_on_the_deliberate_defect"
+}

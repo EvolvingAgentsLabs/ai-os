@@ -1,0 +1,11 @@
+{
+  "failure": null,
+  "gate": "H2",
+  "max_relative_error": 0.012322045202989674,
+  "observed_exponent": 0.9999999999997728,
+  "observed_gain": 1.012322045202636,
+  "passed": true,
+  "predicted_gain": 1.0,
+  "spec": "7.5",
+  "test": "test_h2_response_is_linear_far_below_criticality"
+}

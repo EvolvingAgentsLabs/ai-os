@@ -1,0 +1,14 @@
+{
+  "drive_omega": 1.1913084799156437,
+  "failure": null,
+  "gate": "A14",
+  "highest_retained_omega": 53.12260446412502,
+  "n_modes": 40,
+  "noise_variance_captured": 0.9957217339107399,
+  "noise_variance_required": 0.99,
+  "omega_ratio": 44.59181258231841,
+  "omega_ratio_required": 10.0,
+  "passed": true,
+  "spec": "5.5",
+  "test": "test_the_truncation_criteria_are_met_and_reported"
+}

@@ -4,6 +4,7 @@ import type { CoreClient, QueuedTurn, RunState } from "../src/core-client.ts";
 import { carryPriorResults, createEngine } from "../src/engine.ts";
 import { createMemoryFlowStore } from "../src/memory-flow-store.ts";
 import type { FlowStore } from "../src/flow-store.ts";
+import type { FlowWithSteps, Step } from "../src/types.ts";
 
 /**
  * A core whose runs settle when the test says so, so the window between "queued"
@@ -317,5 +318,147 @@ describe("Monday to Wednesday", () => {
       ["first done", "reply for run-2"],
     );
     assert.equal(f.queued.length, 2, "the resumed step must not be relaunched");
+  });
+});
+
+describe("the gated shape", () => {
+  /**
+   * The shape [doc/16](../../doc/16-a-workload-with-an-oracle.md) argued for,
+   * and the rule it exists to enforce: **every step settling says the work ran,
+   * not that it was right.** `open` cannot tell those apart because prose has
+   * no oracle; a gated flow names checks that do.
+   */
+  function gatedFlowStore() {
+    return createMemoryFlowStore();
+  }
+
+  const gatedTurn = (flow: FlowWithSteps, step: Step) => ({
+    surface: "test",
+    actor: { externalId: "U1" },
+    conversation: { kind: "dm" as const, threadRef: flow.id },
+    text: step.intent,
+  });
+
+  async function gatedFlow(store: ReturnType<typeof createMemoryFlowStore>, gates: string[]) {
+    const flow = await store.createFlow({
+      scopeId: "group:lab",
+      actorId: "matias",
+      title: "may it freeze?",
+      goal: "decide whether the artefact may freeze",
+      shape: "gated",
+      requiredGates: gates,
+    });
+    await store.appendStep({ flowId: flow.id, intent: "run the checks" });
+    return flow;
+  }
+
+  /** Settle every step so only the gate decides the outcome. */
+  async function settleAll(store: ReturnType<typeof createMemoryFlowStore>, flowId: string) {
+    const f = await store.getFlow(flowId);
+    for (const s of f!.steps) {
+      const a = await store.startAttempt({ stepId: s.id });
+      await store.finishAttempt({
+        attemptId: a!.id, state: "done", result: "ran",
+        observation: { digest: "d", value: null, source: "test", at: 1 },
+      });
+    }
+  }
+
+  it("finishes when every required gate is green", async () => {
+    const store = gatedFlowStore();
+    const flow = await gatedFlow(store, ["A01", "A12"]);
+    await settleAll(store, flow.id);
+
+    const engine = createEngine({
+      store, core: fakeCore().core, turnFor: gatedTurn,
+      gateVerdict: async () => ({ mayFreeze: true, blockers: [], unknown: [] }),
+    });
+    const out = await engine.advance(flow.id);
+    assert.equal(out.kind, "complete");
+    assert.equal((await store.getFlow(flow.id))!.state, "done");
+  });
+
+  it("blocks and names the gate that went red", async () => {
+    const store = gatedFlowStore();
+    const flow = await gatedFlow(store, ["A01", "A12"]);
+    await settleAll(store, flow.id);
+
+    const engine = createEngine({
+      store, core: fakeCore().core, turnFor: gatedTurn,
+      gateVerdict: async () => ({ mayFreeze: false, blockers: ["A12"], unknown: [] }),
+    });
+    const out = await engine.advance(flow.id);
+    assert.equal(out.kind, "halted");
+    assert.match((out as { reason: string }).reason, /red: A12/);
+    assert.equal((await store.getFlow(flow.id))!.state, "blocked");
+  });
+
+  /**
+   * Reported apart from a red gate, all the way to the caller. A specific,
+   * fixable failure rendered as an unexplained refusal is how a gate stops
+   * being read.
+   */
+  it("blocks on a gate that never ran, and says so differently", async () => {
+    const store = gatedFlowStore();
+    const flow = await gatedFlow(store, ["A01", "A08"]);
+    await settleAll(store, flow.id);
+
+    const engine = createEngine({
+      store, core: fakeCore().core, turnFor: gatedTurn,
+      gateVerdict: async () => ({ mayFreeze: false, blockers: [], unknown: ["A08"] }),
+    });
+    const out = await engine.advance(flow.id);
+    const reason = (out as { reason: string }).reason;
+    assert.match(reason, /never ran: A08/);
+    assert.doesNotMatch(reason, /red:/);
+  });
+
+  /**
+   * The rule the whole shape rests on, one level up: **a deployment that cannot
+   * check is not a deployment where everything passes.**
+   */
+  it("blocks when the deployment cannot evaluate gates at all", async () => {
+    const store = gatedFlowStore();
+    const flow = await gatedFlow(store, ["A01"]);
+    await settleAll(store, flow.id);
+
+    // No gateVerdict injected at all.
+    const engine = createEngine({ store, core: fakeCore().core, turnFor: gatedTurn });
+    const out = await engine.advance(flow.id);
+    assert.equal(out.kind, "halted");
+    assert.match((out as { reason: string }).reason, /cannot evaluate gates/);
+    assert.equal((await store.getFlow(flow.id))!.state, "blocked");
+  });
+
+  it("refuses to finish a gated flow whose gates were configured away", async () => {
+    const store = gatedFlowStore();
+    const flow = await gatedFlow(store, []);
+    await settleAll(store, flow.id);
+
+    const engine = createEngine({
+      store, core: fakeCore().core, turnFor: gatedTurn,
+      gateVerdict: async () => ({ mayFreeze: true, blockers: [], unknown: [] }),
+    });
+    const out = await engine.advance(flow.id);
+    assert.equal(out.kind, "halted");
+    assert.match((out as { reason: string }).reason, /configured\s+away/);
+  });
+
+  it("leaves an open flow alone — no gate is consulted", async () => {
+    const store = gatedFlowStore();
+    const flow = await store.createFlow({
+      scopeId: "group:lab", actorId: "matias", title: "prose", goal: "write it",
+    });
+    await store.appendStep({ flowId: flow.id, intent: "write" });
+    await settleAll(store, flow.id);
+
+    let consulted = false;
+    const engine = createEngine({
+      store, core: fakeCore().core, turnFor: gatedTurn,
+      gateVerdict: async () => { consulted = true; return { mayFreeze: false, blockers: ["X"], unknown: [] }; },
+    });
+    const out = await engine.advance(flow.id);
+    assert.equal(out.kind, "complete");
+    assert.equal(consulted, false, "an open flow declares no metric and must not be gated");
   });
 });

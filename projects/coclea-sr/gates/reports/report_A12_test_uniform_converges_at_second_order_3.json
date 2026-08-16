@@ -1,0 +1,40 @@
+{
+  "case": "uniform",
+  "failure": null,
+  "gate": "A12",
+  "grids": [
+    250,
+    500,
+    1000,
+    2000,
+    4000
+  ],
+  "grids_dropped_at_precision_floor": [],
+  "mode": 3,
+  "observed_order": 1.9999904608612036,
+  "observed_order_all_grids": 1.9999904608612036,
+  "order_band": [
+    1.9,
+    2.1
+  ],
+  "passed": true,
+  "precision_floor": [
+    2.2497822192399437e-13,
+    8.999128876959775e-13,
+    3.59965155078391e-12,
+    1.439860620313564e-11,
+    5.759442481254256e-11
+  ],
+  "relative_errors": [
+    4.1122844453423234e-05,
+    1.0280806276371755e-05,
+    2.5702064686738144e-06,
+    6.425544000265777e-07,
+    1.6064092090687079e-07
+  ],
+  "richardson_limit": 7.853981633950179,
+  "richardson_relative_error": 3.094495939682406e-12,
+  "spec": "5.2",
+  "test": "test_uniform_converges_at_second_order_3",
+  "truth": 7.853981633974483
+}

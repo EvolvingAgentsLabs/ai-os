@@ -1,0 +1,33 @@
+{
+  "at": 1786735793.7365959,
+  "environment": {
+    "machine": "arm64",
+    "numpy": "2.5.2",
+    "omp_num_threads": "1",
+    "platform": "macOS-15.7.7-arm64-arm-64bit",
+    "python": "3.12.13",
+    "scipy": "1.18.0"
+  },
+  "gates": {
+    "A01": true,
+    "A02": true,
+    "A03": true,
+    "A04": true,
+    "A05": true,
+    "A06": true,
+    "A07": true,
+    "A08": true,
+    "A09": true,
+    "A10": true,
+    "A11": true,
+    "A12": true,
+    "A13": true,
+    "A14": true,
+    "C01": true,
+    "C02": true,
+    "C03": false
+  },
+  "git_commit": "b3154ee1986487dad313af82ba7807f72fdef37a",
+  "result_sha256": "14bf748f07be36467df2892c07a7002f126dbacdb20157a3b5773404a6b3898b",
+  "run_id": "e4-physiological"
+}

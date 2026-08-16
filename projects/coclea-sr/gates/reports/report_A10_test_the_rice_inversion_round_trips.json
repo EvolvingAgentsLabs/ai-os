@@ -1,0 +1,22 @@
+{
+  "failure": null,
+  "gate": "A10",
+  "passed": true,
+  "ratios": [
+    1.5,
+    2.0,
+    2.5,
+    3.0,
+    3.9
+  ],
+  "recovered": [
+    1.5,
+    2.0,
+    2.5,
+    3.0,
+    3.9
+  ],
+  "spec": "4.2 / 4.4",
+  "test": "test_the_rice_inversion_round_trips",
+  "worst": 0.0
+}

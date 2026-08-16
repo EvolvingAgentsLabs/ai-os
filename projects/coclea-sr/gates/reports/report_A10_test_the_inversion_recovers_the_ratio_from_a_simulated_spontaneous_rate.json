@@ -1,0 +1,35 @@
+{
+  "failure": null,
+  "gate": "A10",
+  "omega_eff": 1.0,
+  "passed": true,
+  "rows": [
+    {
+      "measured_rate": 0.021754669823066012,
+      "relative_error": 0.0024906582956151224,
+      "rice_predicted_rate": 0.021539279301848634,
+      "sigma": 0.5,
+      "theta_over_sigma_inferred": 1.9950186834087698,
+      "theta_over_sigma_true": 2.0
+    },
+    {
+      "measured_rate": 0.007036001020858014,
+      "relative_error": 0.0009863679637900802,
+      "rice_predicted_rate": 0.006992780170465791,
+      "sigma": 0.4,
+      "theta_over_sigma_inferred": 2.497534080090525,
+      "theta_over_sigma_true": 2.5
+    },
+    {
+      "measured_rate": 0.0017846669256051642,
+      "relative_error": 0.0010398282823092704,
+      "rice_predicted_rate": 0.0017680517118520167,
+      "sigma": 0.3333333333333333,
+      "theta_over_sigma_inferred": 2.996880515153072,
+      "theta_over_sigma_true": 3.0
+    }
+  ],
+  "spec": "4.2 / 4.4",
+  "test": "test_the_inversion_recovers_the_ratio_from_a_simulated_spontaneous_rate",
+  "worst_relative_error": 0.0024906582956151224
+}

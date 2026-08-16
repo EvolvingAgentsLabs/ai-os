@@ -24,6 +24,10 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
   const resumed: string[] = [];
   const forked: Array<{ flowId: string; atStep: number }> = [];
   const asked: Array<{ flowId: string; question: string; step?: number }> = [];
+  const created: Array<{ scopeId: string; actorId: string; title: string; goal: string }> = [];
+  const projects: Array<{ name: string; ownerId: string }> = [];
+  const agents: Array<{ scopeId: string; name: string; tools: string[] }> = [];
+  const files: Array<{ scopeId: string; path: string; bytes: number }> = [];
   const client: FlowsClient = {
     async conformation() {
       return {
@@ -118,9 +122,31 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
       asked.push({ flowId, question, step });
       return { answer: `about ${flowId}: ${question}`, spent: true, evidence: 3 };
     },
+    async writeAgent(scopeId, draft) {
+      // The real validator lives in ai-flows/src/agent-file.ts and is exercised
+      // by its own tests; this stub records what the route forwarded.
+      agents.push({ scopeId, name: draft.name, tools: draft.tools });
+      return { name: draft.name, path: `agents/${draft.name}.md` };
+    },
+    async writeFile(scopeId, path, content) {
+      files.push({ scopeId, path, bytes: content.length });
+      return { path, verifiedInSandbox: `${content.length} of ${content.length} bytes present` };
+    },
+    async createProject(input) {
+      projects.push({ name: input.name, ownerId: input.ownerId });
+      const slug = input.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      return { id: `p${projects.length}`, name: input.name, scopeId: `group:${slug}-p${projects.length}` };
+    },
+    async createFlow(input) {
+      created.push({
+        scopeId: input.scopeId, actorId: input.actorId,
+        title: input.title, goal: input.goal,
+      });
+      return { id: `flow-new-${created.length}`, title: input.title, state: "draft" };
+    },
     ...over,
   };
-  return { client, appended, advanced, removed, resumed, forked, asked };
+  return { client, appended, advanced, removed, resumed, forked, asked, created, projects, agents, files };
 }
 
 async function serve(flows: FlowsClient) {
@@ -522,5 +548,162 @@ describe("what /state carries", () => {
       assert.ok(d.trace, "a document without its trace is a skeleton");
       assert.ok(typeof d.trace.movement === "string");
     }
+  });
+});
+
+describe("creating a document from the desk", () => {
+  /**
+   * The gesture the desk did not have.
+   *
+   * Every other action it offers — assign, unassign, advance, fork, ask —
+   * operates on a document that already exists, so a person could arrange work
+   * and could not start it. The first step of any project had to happen outside
+   * the interface, which is a strange shape for a surface whose claim is that
+   * work outlives the conversation.
+   */
+  it("creates a flow and returns its id", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/flow", {
+      scopeId: "group:acme-web",
+      actorId: "matias",
+      title: "Passive membrane",
+      goal: "validate it against its closed form and freeze only if it holds",
+    });
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as { ok: boolean; flowId: string; title: string };
+    assert.equal(body.ok, true);
+    assert.equal(body.title, "Passive membrane");
+    assert.equal(f.created.length, 1);
+    assert.equal(f.created[0]!.scopeId, "group:acme-web");
+    assert.equal(f.created[0]!.actorId, "matias");
+  });
+
+  /**
+   * ADR-0009: a flow with no actor is **not created**, rather than created and
+   * quietly attributed to a service account. An optional field with a fallback
+   * behind it is the same shared-account attribution with an extra step.
+   */
+  it("refuses a flow with no actor", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/flow", {
+      scopeId: "group:acme-web",
+      title: "Something",
+      goal: "finish it",
+    });
+    assert.equal(res.status, 400);
+    assert.match((await res.text()), /actorId is required/);
+    assert.equal(f.created.length, 0, "nothing may be created on a rejected request");
+  });
+
+  /**
+   * The goal is required and is **not** defaulted from the title. A flow whose
+   * goal is its own title states nothing about what "done" means, which is the
+   * first of the four things `doc/03-ai-flows` says a session lacks and a flow
+   * is supposed to supply.
+   */
+  it("refuses a flow with no goal, rather than copying the title into it", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/flow", {
+      scopeId: "group:acme-web",
+      actorId: "matias",
+      title: "Something",
+    });
+    assert.equal(res.status, 400);
+    assert.equal(f.created.length, 0);
+  });
+
+  it("carries initial steps through when they are given", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/flow", {
+      scopeId: "group:acme-web",
+      actorId: "matias",
+      title: "Gate run",
+      goal: "report every gate with its measured number",
+      steps: ["run the analytic gates", "decide whether it may freeze"],
+    });
+    assert.equal(res.status, 200);
+    assert.equal(f.created.length, 1);
+  });
+
+  it("rejects steps that are not strings", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/flow", {
+      scopeId: "group:acme-web",
+      actorId: "matias",
+      title: "Gate run",
+      goal: "report every gate",
+      steps: [{ intent: "run them" }],
+    });
+    assert.equal(res.status, 400);
+    assert.equal(f.created.length, 0);
+  });
+});
+
+/**
+ * Starting a project from the desk.
+ *
+ * The gesture that decides whether this is a system or a viewer of one. Every
+ * scope the desk has ever shown was minted by a seed script run from a shell,
+ * so a person sitting at it could open work somebody else started and could not
+ * start their own — which is the difference between an operating system and a
+ * dashboard over one.
+ */
+describe("starting a project from the desk", () => {
+  it("creates it, and answers with the scope its work will happen in", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/project", { name: "COCLEA-SR", ownerId: "matias" });
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as { ok: boolean; scopeId: string; name: string };
+    assert.equal(body.ok, true);
+    assert.equal(body.name, "COCLEA-SR");
+    // The scope id is what the page navigates to. Without it the project exists
+    // and the person who just made it has no way to reach it.
+    assert.match(body.scopeId, /^group:coclea-sr-/);
+    assert.equal(f.projects.length, 1);
+    assert.equal(f.projects[0]!.ownerId, "matias");
+  });
+
+  /**
+   * The same rule `Flow.actorId` states, one level up. A project with a guessed
+   * owner is manufactured provenance, and at this level it decides who may see
+   * the work at all.
+   */
+  it("refuses a project with no owner", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/project", { name: "COCLEA-SR" });
+    assert.equal(res.status, 400);
+    assert.match(await res.text(), /ownerId is required/);
+    assert.equal(f.projects.length, 0, "nothing may be created on a rejected request");
+  });
+
+  it("refuses a project with no name", async () => {
+    const f = fakeFlows();
+    const s = await serve(f.client);
+    after(() => s.close());
+
+    const res = await s.send("POST", "/project", { name: "   ", ownerId: "matias" });
+    assert.equal(res.status, 400);
+    assert.equal(f.projects.length, 0);
   });
 });

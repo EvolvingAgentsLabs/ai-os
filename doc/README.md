@@ -24,12 +24,14 @@ changes kind gets its banner rewritten the same day.
 |---|---|
 | [01 · Architecture](01-architecture.md) | The four pillars, how they fit, and where each attaches to the base |
 | [02 · ai-base](02-ai-base.md) | What QM actually provides — verified against the source, not its README — and the seams built on |
-| [03 · ai-flows](03-ai-flows.md) | The flow model: goal, steps, attempts, observations. **`Open` runs; the other five shapes are specification** |
+| [03 · ai-flows](03-ai-flows.md) | The flow model: goal, steps, attempts, observations. `Open` and `Gated` run; the other four shapes are specification |
 | [04 · ai-ui](04-ai-ui.md) | The desk: documents, agent cubes, the trace face. Built; its own falsification has not been run |
 | [15 · Generated interaction](15-generated-interaction.md) | Semantic zoom, the self-revealing menu, deixis and fork — what a model can do that a GUI could not. Phases 1–4 built, phase 5 specified |
 | [09 · Scales](09-scales.md) | Individual, collective, project, system — one axis for flows and memory, and it is `scopeId` |
 | [10 · Observability](10-observability.md) | Whether a flow's progress can be read at all. Drift versus unreadable, and the measured noise floor between them |
 | [12 · Conformation](12-conformation.md) | Projects, agents and folders: what the layered workspace is, and why membership never lives in it |
+| [16 · A workload with an oracle](16-a-workload-with-an-oracle.md) | The first workload with a declared metric, the seam that reads it across languages, and the three ways its instruments lied. The `Gated` shape it argues for is now built — see 17 |
+| [17 · A project is born](17-a-project-is-born.md) | Starting, staffing and furnishing a project from the desk; the project that writes its own roster; lazy skills at a measured 95.8%; memory that survives the session. **Includes the route that confirmed its own write with its own reader** |
 
 ## Specification — not built
 

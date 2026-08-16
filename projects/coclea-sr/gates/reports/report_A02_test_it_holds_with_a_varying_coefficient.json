@@ -1,0 +1,13 @@
+{
+  "N": 2000,
+  "alpha": 3.0,
+  "case": "exponential",
+  "cross_tolerance": 0.0001,
+  "failure": null,
+  "gate": "A02",
+  "max_cross_offdiagonal": 6.274766405997314e-07,
+  "min_abs_cross_diagonal": 0.9999999999994257,
+  "passed": true,
+  "spec": "2.3 property 2",
+  "test": "test_it_holds_with_a_varying_coefficient"
+}

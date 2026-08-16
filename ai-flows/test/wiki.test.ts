@@ -33,6 +33,7 @@ import {
   noteMarkdown,
   rootMarkdown,
   shardMarkdown,
+  shortHash,
   stepContext,
   TWO_LEVEL_CEILING_NOTES,
   progressOf,
@@ -381,5 +382,56 @@ describe("an omission that is not a fault", () => {
     // merely reworded is a judgement, and this returns null rather than decide.
     const w = build(30);
     assert.equal(prunedRather(w, w.notes["n002"]!, () => true), null);
+  });
+});
+
+/**
+ * Recall must survive the two sides disagreeing about punctuation.
+ *
+ * This is not a hypothetical. A consolidation pass stored a note keyed
+ * `ground spring`; a query for `ground-spring` returned nothing while the same
+ * response reported `total: 2`. A memory that answers "I don't cover that"
+ * about something it does cover is worse than no memory, because it is
+ * believed.
+ */
+describe("finding a note whoever wrote it spelled differently", () => {
+  const note = (id: string, keywords: string[]): Note => ({
+    id,
+    title: id,
+    summary: "s",
+    ideas: ["i"],
+    keywords,
+    chars: 4,
+    hash: shortHash("text"),
+    unit: "fact",
+    state: "complete",
+    source: { file: "f.md", from: 0, to: 4 },
+    links: [],
+  });
+  const wiki: Wiki = {
+    shards: [{ id: "part-1", title: "Part 1", noteIds: ["n1", "n2"] }],
+    notes: { n1: note("n1", ["ground spring", "place code"]), n2: note("n2", ["Hopf Bifurcation"]) },
+  };
+
+  it("matches across case and separators, in both directions", () => {
+    for (const q of ["ground-spring", "Ground Spring", "GROUND_SPRING", "ground spring"]) {
+      assert.deepEqual(
+        candidates(wiki, [q]).map((n) => n.id),
+        ["n1"],
+        `"${q}" must reach the note`,
+      );
+    }
+    assert.deepEqual(candidates(wiki, ["hopf bifurcation"]).map((n) => n.id), ["n2"]);
+  });
+
+  /**
+   * And it must still be able to miss. Folding punctuation is not stemming: a
+   * recall that matched everything would be a recall that decided nothing, and
+   * there would be no way to see which of the two had happened.
+   */
+  it("still returns nothing for a question the memory does not cover", () => {
+    assert.deepEqual(candidates(wiki, ["cochlear amplifier"]), []);
+    assert.deepEqual(candidates(wiki, ["springs"]), [], "no stemming");
+    assert.deepEqual(candidates(wiki, ["  "]), []);
   });
 });

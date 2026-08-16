@@ -1,0 +1,16 @@
+{
+  "N": 200,
+  "dt": 0.0005,
+  "energy_dissipated": 1.470133218660237,
+  "energy_lost": 1.4701340034587513,
+  "failure": null,
+  "fraction_of_initial_energy_lost": 0.9996657165448777,
+  "gate": "A06",
+  "n_periods": 20,
+  "passed": true,
+  "relative_residual": 5.338278772892737e-07,
+  "spec": "2.4",
+  "test": "test_the_energy_balance_closes_0.05",
+  "tolerance": 0.0001,
+  "zeta0": 0.05
+}

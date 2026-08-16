@@ -1,0 +1,20 @@
+{
+  "N": 4000,
+  "beta": 8.0,
+  "failure": null,
+  "gate": "C01",
+  "impedance": [
+    0.91,
+    0.03
+  ],
+  "max_relative_error": 6.113660809613365e-08,
+  "omega": 0.3,
+  "passed": true,
+  "spec": "ADR-0002",
+  "test": "test_the_solver_matches_the_closed_form_0.3",
+  "tolerance": 1e-05,
+  "wavenumber": [
+    2.514859047789635,
+    -0.041442463446706275
+  ]
+}

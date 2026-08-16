@@ -1,0 +1,10 @@
+{
+  "N": 2000,
+  "failure": null,
+  "gate": "A11",
+  "min_mass": 0.0005010010006670001,
+  "min_volume": 0.00025,
+  "passed": true,
+  "spec": "5.1",
+  "test": "test_mass_is_positive_definite_2000"
+}

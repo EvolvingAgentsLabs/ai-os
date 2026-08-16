@@ -1,0 +1,17 @@
+{
+  "failure": null,
+  "gate": "C04",
+  "passed": true,
+  "relative_change_from_finest": {
+    "120": 6.199598430093227e-05,
+    "240": 0.0,
+    "60": 0.020576909622549884
+  },
+  "spec": "ADR-0003",
+  "test": "test_the_spectrum_grid_is_fine_enough",
+  "variance_by_grid": {
+    "120": 140219.5773187914,
+    "240": 140228.27090847318,
+    "60": 137342.80645146308
+  }
+}
