@@ -34,8 +34,9 @@ directory. All three return nothing.
 ## Three defects this found, two of them in itself
 
 1. **The scorer re-derived the truth and got it wrong.** It solved
-   `tan(bL) = -2b/a`, which has a pole inside every bracket. The *correct*
-   reference solution scored 0.0. Fixed by bundling the project's gated `truth/`
+   `tan(bL) = -2b/a` bracketed over a full period of the tangent, which puts a
+   pole in the interior — and bisection cannot tell a pole from a root. The
+   *correct* reference solution scored 0.0. Fixed by bundling the project's gated `truth/`
    byte-identically, with a drift test.
 2. **A prompt that never stated its convention.** The reference scored 0.0 with
    relative error exactly 1.0 — the factor of two between `<xi xi> = 2D delta`

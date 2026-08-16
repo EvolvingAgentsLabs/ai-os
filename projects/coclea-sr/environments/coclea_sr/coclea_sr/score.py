@@ -15,9 +15,13 @@ project's own `truth/` — the modules `GATE-A1`, `GATE-A8` and `GATE-A9` check 
 solver against. `tests/test_environment.py` asserts the copy has not drifted.
 
 The first version of this file re-derived the roots here instead, and got them
-wrong: it solved `tan(bL) = -2b/a`, which has a pole inside every bracket, rather
-than the entire form `(a/2) sin(bL) + b cos(bL)`, and bracketed on the wrong
-interval. The reference solution scored **0.0 on a task it answers correctly**,
+wrong: it bracketed `tan(bL) = -2b/a` over a **full period** of the tangent,
+`[(n-1)pi/L, n pi/L]`, which puts a pole in the interior. `tan` changes sign
+across a pole exactly as it does across a root, so bisection converged to the
+pole. (The narrower correction: the poles are *not* inside the bracket this
+project actually uses, `[(2n-1)pi/2L, n pi/L]` — they sit exactly at its lower
+endpoint. The entire form `(a/2) sin(bL) + b cos(bL)` removes the question by
+being finite everywhere.) The reference solution scored **0.0 on a task it answers correctly**,
 and the failure was in the scorer. Two derivations of one equation is two chances
 to be wrong and no way to tell which — so there is one.
 
@@ -93,8 +97,9 @@ def exponential_omegas(n_modes: int, alpha: float, length: float, c: float) -> l
     """Roots of spec (2.11), via `truth/exponential_modes.py`.
 
     That module bisects the **entire** form and brackets each root inside
-    `[(2n-1)pi/2L, n pi/L]`. Re-deriving it here with `tan` put a pole inside
-    every bracket; see the module docstring.
+    `[(2n-1)pi/2L, n pi/L]`. Re-deriving it here with `tan` over a full period
+    put a pole in the interior of the bracket, and bisection cannot tell a pole
+    from a root; see the module docstring.
     """
     return exponential_modes.omegas(n_modes, alpha, length, c)
 
