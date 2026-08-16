@@ -2,6 +2,11 @@
 
 # ai-os
 
+> **Paused 2026-08-16.** The focus moved to
+> [`physics-verifiers`](https://github.com/EvolvingAgentsLabs/physics-verifiers).
+> ai-os is the substrate v2 if that traction appears. **[PAUSED.md](PAUSED.md)**
+> has the real state, what was in flight, and what not to rebuild.
+
 **An agent-based operating system**, built on [QM](https://github.com/yc-software/qm).
 
 Work outlives the conversation. Agents and their sub-agents are markdown files in
