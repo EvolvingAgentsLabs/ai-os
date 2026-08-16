@@ -1,0 +1,12 @@
+{
+  "failure": null,
+  "gate": "H4",
+  "passed": true,
+  "refusals": [
+    "silent fibre",
+    "uncertainty < 1",
+    "non-positive knee"
+  ],
+  "spec": "4.5 / 7.5",
+  "test": "test_h4_refuses_what_it_cannot_estimate"
+}

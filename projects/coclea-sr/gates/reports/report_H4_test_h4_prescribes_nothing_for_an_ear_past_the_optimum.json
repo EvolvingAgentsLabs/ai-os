@@ -1,0 +1,10 @@
+{
+  "add": 0.0,
+  "failure": null,
+  "gate": "H4",
+  "passed": true,
+  "spec": "4.5 / 7.5",
+  "test": "test_h4_prescribes_nothing_for_an_ear_past_the_optimum",
+  "theta_over_sigma": 1.5517556536555206,
+  "verdict": "already at or past the optimum (theta/sigma 1.55 <= 2.0); added noise is predicted to reduce, not improve, detection"
+}

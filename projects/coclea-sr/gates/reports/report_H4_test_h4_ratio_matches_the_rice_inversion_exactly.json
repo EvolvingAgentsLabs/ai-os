@@ -1,0 +1,9 @@
+{
+  "failure": null,
+  "gate": "H4",
+  "passed": true,
+  "spec": "4.5 / 7.5",
+  "test": "test_h4_ratio_matches_the_rice_inversion_exactly",
+  "theta_over_sigma": 2.6482288033023056,
+  "truth": 2.6482288033023056
+}

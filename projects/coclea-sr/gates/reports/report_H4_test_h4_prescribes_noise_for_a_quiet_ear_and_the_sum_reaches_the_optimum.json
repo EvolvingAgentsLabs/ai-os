@@ -1,0 +1,10 @@
+{
+  "add": 0.4292066373415305,
+  "failure": null,
+  "gate": "H4",
+  "passed": true,
+  "spec": "4.5 / 7.5",
+  "test": "test_h4_prescribes_noise_for_a_quiet_ear_and_the_sum_reaches_the_optimum",
+  "theta_over_sigma": 3.8989492070408103,
+  "total_sigma_over_theta": 0.5
+}

@@ -1,0 +1,10 @@
+{
+  "add": 0.18125330079304514,
+  "failure": "report = <function report.<locals>.record at 0x103a75120>\n\n    def test_h4_prescribes_nothing_for_an_ear_at_or_past_the_optimum(report):\n        \"\"\"Zero, and zero because more would hurt \u2014 not a clamped negative.\n    \n        A high spontaneous rate means a *low* threshold-to-noise ratio: the ear is\n        already noisy relative to its threshold and sits on the falling side of the\n        U. `theta/sigma` at 100 sp/s and 1 kHz is about 2.15, and the model's\n        optimum is 2.0.\n        \"\"\"\n        p = fitting.prescribe(fitting.Observables(spontaneous_rate=100.0, cf_hz=1000.0))\n        report(theta_over_sigma=p.theta_over_sigma, add=p.add_noise_fraction, verdict=p.verdict)\n        assert p.theta_over_sigma < 2.5\n>       assert p.add_noise_fraction == 0.0\nE       AssertionError: assert 0.18125330079304514 == 0.0\nE        +  where 0.18125330079304514 = Prescription(theta_over_sigma=2.145966026289347, theta_over_sigma_lo=1.7941225779941015, theta_over_sigma_hi=2.4477468...mum (theta/sigma 2.15) but the measurement uncertainty spans the optimum; the prescription is not separated from zero').add_noise_fraction\n\ngates/test_H04_prescription.py:50: AssertionError",
+  "gate": "H4",
+  "passed": false,
+  "spec": "4.5 / 7.5",
+  "test": "test_h4_prescribes_nothing_for_an_ear_at_or_past_the_optimum",
+  "theta_over_sigma": 2.145966026289347,
+  "verdict": "below the optimum (theta/sigma 2.15) but the measurement uncertainty spans the optimum; the prescription is not separated from zero"
+}

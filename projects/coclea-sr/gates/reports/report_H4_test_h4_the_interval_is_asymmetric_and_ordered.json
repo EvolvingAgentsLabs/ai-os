@@ -1,0 +1,13 @@
+{
+  "add": 0.3945002117757639,
+  "add_hi": 0.4292066373415305,
+  "add_lo": 0.2882635940460276,
+  "failure": null,
+  "gate": "H4",
+  "hi": 3.8989492070408103,
+  "lo": 2.4477468306808166,
+  "mid": 3.2552472614374586,
+  "passed": true,
+  "spec": "4.5 / 7.5",
+  "test": "test_h4_the_interval_is_asymmetric_and_ordered"
+}

@@ -1,0 +1,11 @@
+{
+  "failure": null,
+  "gate": "H3",
+  "knee_ratio": 0.7901281329136489,
+  "mu": -0.04,
+  "observed_knee": 0.006321025063309191,
+  "passed": true,
+  "predicted_knee": 0.008,
+  "spec": "7.5",
+  "test": "test_h3_the_compression_knee_sits_where_mu_puts_it_-0.04"
+}

@@ -1,0 +1,12 @@
+{
+  "checked_mu": [
+    -0.01,
+    -0.04,
+    -0.25
+  ],
+  "failure": null,
+  "gate": "H4",
+  "passed": true,
+  "spec": "4.5 / 7.5",
+  "test": "test_h4_the_knee_round_trips_through_the_normal_form"
+}

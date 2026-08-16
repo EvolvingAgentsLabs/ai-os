@@ -70,7 +70,13 @@ found.
 ## Running the gate
 
 ```bash
-.venv/bin/python -m pytest gates/ -q     # 45, all green
+.venv/bin/python -m pytest gates/ -q     # 111 checks
+
+# The whole suite runs for minutes -- A09 (Lyapunov) alone is >100s and A05 is
+# 12s, while everything else is sub-second. For a live demonstration use the
+# subset that finishes in one turn:
+.venv/bin/python -m pytest gates/test_A01*.py gates/test_A02*.py \
+                          gates/test_A08*.py gates/test_A11*.py -q   # 28 checks, ~1.7s
 python3 verify_ledger.py                 # the chain, in stdlib only
 ```
 
