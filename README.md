@@ -2,10 +2,12 @@
 
 # ai-os
 
-> **Paused 2026-08-16.** The focus moved to
-> [`physics-verifiers`](https://github.com/EvolvingAgentsLabs/physics-verifiers).
-> ai-os is the substrate v2 if that traction appears. **[PAUSED.md](PAUSED.md)**
-> has the real state, what was in flight, and what not to rebuild.
+> **Unpaused 2026-08-16.** `physics-verifiers` measured its own thesis and
+> falsified it — an LLM judge detected as well as a physics verifier, twice
+> ([results](https://github.com/EvolvingAgentsLabs/physics-verifiers/blob/main/experiments/judge_vs_physics/RESULTS.md)).
+> What that leaves is the harness, and `projects/coclea-sr` is the workload that
+> makes it real: H1–H8 done, gates A1–A14 and B2 green, the eight agent roles of
+> its §6.2 running as markdown in a live scope. Running on `qwen/qwen3.8-27b`.
 
 **An agent-based operating system**, built on [QM](https://github.com/yc-software/qm).
 
