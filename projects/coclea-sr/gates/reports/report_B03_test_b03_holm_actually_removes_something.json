@@ -1,0 +1,16 @@
+{
+  "failure": null,
+  "gate": "B03",
+  "kept": [],
+  "p_values": {
+    "f0": 0.011,
+    "f1": 0.02,
+    "f2": 0.03,
+    "f3": 0.04,
+    "f4": 0.045,
+    "f5": 0.049
+  },
+  "passed": true,
+  "spec": "7.2 / 7.3",
+  "test": "test_b03_holm_actually_removes_something"
+}

@@ -1,0 +1,15 @@
+{
+  "ci": [
+    -1.3604541473734018,
+    -0.8733690591824151
+  ],
+  "failure": null,
+  "gate": "B03",
+  "injected_eta_xi": -1.2,
+  "p_value": 7.727085172337667e-05,
+  "passed": true,
+  "recovered_effect": -1.1169116032779085,
+  "residual_sd": 0.25,
+  "spec": "7.2 / 7.3",
+  "test": "test_b03_an_injected_interaction_is_recovered"
+}
