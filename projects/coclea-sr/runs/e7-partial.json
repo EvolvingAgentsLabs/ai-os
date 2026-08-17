@@ -70,5 +70,29 @@
     "correct": true,
     "retraction": false,
     "failed_steps": 0
+  },
+  {
+    "arm": "2:1",
+    "infrastructure_failure": false,
+    "explorers": 4,
+    "verifiers": 2,
+    "rep": 1,
+    "flow_id": "64f29016-adaf-4d4c-b178-4a8db5939590",
+    "cost_usd": 0.04516835600003333,
+    "elapsed_s": 311.749440908432,
+    "explorer_claims": [
+      1.0068,
+      1.0104,
+      1.006816,
+      1.0066
+    ],
+    "verifier_claims": [
+      1.008789,
+      1.00359
+    ],
+    "final": 1.0072,
+    "correct": true,
+    "retraction": false,
+    "failed_steps": 0
   }
 ]

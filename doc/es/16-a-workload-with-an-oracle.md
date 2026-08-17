@@ -9,7 +9,7 @@
 > y los tres rechazos que hace, están en [17](17-a-project-is-born.md).
 >
 > La carga de trabajo que describe, [`projects/coclea-sr/`](../../projects/coclea-sr/),
-> sí corre: 111 chequeos de gate **[ran]**, una hipótesis falsada por su propio
+> sí corre: 125 chequeos de gate sobre 26 gates **[ran]**, una hipótesis falsada por su propio
 > brazo de control **[ran]**, y una respuesta a §R2 que el modelo acotado no pudo
 > reproducir ([ADR-0004](../../projects/coclea-sr/decisions/0004-the-narrowed-model-three-ingredients.md)).
 >
@@ -214,7 +214,11 @@ lo mostró fueron dos agentes leyendo el mismo archivo y discrepando.
 El proyecto alcanzó su resultado principal el 2026-08-14 — **GATE-B2, un máximo
 interior estadísticamente significativo en SNR contra ruido, en 24 de 24
 combinaciones de sonda y frecuencia**, con el óptimo medido a 11.6% de la
-predicción sin parámetros libres `σ_opt = θ/2`. 80 gates verdes, contra 45.
+predicción sin parámetros libres `σ_opt = θ/2`. 80 **chequeos** de gate verdes
+ese día, contra 45; 125 sobre 26 gates al 2026-08-17. A dónde fue la carga de
+trabajo después de eso — a una sección de patologías cuya afirmación de
+discriminación está ella misma gateada — está en
+[18](18-from-a-hypothesis-to-a-therapeutic-surface.md).
 
 Dos cosas de esa corrida pertenecen acá y no al proyecto.
 
