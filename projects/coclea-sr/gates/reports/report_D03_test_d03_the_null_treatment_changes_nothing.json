@@ -1,0 +1,13 @@
+{
+  "failure": null,
+  "gate": "D03",
+  "moved_under_null_treatment": {
+    "conductive": [],
+    "hydrops": [],
+    "ohc-loss": [],
+    "synaptopathy": []
+  },
+  "passed": true,
+  "spec": "13",
+  "test": "test_d03_the_null_treatment_changes_nothing"
+}

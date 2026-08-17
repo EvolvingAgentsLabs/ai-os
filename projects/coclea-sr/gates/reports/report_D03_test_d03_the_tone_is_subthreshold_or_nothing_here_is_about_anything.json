@@ -1,0 +1,12 @@
+{
+  "failure": null,
+  "gate": "D03",
+  "healthy_optimum": 0.5,
+  "passed": true,
+  "resting_sigma": 0.2,
+  "spec": "13",
+  "subthreshold": true,
+  "test": "test_d03_the_tone_is_subthreshold_or_nothing_here_is_about_anything",
+  "theta": 1.0,
+  "tone": 0.5
+}

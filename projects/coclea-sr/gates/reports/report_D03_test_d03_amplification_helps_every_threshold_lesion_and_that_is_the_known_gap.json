@@ -1,0 +1,51 @@
+{
+  "detection_ratio": {
+    "amplification": {
+      "conductive": null,
+      "hydrops": 166126054156.04688,
+      "ohc-loss": null,
+      "synaptopathy": 2588434930435478.5
+    },
+    "amplifier-agent": {
+      "conductive": null,
+      "hydrops": 166126054156.04675,
+      "ohc-loss": null,
+      "synaptopathy": 2588434930435477.0
+    },
+    "calibrated-noise": {
+      "conductive": null,
+      "hydrops": 12935877469.263947,
+      "ohc-loss": null,
+      "synaptopathy": 128081822370796.7
+    },
+    "fluid-agent": {
+      "conductive": null,
+      "hydrops": 2076821.581743307,
+      "ohc-loss": 0.0,
+      "synaptopathy": 970617545.3785639
+    },
+    "implant": {
+      "conductive": null,
+      "hydrops": 34227894.4903018,
+      "ohc-loss": null,
+      "synaptopathy": 1.0
+    }
+  },
+  "failure": null,
+  "gate": "D03",
+  "known_gap": "ADR-0008: theta-up is a sensitivity loss, not synaptopathy; no fibre-count axis exists, so nothing here is a lesion that gain cannot repair",
+  "non_finite_fields": [
+    "detection_ratio.amplification.conductive",
+    "detection_ratio.amplification.ohc-loss",
+    "detection_ratio.amplifier-agent.conductive",
+    "detection_ratio.amplifier-agent.ohc-loss",
+    "detection_ratio.calibrated-noise.conductive",
+    "detection_ratio.calibrated-noise.ohc-loss",
+    "detection_ratio.fluid-agent.conductive",
+    "detection_ratio.implant.conductive",
+    "detection_ratio.implant.ohc-loss"
+  ],
+  "passed": true,
+  "spec": "13",
+  "test": "test_d03_amplification_helps_every_threshold_lesion_and_that_is_the_known_gap"
+}

@@ -303,3 +303,121 @@ def _cross(omega: np.ndarray, magnitude: np.ndarray, start: int, level: float, s
             return float(omega[i] + f * (omega[i + step] - omega[i]))
         i += step
     return float("nan")
+
+
+# ---------------------------------------------------------------------------
+# Treatments. Spec §13 / PATHOLOGIES §5, and GATE-D3 is what decides whether the
+# section below them is worth writing.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Treatment:
+    """An intervention, in the same shape as a `Lesion` and for the same reason.
+
+    A treatment is a transform of the parameters the model already has. It
+    composes with a lesion by multiplying the same fields, so *"amplification
+    applied to otosclerosis"* is arithmetic rather than a special case — and a
+    treatment that addresses nothing is `Treatment()`, which is the null control
+    GATE-D3 needs.
+
+    Two fields are not multiplicative and both say something.
+
+    ``mu_h_toward_critical`` moves the amplifier's distance to the bifurcation
+    *toward zero by a fraction of the way there*, because that is what restoring
+    an amplifier means. Multiplying `mu_h` would let a fraction of 1.0 mean
+    "no change" and 0.0 mean "sitting on the bifurcation", which is the hazard
+    PATHOLOGIES §6 exists to warn about, reachable by a typo.
+
+    ``bypasses_mechanics`` is the cochlear implant, and it is a flag rather than
+    a factor because it is not a change of degree. An implant does not improve
+    the membrane; it stops the membrane being in the path.
+    """
+
+    name: str = "none"
+    modality: str = "none"
+
+    drive_factor: float = 1.0
+    beta_factor: float = 1.0
+    stiffness_factor: float = 1.0
+    mass_factor: float = 1.0
+    damping_factor: float = 1.0
+    theta_factor: float = 1.0
+    #: Fraction of the remaining distance to the bifurcation that is closed.
+    #: `0.0` is no effect; `1.0` would sit exactly on it and is refused.
+    mu_h_toward_critical: float = 0.0
+    #: Operate at the noise level the model says is best, rather than at rest.
+    delivers_optimal_noise: bool = False
+    #: Drive the detector directly. The mechanics stop being in the path.
+    bypasses_mechanics: bool = False
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.mu_h_toward_critical < 1.0:
+            raise ValueError(
+                "mu_h_toward_critical is a fraction in [0, 1); 1.0 is the bifurcation "
+                "itself, which PATHOLOGIES §6 records as a hazard rather than a target"
+            )
+
+
+def treat(lesion: Lesion, treatment: Treatment) -> Lesion:
+    """The lesion as it stands after the intervention. Composition, not a rule.
+
+    Multiplicative on every factor, so applying `Treatment()` returns a lesion
+    with identical fields — which is the null control, free and checkable rather
+    than argued.
+    """
+    mu = lesion.mu_h + (0.0 - lesion.mu_h) * treatment.mu_h_toward_critical
+    return Lesion(
+        name=f"{lesion.name}+{treatment.name}",
+        lesion=lesion.lesion,
+        drive_factor=lesion.drive_factor * treatment.drive_factor,
+        beta_factor=lesion.beta_factor * treatment.beta_factor,
+        stiffness_factor=lesion.stiffness_factor * treatment.stiffness_factor,
+        mass_factor=lesion.mass_factor * treatment.mass_factor,
+        damping_factor=lesion.damping_factor * treatment.damping_factor,
+        mu_h=mu,
+        theta_factor=lesion.theta_factor * treatment.theta_factor,
+        reversible=lesion.reversible,
+    )
+
+
+#: The null control. Applying it must leave every observable untouched.
+NO_TREATMENT = Treatment()
+
+#: A hearing aid. Pure gain at the stapes, and the model says that is all it is.
+AMPLIFICATION = Treatment(
+    name="amplification", modality="acoustic", drive_factor=10.0
+)
+
+#: A diuretic or osmotic agent, undoing part of a hydrops. The only class that
+#: touches the fluid, and therefore the only one that can move the place map.
+FLUID_AGENT = Treatment(
+    name="fluid-agent", modality="pharmacological",
+    beta_factor=1.5, stiffness_factor=0.7, mass_factor=0.85,
+)
+
+#: An agent that pushes the amplifier back toward criticality. Nothing known does
+#: this; salicylate and furosemide move the same knob the other way, which is the
+#: argument that the knob is reachable at all.
+AMPLIFIER_AGENT = Treatment(
+    name="amplifier-agent", modality="pharmacological", mu_h_toward_critical=0.9
+)
+
+#: Calibrated noise at the level the model predicts. Changes no parameter of the
+#: cochlea at all — it changes where on the SR curve the ear is operating, which
+#: is why it is invisible to every mechanical observable and shows up in one.
+CALIBRATED_NOISE = Treatment(
+    name="calibrated-noise", modality="acoustic", delivers_optimal_noise=True
+)
+
+#: A cochlear implant. The mechanics stop being in the path, so `beta`, `S`, `M`
+#: and `mu_H` become irrelevant and the outcome is set by what is left: the
+#: detector.
+IMPLANT = Treatment(
+    name="implant", modality="electrical", bypasses_mechanics=True
+)
+
+TREATMENTS: tuple[Treatment, ...] = (
+    NO_TREATMENT, AMPLIFICATION, FLUID_AGENT, AMPLIFIER_AGENT,
+    CALIBRATED_NOISE, IMPLANT,
+)

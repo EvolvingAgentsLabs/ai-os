@@ -144,6 +144,33 @@ there is a date attached to when it started.
 
 ---
 
+### F8 · A file that only Python can read
+
+**Hit:** three venues now, and each time it presented as something else.
+
+* **Gate reports** — two GATE-A10 reports carried an SNR of `-inf`, and
+  `ai-flows/src/gates.ts` failed with *"No number after minus sign"*. The
+  TypeScript seam then saw **zero** gate reports and skipped four drift tests
+  rather than failing: an interchange break that presented as a quiet loss of
+  coverage.
+* **Run results** — found on 2026-08-17 by `verify_ledger.py` while closing H9.
+  Two attested `result.json` files, *intact but not valid JSON*, carrying a bare
+  `NaN` and a bare `-Infinity`. The hash chain was fine; the format was not.
+* **And the reason it recurred:** the sanitiser existed and was correct.
+  **Five runners called it and six did not.**
+
+**Hack:** move it into `attest.canonical`, which is the one function every
+attested write goes through, and add `allow_nan=False` so anything the sanitiser
+misses raises at write time. One line of behaviour in one place, instead of six
+call sites and a convention.
+
+**What this says about the pattern:** the failure was never the missing rule. It
+was a rule enforced by remembering, in six places, on a boundary nobody looks at.
+`verify_ledger.py` — under a hundred lines, stdlib only — is what found it, and
+it found it by refusing to conflate *intact* with *valid*.
+
+---
+
 ## Deliberately not recorded
 
 Things that were annoying once and are not friction: a shell without `timeout`, a

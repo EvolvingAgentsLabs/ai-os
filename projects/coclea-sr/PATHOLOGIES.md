@@ -84,7 +84,7 @@ from `gates/reports/report_D01_*.json`.
 | OHC loss | `μ_H` −0.02→−0.5 | 1.000 | 1.000 | 0 dB | **0.811** | **0.354** | 0.500 | no |
 | prestin block | `μ_H` −0.02→−0.2 | 1.000 | 1.000 | 0 dB | **0.638** | **0.089** | 0.500 | no |
 | hydrops | `β` ×0.6, `S` ×1.6, `M` ×1.3 | **1.117** | **1.056** | **−3.9 dB** | 0.365 | 0.0028 | 0.500 | no |
-| synaptopathy | `θ` ×1.8 | 1.000 | 1.000 | 0 dB | 0.365 | 0.0028 | **0.900** | no |
+| detector threshold ↑ | `θ` ×1.8 | 1.000 | 1.000 | 0 dB | 0.365 | 0.0028 | **0.900** | no |
 | overdriven | `μ_H` = +0.05 | 1.000 | 1.000 | 0 dB | — | — | 0.500 | **yes** |
 
 Read the table by its **zeros**. What identifies a lesion here is not the column
@@ -93,7 +93,11 @@ that moved but the five that did not.
 * A **conductive** loss is a pure attenuation: −20 dB and every shape preserved.
   The place map, the tuning, the compression curve and the useful noise level are
   untouched. The model says conductive loss is the one pathology that a gain
-  control can fully undo, which is why a hearing aid works for it and only for it.
+  control can fully undo. ~~which is why a hearing aid works for it and only for
+  it~~ — **retracted by [GATE-D3](gates/test_D03_treatment_signatures.py)**: in
+  this model amplification improves detection on *every* threshold-type lesion,
+  because raising the drive lifts tone and noise together through the threshold.
+  See [ADR-0008](decisions/0008-a-raised-threshold-is-not-synaptopathy.md).
 * **OHC loss** and **prestin block** touch nothing mechanical and nothing at the
   detector. What they destroy is *compression*: the exponent walks from 0.365
   (near the normal form's exact 1/3) toward 1, which is linearity. Loudness
@@ -101,10 +105,18 @@ that moved but the five that did not.
 * **Hydrops** is the only lesion in the catalogue that moves the **place map**.
   It is also the only fluid-mechanical one. That coincidence is the section's
   main structural claim and §5.3 is built on it.
-* **Synaptopathy** moves exactly one number, and it is one that no mechanical
-  model has: the noise level at which detection is best. The audiogram, the
-  tuning curve and the compression curve are all normal. This is what "hidden"
-  means, stated as a parameter.
+* **A raised detector threshold** moves exactly one number that no mechanical
+  model has: the noise level at which detection is best. The tuning curve and the
+  compression curve are untouched.
+
+  **It was called `synaptopathy` and that was wrong.** A raised `θ` *is* a raised
+  audiogram threshold, and hidden hearing loss is hidden because the audiogram is
+  **normal** — the surviving high-spontaneous-rate fibres still set threshold
+  while suprathreshold coding in noise degrades. What synaptopathy loses is
+  **readout redundancy**, and this model has one detector and no axis for it.
+  [ADR-0008](decisions/0008-a-raised-threshold-is-not-synaptopathy.md) records
+  the retraction and names the fibre-count axis without building it. **Nothing
+  here represents hidden hearing loss today.**
 * **Overdriven** is past the bifurcation. It is in the catalogue as a hazard
   rather than as a disease — see §6.
 
