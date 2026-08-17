@@ -1,5 +1,9 @@
 # 17 · A project is born
 
+<img src="assets/17-a-project-is-born.jpg" alt="" width="100%">
+
+<sub>Empty, staffed, furnished. The struck-through circle is a name declared in markdown with no file behind it.</sub>
+
 > **Reference.** Everything below ran. Numbers are from the live stack —
 > `make up`, then the desk's own routes — and each is dated 2026-08-15.
 

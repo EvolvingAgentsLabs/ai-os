@@ -1,5 +1,9 @@
 # 18 · From a hypothesis to a therapeutic surface
 
+<img src="assets/18-from-a-hypothesis-to-a-therapeutic-surface.jpg" alt="" width="100%">
+
+<sub>A trajectory that decays and stops, and a second one that propagates on a base the first did not have — opening into seven signatures, one of them open because it is a posit.</sub>
+
 > **Reference.** Everything below either ran or is marked as not having run.
 > [`projects/coclea-sr/`](../projects/coclea-sr/) holds **26 gates / 125 checks,
 > all green [ran]**, one hypothesis falsified by its own control arm **[ran]**,
@@ -337,8 +341,11 @@ control flow, run before the other nine were bought, would have said so. **Writi
 a rule down is not the same as applying it**, and that is the most useful thing
 this experiment produced.
 
-**One convention slipped:** docs 15–18 have no illustration, where 00–14 do.
-Recorded rather than quietly dropped.
+**One convention slipped and is now closed.** Docs 15–18 had no illustration
+where 00–14 do. It was recorded here rather than quietly dropped, and then fixed
+as a **generator** — [`assets/make-illustrations.py`](assets/make-illustrations.py),
+whose palette was sampled pixel-by-pixel from the existing plates rather than
+guessed — so the next document does not reopen it.
 
 ## 9 · Reproducing it
 

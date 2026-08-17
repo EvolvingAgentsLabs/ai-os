@@ -1,5 +1,9 @@
 # 15 · Generated interaction — the desk after the GUI
 
+<img src="assets/15-generated-interaction.jpg" alt="" width="100%">
+
+<sub>One object, three times, each with more of it visible — and a fork whose two branches both survive, one of them unresolved.</sub>
+
 > **Part reference, part specification, and the banner says which per section.**
 > Phases 1–4 are built and tested (`ai-ui`, `ai-flows`). Phase 5 is specified and
 > not built. The falsification for all of it is [04's stopwatch](04-ai-ui.md#how-this-gets-falsified),

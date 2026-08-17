@@ -1,5 +1,9 @@
 # 18 · De una hipótesis a una superficie terapéutica
 
+<img src="../assets/18-from-a-hypothesis-to-a-therapeutic-surface.jpg" alt="" width="100%">
+
+<sub>Una trayectoria que decae y se detiene, y otra que se propaga sobre una base que la primera no tenía — abriéndose en siete firmas, una de ellas abierta porque es un posit.</sub>
+
 > **Referencia.** Todo lo de abajo corrió, o está marcado como que no corrió.
 > [`projects/coclea-sr/`](../../projects/coclea-sr/) tiene **26 gates / 125
 > chequeos, todos verdes [ran]**, una hipótesis falsada por su propio brazo de
@@ -348,8 +352,12 @@ solo flow de control, corrido antes de comprar los otros nueve, lo habría dicho
 **Escribir una regla no es lo mismo que aplicarla**, y eso es lo más útil que
 produjo este experimento.
 
-**Una convención se aflojó:** los docs 15–18 no tienen ilustración, y 00–14 sí.
-Registrado en vez de dejado caer en silencio.
+**Una convención se aflojó y ya está cerrada.** Los docs 15–18 no tenían
+ilustración y 00–14 sí. Quedó registrado acá en vez de dejarse caer en silencio, y
+después se arregló como **generador** —
+[`assets/make-illustrations.py`](../assets/make-illustrations.py), cuya paleta se
+muestreó píxel por píxel de las láminas existentes en vez de adivinarse— para que
+el próximo documento no lo vuelva a abrir.
 
 ## 9 · Reproducirlo
 
