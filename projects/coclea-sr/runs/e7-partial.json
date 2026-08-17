@@ -166,5 +166,77 @@
     "correct": true,
     "retraction": false,
     "failed_steps": 0
+  },
+  {
+    "arm": "1:1",
+    "infrastructure_failure": false,
+    "explorers": 3,
+    "verifiers": 3,
+    "rep": 1,
+    "flow_id": "42c42280-0b82-4343-bf52-a3400aaa3c76",
+    "cost_usd": 0.14441712600000756,
+    "elapsed_s": 362.71671080589294,
+    "explorer_claims": [
+      1.005312,
+      1.005312,
+      1.005312
+    ],
+    "verifier_claims": [
+      1.00427,
+      1.00427,
+      1.00427
+    ],
+    "final": 1.00427,
+    "correct": true,
+    "retraction": false,
+    "failed_steps": 0
+  },
+  {
+    "arm": "1:1",
+    "infrastructure_failure": false,
+    "explorers": 3,
+    "verifiers": 3,
+    "rep": 2,
+    "flow_id": "17e6e848-802d-4864-82b4-169b9ab9bdb4",
+    "cost_usd": 0.07307034000001522,
+    "elapsed_s": 248.04183673858643,
+    "explorer_claims": [
+      1.003448,
+      1.012962,
+      1.004196
+    ],
+    "verifier_claims": [
+      1.006731,
+      1.002881,
+      1.008789
+    ],
+    "final": 1.006501,
+    "correct": true,
+    "retraction": false,
+    "failed_steps": 0
+  },
+  {
+    "arm": "1:1",
+    "infrastructure_failure": false,
+    "explorers": 3,
+    "verifiers": 3,
+    "rep": 3,
+    "flow_id": "b69294ec-3989-4928-81a1-0cd9f2379014",
+    "cost_usd": 0.15103199800000766,
+    "elapsed_s": 266.56293082237244,
+    "explorer_claims": [
+      1.0052,
+      1.004472,
+      1.006731
+    ],
+    "verifier_claims": [
+      1.010377,
+      1.0038409046346943,
+      1.006648
+    ],
+    "final": 1.0062113174391156,
+    "correct": true,
+    "retraction": false,
+    "failed_steps": 0
   }
 ]
