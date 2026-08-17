@@ -116,3 +116,13 @@ for the Phase-2 active layer. It is reported as a result, not a shortfall.
    tuning it stands in for is a real check rather than an assumption.
 3. **The low-CF versus high-CF prediction** is the falsifiable consequence and
    nothing here tests it.
+4. **Spec §13 raised the stakes on the first item.** [PATHOLOGIES.md](../PATHOLOGIES.md)
+   makes claims that touch clinical practice — that a compression knee moves
+   before a threshold does, that a fluid-acting agent shifts the place map and a
+   hair-cell-acting one does not — and this document's pass had **no web access
+   in the loop**. A clinical claim standing on a range read from our own
+   specification is a worse version of the provenance problem this page opens
+   with, not the same one. §13's own §7 puts literature **last** on purpose:
+   three cheaper things can kill the section first, and none of them needs a
+   citation. But the moment any of §13 is quoted outside this repository, item 1
+   above stops being an upgrade and becomes a precondition.
