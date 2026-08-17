@@ -19,6 +19,7 @@ import { DEMO_AT, demoWorld } from "../src/simulate.ts";
 import { dspAgents, dspFlows } from "../src/dsp-demo.ts";
 import { memoryAgents, memoryFlows } from "../src/memory-demo.ts";
 import { cochleaAgents, cochleaFlows } from "../src/cochlea-demo.ts";
+import { cochleaProjectFlows } from "../src/cochlea-project.ts";
 import { channelsFor, workChannel } from "../../ai-flows/src/channels.ts";
 import { propose } from "../src/layout.ts";
 import { MEMORY_LEVELS } from "../src/memory.ts";
@@ -128,9 +129,47 @@ const layout = layoutFor(
  */
 const coc = {
   scopeId: "group:cochlea-lab",
-  agents: cochleaAgents(),
-  raw: cochleaFlows(DEMO_AT) as unknown as Array<Record<string, unknown>>,
+  agents: [...cochleaAgents(), ...projectAgents()],
+  // The two gate flows, plus the three that show the project being built rather
+  // than judged: the falsification whose artefact was a decision, GATE-D1 in
+  // flight, and the memory agents indexing the project's own decision record.
+  //
+  // Newest first, because the desk lists in the order it is given and a visitor
+  // should land on work in progress rather than on something frozen thirty-one
+  // hours ago.
+  raw: [...cochleaProjectFlows(DEMO_AT), ...cochleaFlows(DEMO_AT)] as unknown as Array<
+    Record<string, unknown>
+  >,
 };
+
+/**
+ * The two roles the project half needs and the gate half does not.
+ *
+ * `INDEXER` and `COVERAGE-AUDITOR` are `group:memory-lab`'s agents, working here
+ * on this project's own decisions. Naming them the same thing is the point: the
+ * memory agents are not a feature of the memory scope, they are agents, and a
+ * research project is a corpus like any other.
+ */
+function projectAgents() {
+  return [
+    {
+      name: "INDEXER",
+      description:
+        "Writes one note per decision against an index that has to keep fitting a small window.",
+      tools: ["read", "write"],
+      child: true,
+      missing: false,
+    },
+    {
+      name: "COVERAGE-AUDITOR",
+      description:
+        "Asks what a reader would be told. Lints the index, and knows the corpus has an order.",
+      tools: ["read"],
+      child: true,
+      missing: false,
+    },
+  ];
+}
 
 /** The knowledge base being built: the same desk, pointed at reading. */
 const mem = {
