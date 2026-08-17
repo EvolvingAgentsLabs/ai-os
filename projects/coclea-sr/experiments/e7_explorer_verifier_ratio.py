@@ -112,13 +112,34 @@ def _get(url: str) -> dict:
         return json.loads(resp.read().decode(errors="replace"))
 
 
-def spend_so_far(key: str) -> float:
-    """Cumulative dollars, from OpenRouter. Real spend, not an estimate."""
-    req = urllib.request.Request(
-        "https://openrouter.ai/api/v1/credits", headers={"Authorization": f"Bearer {key}"}
-    )
-    with urllib.request.urlopen(req, timeout=120) as resp:  # noqa: S310
-        return float(json.load(resp)["data"]["total_usage"])
+def spend_so_far(key: str) -> float | None:
+    """Cumulative dollars, from OpenRouter. Real spend, not an estimate.
+
+    **Returns `None` rather than raising.** On 2026-08-17 a transient DNS failure
+    on this endpoint —
+
+        URLError: [Errno 8] nodename nor servname provided, or not known
+
+    — killed the whole experiment at the line *after* a flow had finished, so a
+    measured answer was discarded because the price tag could not be read. That
+    is the instrument destroying the measurement, which is the exact failure this
+    project keeps a list of.
+
+    A missing cost is a missing cost. It is recorded as `null`, the row keeps its
+    answer, and `main` reports how many rows lost their price so the mean is
+    never quietly computed over a smaller set than it claims.
+    """
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(
+                "https://openrouter.ai/api/v1/credits", headers={"Authorization": f"Bearer {key}"}
+            )
+            with urllib.request.urlopen(req, timeout=120) as resp:  # noqa: S310
+                return float(json.load(resp)["data"]["total_usage"])
+        except Exception as exc:  # noqa: BLE001 - any transport failure is the same story
+            print(f"  (cost probe failed, attempt {attempt + 1}/3: {exc})", flush=True)
+            time.sleep(5)
+    return None
 
 
 def parse_order(text: str) -> float | None:
@@ -169,7 +190,8 @@ def run_flow(label: str, explorers: int, verifiers: int, rep: int, key: str) -> 
         time.sleep(15)
 
     elapsed = time.time() - t0
-    cost = spend_so_far(key) - before
+    after = spend_so_far(key)
+    cost = None if (before is None or after is None) else after - before
     state = _get(f"{FLOWS}/flows/{fid}")
     results = [s.get("result") or "" for s in state["steps"]]
 
@@ -209,6 +231,15 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("--arms", nargs="*", default=None, help="subset of 5:1 2:1 1:1")
+    ap.add_argument(
+        "--carry",
+        default=None,
+        help=(
+            "JSON of rows from an interrupted run, prepended to this one's. Exists "
+            "because a run that dies on its ninth flow should not have to buy the "
+            "first eight again."
+        ),
+    )
     args = ap.parse_args()
 
     key = os.environ.get("OPENROUTER_API_KEY")
@@ -217,6 +248,9 @@ def main() -> int:
 
     arms = [a for a in ARMS if args.arms is None or a[0] in args.arms]
     rows: list[dict] = []
+    if args.carry:
+        rows = json.loads(Path(args.carry).read_text())
+        print(f"carried {len(rows)} row(s) from {args.carry}")
     out_dir = Path(__file__).resolve().parent.parent / "runs"
 
     print(f"ground truth: order = {TRUE_ORDER} (lumped-full-cell), tolerance +/-{TOLERANCE}")
@@ -234,10 +268,11 @@ def main() -> int:
                 time.sleep(20)
             rows.append(row)
             final_txt = "-" if row["final"] is None else f"{row['final']:.3f}"
+            cost_txt = "-" if row["cost_usd"] is None else f"{row['cost_usd']:.4f}"
             print(
                 f"{label:<6}{rep:>4}{final_txt:>8}"
                 f"{'Y' if row['correct'] else 'n':>4}{'Y' if row['retraction'] else 'n':>9}"
-                f"{row['cost_usd']:>9.4f}{row['elapsed_s']:>7.0f}",
+                f"{cost_txt:>9}{row['elapsed_s']:>7.0f}",
                 flush=True,
             )
             (out_dir / "e7-partial.json").write_text(json.dumps(rows, indent=2))
@@ -248,10 +283,15 @@ def main() -> int:
         sel = usable
         if not sel:
             continue
+        # A row whose cost probe failed keeps its answer and loses its price. It
+        # must not silently shrink the denominator of the accuracy either, so the
+        # two counts are reported separately rather than folded into one `n`.
+        priced = [r for r in sel if r["cost_usd"] is not None]
         summary[label] = {
             "n": len(sel),
             "accuracy": sum(r["correct"] for r in sel) / len(sel),
-            "mean_cost_usd": sum(r["cost_usd"] for r in sel) / len(sel),
+            "n_priced": len(priced),
+            "mean_cost_usd": (sum(r["cost_usd"] for r in priced) / len(priced)) if priced else None,
             "mean_elapsed_s": sum(r["elapsed_s"] for r in sel) / len(sel),
             "retraction_rate": sum(r["retraction"] for r in sel) / len(sel),
         }
@@ -262,10 +302,13 @@ def main() -> int:
     print("\n" + "=" * 62)
     print(f"{'arm':<6}{'n':>3}{'accuracy':>10}{'retractions':>13}{'mean $':>9}{'mean s':>9}")
     for label, s in summary.items():
+        cost_txt = "-" if s["mean_cost_usd"] is None else f"{s['mean_cost_usd']:.4f}"
         print(
             f"{label:<6}{s['n']:>3}{s['accuracy']:>10.0%}{s['retraction_rate']:>13.0%}"
-            f"{s['mean_cost_usd']:>9.4f}{s['mean_elapsed_s']:>9.0f}"
+            f"{cost_txt:>9}{s['mean_elapsed_s']:>9.0f}"
         )
+        if s["n_priced"] != s["n"]:
+            print(f"       ^ mean cost over {s['n_priced']} of {s['n']}: the rest lost their price probe")
     print("=" * 62)
 
     result = {"true_order": TRUE_ORDER, "tolerance": TOLERANCE, "rows": rows, "summary": summary}
