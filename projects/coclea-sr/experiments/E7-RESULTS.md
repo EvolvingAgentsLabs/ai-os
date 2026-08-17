@@ -70,14 +70,29 @@ not the same as applying it.
 
 ## What is not reported, and why
 
-**No cost curve.** The three means are `0.1487 / 0.0555 / 0.1228` — not monotone
-in verifier count, and the within-arm spread (`0.0254` to `0.2173` on equivalent
-flows) is larger than any difference between arms. The measurement is a delta of
-OpenRouter's **account-wide** `total_usage`, it includes retried flows, and it has
-never been cross-checked against a second endpoint that disagrees with it. §7.4
-asks for a cost/quality curve; this run has no quality axis to plot cost against
-and a cost axis that is not trustworthy. Publishing the numbers as a curve would
-be publishing noise with a shape.
+**No cost curve — and the reason is worse than the one first given here.**
+
+The three means are `0.1487 / 0.0555 / 0.1228`, not monotone in verifier count,
+with a within-arm spread (`0.0254` to `0.2173` on equivalent flows) larger than
+any difference between arms. That was the original reason to withhold them.
+
+[E9](e9_cost_attribution.py) then measured the instrument, and the real reason is
+that **the numbers are not this project's spend at all**. A single flow was run
+that completed successfully with a model call in 21 seconds, and both cost
+endpoints moved by **exactly 0.0**. Probing once a minute afterwards:
+
+    t+60s … t+300s   436.421299226   (unchanged)
+    t+360s           436.422765086   (moved)
+
+**OpenRouter's account counter lags by five to six minutes.** Every E7 flow took
+221–562 seconds and its cost was read immediately after it finished, so each
+delta was picking up *the previous flow's* spend, not its own. The figures are
+misattributed rather than merely noisy.
+
+Nothing that depends on a per-flow dollar figure ships from this project until
+the accounting is done from generation records, which are attributable by
+construction. The three means above are kept, struck through by this paragraph,
+because deleting them would hide that they were published-adjacent for a day.
 
 **No recommendation about ratios.** A null on one task at one difficulty is not
 evidence that verification is worthless; it is evidence that this task could not

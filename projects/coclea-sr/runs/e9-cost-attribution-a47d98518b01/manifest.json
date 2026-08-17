@@ -1,0 +1,15 @@
+{
+  "at": 1786987150.514896,
+  "environment": {
+    "machine": "arm64",
+    "numpy": "2.5.2",
+    "omp_num_threads": "(unset)",
+    "platform": "macOS-15.7.7-arm64-arm-64bit",
+    "python": "3.12.13",
+    "scipy": "1.18.0"
+  },
+  "git_commit": "bfcd42e0cbc69d30f3540019043b980944fc6af4",
+  "model": "(from ai-base/.env)",
+  "result_sha256": "a47d98518b01151e9550f6e32845c30ff27f6fcb0a9c52dfb8fe10adf5bec9ab",
+  "run_id": "e9-cost-attribution"
+}

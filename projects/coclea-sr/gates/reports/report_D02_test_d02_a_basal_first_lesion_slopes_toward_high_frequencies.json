@@ -1,0 +1,18 @@
+{
+  "cf_range": [
+    0.001358677175015672,
+    0.7064987261550145
+  ],
+  "depth": 0.4,
+  "failure": null,
+  "gate": "D02",
+  "loss_db_at_apex": 6.0205999132796295,
+  "loss_db_at_base": 26.020599913279625,
+  "monotone_in_position": true,
+  "mu_at_apex": -0.04000000000000002,
+  "mu_at_base": -0.4,
+  "passed": true,
+  "slope_db_per_decade": 6.414734984202474,
+  "spec": "13",
+  "test": "test_d02_a_basal_first_lesion_slopes_toward_high_frequencies"
+}

@@ -1,0 +1,10 @@
+{
+  "failure": null,
+  "gate": "D02",
+  "loss_spread_db": 0.0,
+  "mu": -0.5,
+  "passed": true,
+  "slope_db_per_decade": 0.0,
+  "spec": "13",
+  "test": "test_d02_an_ungraded_lesion_produces_a_flat_audiogram"
+}
