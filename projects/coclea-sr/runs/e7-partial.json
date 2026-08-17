@@ -5,117 +5,21 @@
     "explorers": 5,
     "verifiers": 1,
     "rep": 1,
-    "flow_id": "7a353b94-71ea-45dd-ab4e-9ce3712ed1e2",
-    "cost_usd": 0.13665878000000475,
-    "elapsed_s": 298.54795479774475,
+    "flow_id": "3dfb13bb-6d0f-4049-a33d-8500a7d74a45",
+    "cost_usd": 0.09442150000000993,
+    "elapsed_s": 361.63885593414307,
     "explorer_claims": [
-      1.005347,
-      1.005346,
-      1.005347,
-      1.0053468429,
-      1.005347
+      1.0057021082,
+      1.005,
+      1.00838,
+      1.004196,
+      1.003736
     ],
     "verifier_claims": [
-      1.00359
+      1.00264222
     ],
     "final": 1.005,
     "correct": true,
-    "retraction": false,
-    "failed_steps": 0
-  },
-  {
-    "arm": "5:1",
-    "infrastructure_failure": false,
-    "explorers": 5,
-    "verifiers": 1,
-    "rep": 2,
-    "flow_id": "c1568155-6ddc-4446-b52f-f78ba1a846c2",
-    "cost_usd": 0.14224345000002359,
-    "elapsed_s": 315.86776876449585,
-    "explorer_claims": [
-      1.012962,
-      1.012962,
-      1.013,
-      1.006648,
-      1.006648
-    ],
-    "verifier_claims": [
-      1.004472
-    ],
-    "final": 1.004472,
-    "correct": true,
-    "retraction": false,
-    "failed_steps": 0
-  },
-  {
-    "arm": "5:1",
-    "infrastructure_failure": false,
-    "explorers": 5,
-    "verifiers": 1,
-    "rep": 3,
-    "flow_id": "126acfab-a73d-4ca2-bca5-0dce55e9aeb5",
-    "cost_usd": 0.11069968399999652,
-    "elapsed_s": 375.7049210071564,
-    "explorer_claims": [
-      1.00665,
-      1.005,
-      1.0042,
-      1.0045,
-      1.00447211
-    ],
-    "verifier_claims": [
-      1.00395
-    ],
-    "final": 1.004,
-    "correct": true,
-    "retraction": false,
-    "failed_steps": 0
-  },
-  {
-    "arm": "2:1",
-    "infrastructure_failure": false,
-    "explorers": 4,
-    "verifiers": 2,
-    "rep": 1,
-    "flow_id": "153b5e22-e9fd-41f0-93d0-31dcd8221807",
-    "cost_usd": 0.027144193999959043,
-    "elapsed_s": 7270.628328084946,
-    "explorer_claims": [
-      null,
-      null,
-      null,
-      null
-    ],
-    "verifier_claims": [
-      null,
-      null
-    ],
-    "final": null,
-    "correct": false,
-    "retraction": false,
-    "failed_steps": 0
-  },
-  {
-    "arm": "2:1",
-    "infrastructure_failure": false,
-    "explorers": 4,
-    "verifiers": 2,
-    "rep": 2,
-    "flow_id": "47162f50-727d-46e1-8cef-88a8696d8718",
-    "cost_usd": 0.013670720000050096,
-    "elapsed_s": 3011.4674870967865,
-    "explorer_claims": [
-      null,
-      null,
-      null,
-      null
-    ],
-    "verifier_claims": [
-      null,
-      null
-    ],
-    "final": null,
-    "correct": false,
     "retraction": false,
     "failed_steps": 0
   }
