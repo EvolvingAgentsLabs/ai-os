@@ -149,10 +149,21 @@ def run_flow(label: str, explorers: int, verifiers: int, rep: int, key: str) -> 
     )
     fid = flow["id"]
 
-    deadline = time.time() + 3600
+    # A flow whose step failed goes to `blocked`, and its remaining steps stay
+    # `pending` forever — so "wait until every step is terminal" spins until the
+    # deadline. The first run burned an hour that way after two steps died with
+    # "Connection error." from the provider.
+    #
+    # A transport failure is **not a result**. It is reported and the flow is
+    # retried; it never reaches the accuracy denominator as a wrong answer.
+    deadline = time.time() + 1200
+    blocked = False
     while time.time() < deadline:
         _post(f"{DESK}/advance", {"flowId": fid})
         state = _get(f"{FLOWS}/flows/{fid}")
+        if state["state"] == "blocked":
+            blocked = True
+            break
         if all(s["state"] in ("done", "failed", "skipped") for s in state["steps"]):
             break
         time.sleep(15)
@@ -178,6 +189,7 @@ def run_flow(label: str, explorers: int, verifiers: int, rep: int, key: str) -> 
 
     return {
         "arm": label,
+        "infrastructure_failure": blocked or bool(sum(1 for s in state["steps"] if s["state"] == "failed")),
         "explorers": explorers,
         "verifiers": verifiers,
         "rep": rep,
@@ -211,7 +223,15 @@ def main() -> int:
     print(f"{'arm':<6}{'rep':>4}{'final':>8}{'ok':>4}{'retract':>9}{'cost $':>9}{'secs':>7}")
     for label, ex, ve in arms:
         for rep in range(1, args.reps + 1):
-            row = run_flow(label, ex, ve, rep, key)
+            # Up to three attempts per cell. A provider hiccup must not become a
+            # data point, and dropping the cell silently would shrink one arm's
+            # n without saying so.
+            for attempt in range(3):
+                row = run_flow(label, ex, ve, rep, key)
+                if not row["infrastructure_failure"]:
+                    break
+                print(f"{label:<6}{rep:>4}{'  infra fail, retrying':>30}", flush=True)
+                time.sleep(20)
             rows.append(row)
             final_txt = "-" if row["final"] is None else f"{row['final']:.3f}"
             print(
@@ -224,7 +244,8 @@ def main() -> int:
 
     summary: dict[str, dict] = {}
     for label, _, _ in arms:
-        sel = [r for r in rows if r["arm"] == label]
+        usable = [r for r in rows if r["arm"] == label and not r["infrastructure_failure"]]
+        sel = usable
         if not sel:
             continue
         summary[label] = {
@@ -235,6 +256,9 @@ def main() -> int:
             "retraction_rate": sum(r["retraction"] for r in sel) / len(sel),
         }
 
+    dropped = sum(1 for r in rows if r["infrastructure_failure"])
+    if dropped:
+        print(f"\n  {dropped} flow(s) excluded: provider transport failure, not a wrong answer")
     print("\n" + "=" * 62)
     print(f"{'arm':<6}{'n':>3}{'accuracy':>10}{'retractions':>13}{'mean $':>9}{'mean s':>9}")
     for label, s in summary.items():

@@ -44,6 +44,23 @@ export interface EngineDeps {
   /** How a step's intent becomes a turn. Injected so the engine owns no surface policy. */
   turnFor: (flow: FlowWithSteps, step: Step) => TurnRequest;
   now?: () => number;
+  /**
+   * How long an attempt may stay open before it is failed. Default: 30 minutes.
+   *
+   * Without this a flow waits forever on a turn that never comes back, and it
+   * waits **invisibly**: the flow state is `waiting`, which is what a flow
+   * doing useful work also looks like.
+   *
+   * Measured while running the coclea-sr §7.4 experiment: an attempt sat
+   * `running` for 3,316 seconds. `resume` polls `awaitRun`, gets
+   * `status: "timeout"`, and returns without settling — correct for a poll that
+   * gave up on a live run, and wrong forever for a run that died. Nothing
+   * distinguished the two, and nothing reaped it.
+   *
+   * The flow now goes to `blocked` with a stated reason, which is a state a
+   * person can act on.
+   */
+  staleAttemptMs?: number;
   /** Defaults to the measured, normalizing fingerprint. See doc/10. */
   digest?: (text: string) => string;
   /**
@@ -159,7 +176,27 @@ export function createEngine(deps: EngineDeps) {
         const inFlight = openAttemptWithRun(flow);
         if (!inFlight) return { resumed };
         const run = await deps.core.awaitRun(inFlight.attempt.runId!, deps.awaitOptions ?? {});
-        if (run.status === "timeout") return { resumed };
+        if (run.status === "timeout") {
+          // The poll gave up. That is normal for a turn still working — but an
+          // attempt open far longer than any turn should take is not working,
+          // and leaving it `running` makes the flow wait forever in a state
+          // indistinguishable from progress.
+          const age = (deps.now ?? Date.now)() - inFlight.attempt.startedAt;
+          const limit = deps.staleAttemptMs ?? 30 * 60_000;
+          if (age > limit) {
+            await deps.store.finishAttempt({
+              attemptId: inFlight.attempt.id,
+              state: "failed",
+              error:
+                `the run did not return after ${Math.round(age / 1000)}s ` +
+                `(limit ${Math.round(limit / 1000)}s); failing the attempt so the flow blocks ` +
+                "rather than waiting on it forever",
+            });
+            resumed += 1;
+            continue;
+          }
+          return { resumed };
+        }
         await settle(inFlight.attempt, run);
         resumed += 1;
       }
