@@ -22,5 +22,53 @@
     "correct": true,
     "retraction": false,
     "failed_steps": 0
+  },
+  {
+    "arm": "5:1",
+    "infrastructure_failure": false,
+    "explorers": 5,
+    "verifiers": 1,
+    "rep": 2,
+    "flow_id": "b01935c2-fb33-4ad5-8fb5-fbac8dbf2023",
+    "cost_usd": 0.16375512999997,
+    "elapsed_s": 420.8609206676483,
+    "explorer_claims": [
+      1.0066,
+      1.01,
+      1.0104,
+      1.0027,
+      1.013
+    ],
+    "verifier_claims": [
+      1.0027
+    ],
+    "final": 1.00854,
+    "correct": true,
+    "retraction": false,
+    "failed_steps": 0
+  },
+  {
+    "arm": "5:1",
+    "infrastructure_failure": false,
+    "explorers": 5,
+    "verifiers": 1,
+    "rep": 3,
+    "flow_id": "3befd208-a448-432b-a194-c8bae4d086db",
+    "cost_usd": 0.21732273399999258,
+    "elapsed_s": 561.9114112854004,
+    "explorer_claims": [
+      1.013,
+      1.0104,
+      1.0053,
+      1.0053,
+      1.013
+    ],
+    "verifier_claims": [
+      1.0105
+    ],
+    "final": 1.0104,
+    "correct": true,
+    "retraction": false,
+    "failed_steps": 0
   }
 ]
