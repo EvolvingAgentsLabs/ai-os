@@ -69,6 +69,7 @@ the most useful record this organisation can keep.
 | [0007](adr/0007-observation-captured-not-derived.md) | An attempt's observation is captured when it closes, never derived later | Accepted |
 | [0008](adr/0008-conformation-is-projected.md) | The system's conformation is projected from existing stores; folders never hold membership | Accepted |
 | [0009](adr/0009-a-flow-records-who-it-acts-for.md) | A flow records the principal it acts for; no new `PrincipalType` | Accepted |
+| [0010](adr/0010-oracle-routed-model-selection.md) | Oracle-routed model selection is a non-stationary bandit; phase 0 is a control arm allowed to kill it | **Proposed** |
 
 ## Project
 
@@ -80,6 +81,7 @@ Documents about the work rather than the system.
 | [06 · Licensing](06-licensing.md) | Apache 2.0 over MIT: what is permitted, required, forbidden |
 | [07 · Freeze policy](07-freeze-policy.md) | What "frozen" means for the organisation's other repositories, operationally |
 | [08 · Roadmap](08-roadmap.md) | Milestones in dependency order, with the honest blockers |
+| [**The plan**](PLAN.md) | What is in flight today, what it costs to pick up, and the four rules this week re-earned |
 | [`upstream/`](upstream/) | Proposals aimed at `yc-software/qm`, kept here until sent. Their `CONTRIBUTING.md` asks for **human-written, informal** text and says *"do not have AI artificially expand what you'd like to do into a formal proposal"* — so these are checklists of evidence to be rewritten in the sender's own voice, never pasted |
 
 ## House rules

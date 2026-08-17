@@ -1,0 +1,18 @@
+{
+  "failure": null,
+  "gate": "D03",
+  "implant_detection_ratio": {
+    "conductive": null,
+    "hydrops": 34227894.4903018,
+    "ohc-loss": null,
+    "synaptopathy": 1.0
+  },
+  "non_finite_fields": [
+    "implant_detection_ratio.conductive",
+    "implant_detection_ratio.ohc-loss"
+  ],
+  "passed": true,
+  "spec": "13",
+  "synaptopathy_theta": 1.8,
+  "test": "test_d03_the_implant_is_limited_by_the_detector_and_not_by_the_mechanics"
+}

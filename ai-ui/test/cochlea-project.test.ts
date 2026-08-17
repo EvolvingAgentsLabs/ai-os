@@ -37,9 +37,15 @@ describe("the decision index passes everything the product can check", () => {
     }
   });
 
-  it("lint is clean", () => {
+  it("has no mechanical fault — every complaint is the supersession one", () => {
+    // `lint` used to return [] here, and that emptiness was the scope's whole
+    // point: the index passed every check the product had. The product has the
+    // check now, so the assertion becomes the sharper one — the *only* thing
+    // wrong with this index is the thing no mechanical rule could have seen.
     const { wiki } = buildDecisionWiki(false);
-    assert.deepEqual(lint(wiki), []);
+    const problems = lint(wiki);
+    assert.equal(problems.length, 1, problems.join(" | "));
+    assert.match(problems[0]!, /superseded by/);
   });
 
   it("the index fits the window it was budgeted for", () => {
@@ -53,16 +59,17 @@ describe("the decision index passes everything the product can check", () => {
 
 describe("and is still wrong about the project", () => {
   it("names the note that records a reversed decision", () => {
-    const { notes } = buildDecisionWiki(false);
-    const complaints = supersededWithoutSuccessor(notes);
+    const { wiki } = buildDecisionWiki(false);
+    const complaints = supersededWithoutSuccessor(wiki);
     assert.equal(complaints.length, 1, `expected exactly one, got ${complaints.length}`);
     assert.match(complaints[0]!, /n-adr-0001/);
     assert.match(complaints[0]!, /0002-the-place-code-needs-fluid-coupling/);
   });
 
   it("goes green once the note links to what replaced it — which is what makes the red one a measurement", () => {
-    const { notes } = buildDecisionWiki(true);
-    assert.deepEqual(supersededWithoutSuccessor(notes), []);
+    const { wiki } = buildDecisionWiki(true);
+    assert.deepEqual(supersededWithoutSuccessor(wiki), []);
+    assert.deepEqual(lint(wiki), [], "the whole index is clean once the link exists");
   });
 
   it("the defect is invisible to verifyNote in both directions", () => {

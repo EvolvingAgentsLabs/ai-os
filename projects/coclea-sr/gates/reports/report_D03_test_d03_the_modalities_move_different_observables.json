@@ -1,0 +1,125 @@
+{
+  "distinct_unions": 4,
+  "failure": null,
+  "gate": "D03",
+  "moved_by_treatment_and_lesion": {
+    "amplification": {
+      "conductive": [
+        "peak",
+        "detection"
+      ],
+      "hydrops": [
+        "peak",
+        "detection"
+      ],
+      "ohc-loss": [
+        "peak",
+        "detection"
+      ],
+      "synaptopathy": [
+        "peak",
+        "detection"
+      ]
+    },
+    "amplifier-agent": {
+      "conductive": [
+        "compression",
+        "knee",
+        "detection"
+      ],
+      "hydrops": [
+        "compression",
+        "knee",
+        "detection"
+      ],
+      "ohc-loss": [
+        "compression",
+        "knee",
+        "detection"
+      ],
+      "synaptopathy": [
+        "compression",
+        "knee",
+        "detection"
+      ]
+    },
+    "calibrated-noise": {
+      "conductive": [
+        "detection"
+      ],
+      "hydrops": [
+        "detection"
+      ],
+      "ohc-loss": [
+        "detection"
+      ],
+      "synaptopathy": [
+        "detection"
+      ]
+    },
+    "fluid-agent": {
+      "conductive": [
+        "cf",
+        "q",
+        "peak",
+        "detection"
+      ],
+      "hydrops": [
+        "cf",
+        "q",
+        "peak",
+        "detection"
+      ],
+      "ohc-loss": [
+        "cf",
+        "q",
+        "peak"
+      ],
+      "synaptopathy": [
+        "cf",
+        "q",
+        "peak",
+        "detection"
+      ]
+    },
+    "implant": {
+      "conductive": [
+        "detection"
+      ],
+      "hydrops": [
+        "detection"
+      ],
+      "ohc-loss": [
+        "detection"
+      ],
+      "synaptopathy": []
+    }
+  },
+  "passed": true,
+  "spec": "13",
+  "test": "test_d03_the_modalities_move_different_observables",
+  "treatments": 5,
+  "union_per_treatment": {
+    "amplification": [
+      "detection",
+      "peak"
+    ],
+    "amplifier-agent": [
+      "compression",
+      "detection",
+      "knee"
+    ],
+    "calibrated-noise": [
+      "detection"
+    ],
+    "fluid-agent": [
+      "cf",
+      "detection",
+      "peak",
+      "q"
+    ],
+    "implant": [
+      "detection"
+    ]
+  }
+}

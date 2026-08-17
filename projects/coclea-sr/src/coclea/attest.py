@@ -62,8 +62,21 @@ def canonical(payload: Any) -> bytes:
     a different insertion order hashes the same. Without this the chain breaks
     on a reordering that changed nothing, and a ledger that cries wolf is a
     ledger nobody checks.
+
+    **`json_safe` is applied here rather than at each call site.** Five runners
+    remembered to call it and six did not, and `verify_ledger.py` found the
+    consequence on 2026-08-17 while closing H9: two attested `result.json` files
+    *intact but not valid JSON*, carrying a bare `NaN` and a bare `-Infinity`.
+    Python reads them back happily; nothing else does — including
+    `ai-flows/src/gates.ts`, which is the interchange this format exists for.
+
+    `allow_nan=False` so a value the sanitiser missed raises **here**, at write
+    time, instead of producing a file that only one language can open. The bytes
+    a hash is taken over are the wrong place to be lenient.
     """
-    return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    return json.dumps(
+        json_safe(payload), sort_keys=True, separators=(",", ":"), allow_nan=False
+    ).encode()
 
 
 def environment() -> dict[str, str]:

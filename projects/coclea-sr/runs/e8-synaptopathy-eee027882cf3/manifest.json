@@ -1,0 +1,15 @@
+{
+  "at": 1786987279.20798,
+  "environment": {
+    "machine": "arm64",
+    "numpy": "2.5.2",
+    "omp_num_threads": "1",
+    "platform": "macOS-15.7.7-arm64-arm-64bit",
+    "python": "3.12.13",
+    "scipy": "1.18.0"
+  },
+  "git_commit": "bfcd42e0cbc69d30f3540019043b980944fc6af4",
+  "master_seed": 20260817,
+  "result_sha256": "eee027882cf39e3e94ab09334fa8b819fe9087c234aaaddb3f472c20b83f074f",
+  "run_id": "e8-synaptopathy"
+}

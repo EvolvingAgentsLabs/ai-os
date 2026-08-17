@@ -1,0 +1,13 @@
+{
+  "failure": null,
+  "gate": "D02",
+  "hz_first": 14608.326661387437,
+  "mu_first": -0.4,
+  "mu_last": -0.04000000000000002,
+  "n_sites": 24,
+  "omega_first": 0.7064987261550145,
+  "omega_last": 0.001358677175015672,
+  "passed": true,
+  "spec": "13",
+  "test": "test_d02_the_hopf_chain_accepts_the_graded_lesion"
+}

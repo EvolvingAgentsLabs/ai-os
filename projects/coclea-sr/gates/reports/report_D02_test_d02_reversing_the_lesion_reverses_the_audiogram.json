@@ -1,0 +1,10 @@
+{
+  "failure": null,
+  "gate": "D02",
+  "passed": true,
+  "slope_apex_first": -6.414734984202475,
+  "slope_basal_first": 6.414734984202474,
+  "spec": "13",
+  "sum": -8.881784197001252e-16,
+  "test": "test_d02_reversing_the_lesion_reverses_the_audiogram"
+}

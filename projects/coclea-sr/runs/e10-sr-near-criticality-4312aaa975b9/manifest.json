@@ -1,0 +1,15 @@
+{
+  "at": 1787000966.906007,
+  "environment": {
+    "machine": "arm64",
+    "numpy": "2.5.2",
+    "omp_num_threads": "1",
+    "platform": "macOS-15.7.7-arm64-arm-64bit",
+    "python": "3.12.13",
+    "scipy": "1.18.0"
+  },
+  "git_commit": "1247596d104a7ea4181b7f07cdf0cf2d1522f5c9",
+  "master_seed": 20260817,
+  "result_sha256": "4312aaa975b9514900589559f51617f17832bf5b121578dffe20ebd74daff2cf",
+  "run_id": "e10-sr-near-criticality"
+}

@@ -1,0 +1,11 @@
+{
+  "failure": null,
+  "gate": "D02",
+  "knee_slope_db_per_decade": 9.622102476303716,
+  "passed": true,
+  "predicted_ratio": 1.5,
+  "ratio": 1.5000000000000007,
+  "spec": "13",
+  "test": "test_d02_the_knee_slopes_harder_than_the_threshold",
+  "threshold_slope_db_per_decade": 6.414734984202474
+}

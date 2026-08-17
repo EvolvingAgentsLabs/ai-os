@@ -1,0 +1,14 @@
+{
+  "at": 1787002960.7795908,
+  "environment": {
+    "machine": "arm64",
+    "numpy": "2.5.2",
+    "omp_num_threads": "(unset)",
+    "platform": "macOS-15.7.7-arm64-arm-64bit",
+    "python": "3.12.13",
+    "scipy": "1.18.0"
+  },
+  "git_commit": "1247596d104a7ea4181b7f07cdf0cf2d1522f5c9",
+  "result_sha256": "4f6d09150bb63824ecd73425ad04075554a590224184674058b2698ff7293173",
+  "run_id": "r0-routing-headroom"
+}
