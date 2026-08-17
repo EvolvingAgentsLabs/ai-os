@@ -270,12 +270,26 @@ state a healthy flow reports **[ran]**. Fixed with a stale-attempt reaper, three
 tests. That is the point of having a workload with an oracle: it is load that a
 prose task never generates.
 
+It found a second one on the next run, and this one is sharper: **the price tag
+destroyed the measurement**. A transient DNS failure on the cost endpoint raised
+out of `spend_so_far` at the line *after* a flow had finished, discarding an
+answer that had already been measured because its price could not be read. The
+probe now retries and then returns `null` — a missing cost is a missing cost, and
+the row keeps its answer.
+
 Two instrument corrections were made **before** that experiment's data landed, and
 both are recorded rather than silently applied: the retraction metric was biased by
 arm (5 explorer-verifier pairs at 5:1 against 9 at 1:1, so it rises with the
 verifier count whether or not anything is caught), and per-flow cost attribution
 rests on an endpoint that has not been cross-checked against a second one that
 disagrees with it.
+
+The first of those paid off immediately. The run's **only** flagged retraction was
+a verifier that said "WRONG" in prose and then produced a number agreeing with the
+explorers to within a tenth of the tolerance. The biased metric counts it at 25%;
+the unbiased one reports 0%. A verifier that says WRONG and then agrees has not
+retracted anything — it has produced prose that a metric keyed to prose will
+count.
 
 ## 8 · What this does not show
 
@@ -305,11 +319,23 @@ one with a known answer (you cannot create truth by asserting it), and a judge t
 is right every time still hands you no ledger, no freeze and no reproduction
 command.
 
-**And our own ratio experiment has not yet paid for verification.** Every completed
-5:1 flow answered correctly. If that holds across arms, the honest reading is that
-verification bought nothing *on that task* — a legitimate null about the task's
-difficulty for this model, and a result we would be publishing against ourselves.
-It is running as this is written; the number goes here whichever way it comes out.
+**And our own ratio experiment came back null.** [E7](../projects/coclea-sr/experiments/E7-RESULTS.md)
+measured whether more verifying agents and fewer exploring ones buys correctness.
+Ten flows, forty agent claims, three arms: **100% accurate in every arm, zero
+corrections, 0% dissent per verifier**. Verification bought nothing, because
+nothing was ever wrong — the entire spread across every agent was 0.034 against a
+tolerance of 0.25.
+
+The task was designed so that reasoning from the docstrings gives the wrong
+answer and measuring gives the right one. Forty out of forty **measured**. That is
+a mildly encouraging finding about the model, and a fatal one for the experiment:
+the baseline sat at the ceiling, so every arm tied, and a tie reads as a result.
+
+The rule that would have caught it is in this repository's own `CLAUDE.md` —
+*check headroom before building the treatment, never after* — and one cheap
+control flow, run before the other nine were bought, would have said so. **Writing
+a rule down is not the same as applying it**, and that is the most useful thing
+this experiment produced.
 
 **One convention slipped:** docs 15–18 have no illustration, where 00–14 do.
 Recorded rather than quietly dropped.

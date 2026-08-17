@@ -186,6 +186,41 @@ say"* field without which a direction does not publish.
 Nothing there has been compared against patient data, and the document says so in
 its first paragraph and its last.
 
+## E7 — the ratio experiment came back null, and the rule was ours
+
+Spec §7.4 asks for the cost/quality curve of the explorer:verifier ratio against
+a live `ai-os`. It ran: ten flows, forty agent claims, three arms.
+[Full write-up](experiments/E7-RESULTS.md).
+
+| arm | n | accuracy | dissent/verifier | corrections | mean s |
+|---|---|---|---|---|---|
+| 5:1 | 3 | **100%** | 0% | 0/0 | 470 |
+| 2:1 | 4 | **100%** | 0% | 0/0 | 268 |
+| 1:1 | 3 | **100%** | 0% | 0/0 | 292 |
+
+Verification bought nothing because nothing was ever wrong. The whole spread
+across every agent in the experiment was **0.034** against a tolerance of 0.25.
+
+The task was built so that reasoning from `assembly.py`'s docstrings gives the
+wrong answer and measuring gives the right one. **Forty out of forty measured.**
+Given an `execute` tool this model runs the sweep rather than reasoning from
+prose — encouraging about the model, fatal for the experiment. The baseline sat
+at the ceiling, every arm tied, and a tie reads as a result.
+
+The rule that would have caught it is in this project's own `CLAUDE.md`: *check
+headroom before building the treatment, never after*. One control flow, run
+before the other nine were bought, would have said so. **Writing a rule down is
+not the same as applying it.**
+
+No cost curve is published. The three means are not monotone in verifier count,
+the within-arm spread is larger than any between-arm difference, and the
+measurement is an account-wide delta that has never been cross-checked.
+
+What the run did produce is two harness defects only findable under live load: a
+flow that waited **3,316 seconds** on an attempt while reporting the same state a
+healthy flow reports, and a cost probe whose transient DNS failure discarded an
+answer that had already been measured.
+
 ## What is reported and is not a success
 
 * **`Q₁₀dB` is 2.2 to 2.7.** Spec §2.7 predicts a passive model will fall far

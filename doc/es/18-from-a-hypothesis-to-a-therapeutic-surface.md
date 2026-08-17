@@ -279,12 +279,26 @@ es el mismo estado que reporta un flow sano **[ran]**. Corregido con un reaper d
 intentos colgados, tres tests. Ese es el punto de tener una carga con oráculo: es
 carga que una tarea en prosa nunca genera.
 
+Encontró un segundo en la corrida siguiente, y este es más filoso: **la etiqueta de
+precio destruyó la medición**. Una falla transitoria de DNS en el endpoint de costo
+salió por excepción desde `spend_so_far` en la línea *posterior* a que el flow
+terminara, descartando una respuesta ya medida porque no se pudo leer su precio. La
+sonda ahora reintenta y devuelve `null` — un costo faltante es un costo faltante, y
+la fila conserva su respuesta.
+
 Dos correcciones de instrumento se hicieron **antes** de que llegaran los datos de
 ese experimento, y las dos están registradas en vez de aplicadas en silencio: la
 métrica de retractación estaba sesgada por brazo (5 pares explorador-verificador en
 5:1 contra 9 en 1:1, así que sube con la cantidad de verificadores se atrape algo o
 no), y la atribución de costo por flow se apoya en un endpoint que no está cruzado
 contra otro que lo contradice.
+
+La primera rindió de inmediato. La **única** retractación marcada de toda la corrida
+fue un verificador que dijo "WRONG" en prosa y después produjo un número que
+coincidía con los exploradores dentro de un décimo de la tolerancia. La métrica
+sesgada la cuenta al 25%; la insesgada reporta 0%. Un verificador que dice WRONG y
+después coincide no retractó nada — produjo prosa que una métrica atada a la prosa
+va a contar.
 
 ## 8 · Lo que esto no muestra
 
@@ -314,12 +328,25 @@ pero no puede *generarla* con respuesta conocida (no se crea verdad afirmándola
 un juez que acierta siempre igual no te entrega ledger, ni freeze, ni comando de
 reproducción.
 
-**Y nuestro propio experimento de ratio todavía no pagó la verificación.** Todos los
-flows 5:1 completados respondieron bien. Si eso se sostiene entre brazos, la lectura
-honesta es que la verificación no compró nada *en esa tarea* — un null legítimo
-sobre la dificultad de la tarea para este modelo, y un resultado que publicaríamos
-en contra nuestra. Está corriendo mientras se escribe esto; el número va acá salga
-como salga.
+**Y nuestro propio experimento de ratio volvió nulo.**
+[E7](../../projects/coclea-sr/experiments/E7-RESULTS.md) midió si más agentes
+verificadores y menos exploradores compran corrección. Diez flows, cuarenta
+afirmaciones de agentes, tres brazos: **100% de acierto en todos, cero
+correcciones, 0% de disenso por verificador**. La verificación no compró nada
+porque nunca hubo nada equivocado — la dispersión completa entre todos los agentes
+fue 0.034 contra una tolerancia de 0.25.
+
+La tarea estaba diseñada para que razonar desde los docstrings dé la respuesta
+equivocada y medir dé la correcta. Cuarenta de cuarenta **midieron**. Eso es un
+hallazgo levemente alentador sobre el modelo, y fatal para el experimento: el
+baseline estaba en el techo, así que todos los brazos empataron, y un empate se
+lee como resultado.
+
+La regla que lo habría atrapado está en el propio `CLAUDE.md` de este repositorio
+—*chequear el headroom antes de construir el tratamiento, nunca después*— y un
+solo flow de control, corrido antes de comprar los otros nueve, lo habría dicho.
+**Escribir una regla no es lo mismo que aplicarla**, y eso es lo más útil que
+produjo este experimento.
 
 **Una convención se aflojó:** los docs 15–18 no tienen ilustración, y 00–14 sí.
 Registrado en vez de dejado caer en silencio.
