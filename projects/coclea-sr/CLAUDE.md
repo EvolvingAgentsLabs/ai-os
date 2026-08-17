@@ -70,7 +70,7 @@ found.
 ## Running the gate
 
 ```bash
-.venv/bin/python -m pytest gates/ -q     # 113 checks, 23 gates
+.venv/bin/python -m pytest gates/ -q     # 125 checks, 26 gates
 
 # The whole suite runs for minutes -- A09 (Lyapunov) alone is >100s and A05 is
 # 12s, while everything else is sub-second. For a live demonstration use the
@@ -78,7 +78,7 @@ found.
 .venv/bin/python -m pytest gates/test_A01*.py gates/test_A02*.py \
                           gates/test_A08*.py gates/test_A11*.py -q   # 28 checks, ~1.7s
 python3 verify_ledger.py                 # the chain, in stdlib only
-python3 gates/check_reports.py           # reports with no test behind them
+.venv/bin/python gates/check_reports.py  # reports with no test behind them
 python3 render_evidence.py               # report/evidence.html, from the ledger
 .venv/bin/python -m pytest tests/ -q     # the viewer's own tests, incl. the tamper test
 ```

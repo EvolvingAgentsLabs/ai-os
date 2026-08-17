@@ -1,0 +1,150 @@
+{
+  "collisions": {
+    "ohc-loss/prestin-block": [
+      "0",
+      "0",
+      "0",
+      "+",
+      "+",
+      "0",
+      false
+    ]
+  },
+  "distinct": 6,
+  "failure": null,
+  "fingerprints": {
+    "conductive": [
+      "0",
+      "0",
+      "-",
+      "0",
+      "0",
+      "0",
+      false
+    ],
+    "healthy": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      false
+    ],
+    "hydrops": [
+      "+",
+      "+",
+      "-",
+      "0",
+      "0",
+      "0",
+      false
+    ],
+    "ohc-loss": [
+      "0",
+      "0",
+      "0",
+      "+",
+      "+",
+      "0",
+      false
+    ],
+    "overdriven": [
+      "0",
+      "0",
+      "0",
+      "undefined",
+      "undefined",
+      "0",
+      true
+    ],
+    "prestin-block": [
+      "0",
+      "0",
+      "0",
+      "+",
+      "+",
+      "0",
+      false
+    ],
+    "synaptopathy": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "+",
+      false
+    ]
+  },
+  "gate": "D01",
+  "of": 7,
+  "passed": true,
+  "signatures": {
+    "conductive": {
+      "cf_ratio": 1.0,
+      "compression_exponent": 0.36526481903442903,
+      "d_opt": 0.5,
+      "knee_drive": 0.00282842712474619,
+      "q_ratio": 1.000000000000005,
+      "self_oscillating": false,
+      "sensitivity_db": -19.999999999999986
+    },
+    "healthy": {
+      "cf_ratio": 1.0,
+      "compression_exponent": 0.36526481903442903,
+      "d_opt": 0.5,
+      "knee_drive": 0.00282842712474619,
+      "q_ratio": 1.0,
+      "self_oscillating": false,
+      "sensitivity_db": 0.0
+    },
+    "hydrops": {
+      "cf_ratio": 1.116687673155871,
+      "compression_exponent": 0.36526481903442903,
+      "d_opt": 0.5,
+      "knee_drive": 0.00282842712474619,
+      "q_ratio": 1.0558695979999704,
+      "self_oscillating": false,
+      "sensitivity_db": -3.9091631666465174
+    },
+    "ohc-loss": {
+      "cf_ratio": 1.0,
+      "compression_exponent": 0.8105334264973415,
+      "d_opt": 0.5,
+      "knee_drive": 0.3535533905932738,
+      "q_ratio": 1.0,
+      "self_oscillating": false,
+      "sensitivity_db": 0.0
+    },
+    "overdriven": {
+      "cf_ratio": 1.0,
+      "compression_exponent": null,
+      "d_opt": 0.5,
+      "knee_drive": null,
+      "q_ratio": 1.0,
+      "self_oscillating": true,
+      "sensitivity_db": 0.0
+    },
+    "prestin-block": {
+      "cf_ratio": 1.0,
+      "compression_exponent": 0.6381911549456322,
+      "d_opt": 0.5,
+      "knee_drive": 0.0894427190999916,
+      "q_ratio": 1.0,
+      "self_oscillating": false,
+      "sensitivity_db": 0.0
+    },
+    "synaptopathy": {
+      "cf_ratio": 1.0,
+      "compression_exponent": 0.36526481903442903,
+      "d_opt": 0.9,
+      "knee_drive": 0.00282842712474619,
+      "q_ratio": 1.0,
+      "self_oscillating": false,
+      "sensitivity_db": 0.0
+    }
+  },
+  "spec": "13",
+  "test": "test_d01_lesions_on_different_parameters_are_distinguishable"
+}

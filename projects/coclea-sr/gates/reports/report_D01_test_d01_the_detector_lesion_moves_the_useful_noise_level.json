@@ -1,0 +1,12 @@
+{
+  "d_opt_healthy": 0.5,
+  "d_opt_ratio": 1.8,
+  "d_opt_synaptopathy": 0.9,
+  "failure": null,
+  "gate": "D01",
+  "mechanical_components_that_moved": [],
+  "passed": true,
+  "spec": "13",
+  "test": "test_d01_the_detector_lesion_moves_the_useful_noise_level",
+  "theta_factor": 1.8
+}

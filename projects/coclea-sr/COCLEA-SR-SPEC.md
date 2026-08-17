@@ -522,4 +522,101 @@ Estimación: H1–H5 ≈ 1 semana de sesiones con Claude Code; H6–H9 ≈ 1 sem
 
 ---
 
+## 13. Patologías: el modelo como superficie terapéutica
+
+**Añadido 2026-08-17.** Esta sección no estaba en la especificación original y no
+podía estarlo: se volvió formulable recién después de [ADR-0002](decisions/0002-the-place-code-needs-fluid-coupling-not-a-ground-spring.md).
+El documento completo es [`PATHOLOGIES.md`](PATHOLOGIES.md); acá queda la parte
+normativa. El ADR que fija las decisiones es
+[ADR-0006](decisions/0006-pathology-as-a-parameter-transform.md).
+
+### 13.1 Por qué existe la sección
+
+El operador previo a ADR-0002 era una cuerda graduada. Sus perillas eran la
+tensión y la masa de la membrana, y **ninguna droga alcanza ninguna de las dos**.
+La línea de transmisión metió el fluido dentro del operador —`β` lleva la
+geometría de las escalas, `M` el fluido arrastrado, `R` la pérdida viscosa— y el
+fluido es exactamente sobre lo que actúa un diurético o un agente osmótico. La
+capa de Hopf agregó `μ_H`, que el salicilato y la furosemida ya mueven en humanos.
+El detector agregó `θ`.
+
+Es decir: un modelo falsado fue reemplazado por uno con **superficie terapéutica**.
+La sección es consecuencia de la falsación, no de un plan previo, y eso se
+registra porque es el mismo patrón que §11-R2 describe al revés.
+
+### 13.2 Regla normativa
+
+**Una patología es una transformación de los parámetros que el modelo ya tiene, y
+nada más.** Ninguna patología introduce un término nuevo, una ecuación nueva ni
+una constante ajustada. `Lesion()` con todos sus valores por defecto **es** una
+cóclea sana, de modo que una lesión es literalmente el diff.
+
+Corolario obligatorio: el control nulo es gratis y se corre. Si `Lesion()` no
+reproduce la firma de referencia con delta `0.0` en cada componente, entonces los
+observables derivan solos y toda diferencia del catálogo es esa deriva.
+
+### 13.3 Las seis perillas
+
+| perilla | capa | qué es | qué la mueve en una cóclea |
+|---|---|---|---|
+| `drive` | oído medio | presión que llega al estribo | otosclerosis, efusión, perforación |
+| `β` | fluido | área de escala, densidad, geometría | volumen de endolinfa; agentes osmóticos y diuréticos |
+| `S`, `M` | partición | rigidez y masa arrastrada | distensión, fibrosis, carga de masa |
+| `R` | fluido | pérdida viscosa | viscosidad, temperatura |
+| `μ_H` | activa | distancia al punto de Hopf | CCE, prestina, potencial endococlear, eferentes MOC |
+| `θ` | detector | umbral de disparo | sinapsis en cinta de las CCI, dotación de fibras |
+
+### 13.4 GATE-D1 — la afirmación que la sección tiene que sobrevivir
+
+> Cada patología entra por una **perilla distinta**, y por lo tanto produce un
+> **patrón de observables distinto**.
+
+Es falsable: un modelo con una sola perilla efectiva mapearía todas las lesiones
+a la misma firma y aun así produciría gráficos que parecen hipoacusia.
+`gates/test_D01_pathology_signatures.py` verifica tres cosas, y la segunda y la
+tercera son las que le dan sentido a la primera:
+
+1. Siete lesiones producen **seis** firmas distintas — la colisión documentada y
+   ninguna otra.
+2. El control nulo reproduce la referencia con delta `0.0`.
+3. **Ningún observable individual separa el catálogo** (máximo por columna: 3
+   valores distintos sobre 7). El diagnóstico está en el patrón, así que el
+   patrón tiene que ser portante.
+
+La colisión documentada es `ohc-loss` / `prestin-block`: misma perilla a dos
+profundidades. Se **afirma**, no se excluye. Un gate que la sacara de la
+comparación pasaría igual de bien sobre un modelo que hubiera colapsado las siete
+lesiones en una sola perilla.
+
+### 13.5 Lo que la sección tiene prohibido
+
+Regla de publicación, del mismo tipo que §7.2:
+
+- **Ninguna afirmación clínica sin dato clínico.** Cada dirección terapéutica de
+  `PATHOLOGIES.md` §5 lleva un campo *"lo que el modelo no puede decir"*, y ese
+  campo es normativo: sin él la dirección no se publica.
+- **Ningún número con magnitud sin derivación.** `μ_H = −0.02` para una cóclea
+  sana es un **posit**, y los factores del hidrops también. Todo se escribe como
+  *dirección de movimiento desde* ese punto, nunca como absoluto — por eso D1
+  reduce cada observable a un signo antes de comparar.
+- **La cota de E4 se respeta.** El régimen de resonancia estocástica es alcanzable
+  hasta CF ≈ 1 kHz y no por encima. Cualquier propuesta de "ruido terapéutico" que
+  se enuncie sin esa cota está enunciando una afirmación más grande que la que el
+  proyecto midió.
+
+### 13.6 El riesgo estructural (nuevo, R6)
+
+**R6 — la ventana terapéutica tiene un borde.** Toda terapia que restaure el
+amplificador empuja `μ_H` hacia cero, y cero es la bifurcación. Del otro lado el
+oscilador corre sin entrada: emisión otoacústica espontánea, y el tinnitus tonal
+que a veces la acompaña. El modo de falla del otro lado es un **síntoma**, no una
+ausencia de beneficio.
+
+Un modelo físico puede decir eso; uno estadístico ajustado a resultados no, porque
+la falla vive del otro lado de un borde que los datos no contendrían. Se registra
+como riesgo y no como resultado: **no se ha mostrado que el modelo prediga
+tinnitus en nadie.** Lo que hace es ubicar el borde en su propio parámetro.
+
+---
+
 *Fin de la especificación. Ante cualquier conflicto entre código y este documento, gana este documento; ante cualquier laguna, se escribe un ADR en `decisions/` antes de implementar.*

@@ -60,6 +60,7 @@ rather than a fit.
 | **B2** | **a significant interior maximum in SNR(D)** | **24/24 curves** |
 | **E4** | is the auditory nerve near the optimum? | reachable to **~1 kHz**, not above |
 | **B3** | do the two noises cooperate? | **no — sub-additive**, `−1.22 dB` `[−1.58, −0.87]` |
+| **D1** | does the model tell pathologies apart? | **6 distinct signatures of 7 lesions**, one documented collision |
 
 ## The physiological verdict — E4, and what it says about 1995
 
@@ -203,10 +204,11 @@ growth is the readability check described below rather than machinery.
 |---|---|
 | [`COCLEA-SR-SPEC.md`](COCLEA-SR-SPEC.md) | The specification. Where code and spec disagree, the spec wins — and where the spec is wrong, an ADR says so |
 | [`truth/`](truth/) | Closed forms in sympy and mpmath. **Imports nothing from `src/`** (spec §6.4 rule 4) |
-| [`src/coclea/`](src/coclea/) | units, profiles, assembly, modal, forced, transmission, dynamics, stochastic, detector, analysis, calibrate, sr, attest |
+| [`src/coclea/`](src/coclea/) | units, profiles, assembly, modal, forced, transmission, dynamics, stochastic, detector, analysis, calibrate, sr, hopf, fitting, pathology, attest |
 | [`gates/`](gates/) | One module per gate. Each writes `gates/reports/*.json` on **every** outcome |
 | [`experiments/`](experiments/) | E2 and E3, each with its control arms |
-| [`decisions/`](decisions/) | Three ADRs. The second says the first was wrong; the third says what the second left open |
+| [`PATHOLOGIES.md`](PATHOLOGIES.md) | Spec §13. Each pathology as a parameter transform, four treatment directions, and what the model **cannot** say about any of them |
+| [`decisions/`](decisions/) | Six ADRs. The second says the first was wrong; the third says what the second left open; the sixth says which numbers in §13 are posits |
 | [`literature/`](literature/) | The LITERATURA role's output: the verdict, its sensitivity, and what was **not** checked |
 | [`report/`](report/) | Figures. Each carries its run id, result hash and commit **in the PNG's own metadata** (§8.4) |
 | [`runs/`](runs/) | Content-addressed run directories with manifests |

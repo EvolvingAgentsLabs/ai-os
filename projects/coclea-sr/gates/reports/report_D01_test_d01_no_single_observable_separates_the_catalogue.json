@@ -1,0 +1,17 @@
+{
+  "catalogue_size": 7,
+  "distinct_values_per_observable": {
+    "cf": 2,
+    "compression": 3,
+    "d_opt": 2,
+    "knee": 3,
+    "oscillating": 2,
+    "q": 2,
+    "sensitivity": 2
+  },
+  "failure": null,
+  "gate": "D01",
+  "passed": true,
+  "spec": "13",
+  "test": "test_d01_no_single_observable_separates_the_catalogue"
+}
