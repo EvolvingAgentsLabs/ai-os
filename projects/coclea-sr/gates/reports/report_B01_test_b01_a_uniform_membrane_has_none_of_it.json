@@ -1,0 +1,10 @@
+{
+  "control_log_linearity_r2": 0.0,
+  "control_monotone_fraction": 0.0,
+  "control_span": 0.0,
+  "failure": null,
+  "gate": "B01",
+  "passed": true,
+  "spec": "2.7",
+  "test": "test_b01_a_uniform_membrane_has_none_of_it"
+}

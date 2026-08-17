@@ -462,3 +462,103 @@ describe("the gated shape", () => {
     assert.equal(consulted, false, "an open flow declares no metric and must not be gated");
   });
 });
+
+/**
+ * An attempt whose run never returns.
+ *
+ * Found by running the coclea-sr §7.4 experiment against a live stack: an
+ * attempt sat `running` for 3,316 seconds while the flow reported `waiting` —
+ * the same state a flow doing useful work reports. `resume` polled, got
+ * `status: "timeout"`, and returned without settling, which is right for a poll
+ * that gave up on a live run and wrong forever for a run that died.
+ *
+ * The experiment's own runner then span until its deadline, three times per
+ * cell, and produced two flows that cost two hours and answered nothing.
+ */
+describe("a run that never comes back", () => {
+  function stuckCore(): CoreClient {
+    return {
+      async queueTurn() {
+        return { status: "queued", runId: "run-stuck", sessionId: "sess-stuck" };
+      },
+      async turn() {
+        throw new Error("not used");
+      },
+      async run() {
+        return { id: "run-stuck", status: "running" };
+      },
+      async signal() {
+        return {};
+      },
+      // Always "timeout": the poll gives up, the run never finishes. That is
+      // exactly what the live stack did for 3,316 seconds.
+      async awaitRun() {
+        return { id: "run-stuck", status: "timeout" };
+      },
+    } as unknown as CoreClient;
+  }
+
+  async function flowWithOpenAttempt(clock: { t: number }) {
+    const store = createMemoryFlowStore({ now: () => clock.t });
+    const engine = createEngine({
+      store,
+      core: stuckCore(),
+      now: () => clock.t,
+      staleAttemptMs: 60_000,
+      turnFor: (flow, step) => ({
+        surface: "t",
+        actor: { externalId: "U1" },
+        conversation: { kind: "dm", threadRef: `${flow.id}-${step.index}` },
+        text: step.intent,
+      }),
+    });
+    const flow = await store.createFlow({
+      scopeId: "group:x",
+      actorId: "U1",
+      title: "stuck",
+      goal: "g",
+    });
+    await store.appendStep({ flowId: flow.id, intent: "do it" });
+    await store.transitionFlow(flow.id, "draft", "running");
+    await engine.advance(flow.id);
+    return { store, engine, flowId: flow.id };
+  }
+
+  it("is left alone while it is still plausibly working", async () => {
+    const clock = { t: 1_000_000 };
+    const { store, engine, flowId } = await flowWithOpenAttempt(clock);
+
+    clock.t += 30_000; // under the limit
+    const { resumed } = await engine.resume(flowId);
+    assert.equal(resumed, 0);
+    const flow = await store.getFlow(flowId);
+    assert.equal(flow!.steps[0]!.state, "running", "a live run must not be reaped early");
+  });
+
+  it("is failed once it is older than any turn should take", async () => {
+    const clock = { t: 1_000_000 };
+    const { store, engine, flowId } = await flowWithOpenAttempt(clock);
+
+    clock.t += 120_000; // past the 60s limit
+    const { resumed } = await engine.resume(flowId);
+    assert.equal(resumed, 1);
+
+    const flow = await store.getFlow(flowId);
+    assert.equal(flow!.steps[0]!.state, "failed");
+    const error = flow!.steps[0]!.attempts[0]!.error ?? "";
+    assert.match(error, /did not return after 120s/);
+    assert.match(error, /blocks/, "the reason must say what happens next");
+  });
+
+  it("puts the flow in a state a person can act on", async () => {
+    const clock = { t: 1_000_000 };
+    const { engine, flowId } = await flowWithOpenAttempt(clock);
+
+    clock.t += 120_000;
+    await engine.resume(flowId);
+    const outcome = await engine.advance(flowId);
+    assert.equal(outcome.kind, "halted");
+    // `waiting` is what a working flow looks like. `blocked` is not.
+    assert.match(String((outcome as { reason?: string }).reason ?? ""), /failed/);
+  });
+});

@@ -2,6 +2,20 @@
 
 # ai-os
 
+> **2026-08-17 — la carga de trabajo llegó al otro extremo.**
+> `projects/coclea-sr` llevó una hipótesis de biofísica de 1995 desde la
+> matemática, a través de una **falsación de su propio modelo**, hasta un conjunto
+> gateado de afirmaciones falsables sobre patologías del oído y su tratamiento.
+> **26 gates / 125 chequeos, todos verdes [ran].** El arco completo, y lo que
+> **no** muestra, está en [doc 18](doc/es/18-from-a-hypothesis-to-a-therapeutic-surface.md).
+>
+> Incluido en lo que no muestra: `physics-verifiers` midió el argumento habitual
+> para los gates y lo **falsó** — un juez LLM detectó tan bien como un verificador
+> de física, dos veces
+> ([resultados](https://github.com/EvolvingAgentsLabs/physics-verifiers/blob/main/experiments/judge_vs_physics/RESULTS.md)).
+> Los gates no son para detectar; son para generar verdad que el código bajo
+> prueba no puede producir, y para conservarla. Corriendo sobre `qwen/qwen3.8-27b`.
+
 **Un sistema operativo de agentes**, construido sobre [QM](https://github.com/yc-software/qm).
 
 El trabajo sobrevive a la conversación. Los agentes y sus subagentes son archivos
@@ -37,7 +51,7 @@ cd ai-ui    && node scripts/serve.ts                         # escritorio  :8098
 
 ## Estado
 
-`ai-base`, `ai-flows` y `ai-ui` corren — **538 tests propios**, arriba de los
+`ai-base`, `ai-flows` y `ai-ui` corren — **605 tests propios**, arriba de los
 3.768 que `ai-base` trae de upstream. `ai-storage` está especificado y no
 construido, aunque la primera pieza de su argumento ya corre dentro de
 `ai-flows`: una base de conocimiento de proyecto que una ventana de ocho mil
@@ -56,7 +70,7 @@ captura es de una instancia viva.
 | [`ai-flows/`](ai-flows/) | Flows, composición, el instrumental de medición, la base de conocimiento y los [agentes de sistema](ai-flows/agents/system/memory/) | Apache 2.0 |
 | [`ai-memory/`](ai-memory/) | Los agentes de memoria, como un árbol que corre como árbol | Apache 2.0 |
 | [`ai-ui/`](ai-ui/) | El escritorio | Apache 2.0 |
-| [`projects/`](projects/) | Trabajo corriendo **sobre** el sistema. Hoy: [`coclea-sr/`](projects/coclea-sr/), Python, 80 gates | Apache 2.0 |
+| [`projects/`](projects/) | Trabajo corriendo **sobre** el sistema. Hoy: [`coclea-sr/`](projects/coclea-sr/), Python, **26 gates / 125 chequeos** | Apache 2.0 |
 | `ai-storage/` | No construido | — |
 
 `ai-base/` queda byte a byte igual a upstream. Cualquier cambio ahí necesita una

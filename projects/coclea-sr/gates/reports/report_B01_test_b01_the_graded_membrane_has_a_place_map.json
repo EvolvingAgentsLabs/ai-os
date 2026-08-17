@@ -1,0 +1,16 @@
+{
+  "failure": null,
+  "gate": "B01",
+  "hz_range": [
+    200.0,
+    12000.0
+  ],
+  "log_linearity_r2": 0.9999969116744286,
+  "monotone_fraction": 1.0,
+  "passed": true,
+  "span": 0.58875,
+  "spec": "2.7",
+  "test": "test_b01_the_graded_membrane_has_a_place_map",
+  "x_cf_first": 0.6675,
+  "x_cf_last": 0.07875
+}

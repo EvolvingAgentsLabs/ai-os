@@ -1,0 +1,9 @@
+{
+  "failure": null,
+  "gate": "B01",
+  "note": "passive tuning; physiological Q is far higher",
+  "passed": true,
+  "peak_to_median_response": 9.781385331177178,
+  "spec": "2.7",
+  "test": "test_b01_the_gap_in_q_is_reported_rather_than_hidden"
+}

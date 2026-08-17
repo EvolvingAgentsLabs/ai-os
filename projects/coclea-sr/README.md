@@ -9,7 +9,12 @@ It is also the workload that gave `ai-flows` its first declared metric — see
 [`doc/16`](../../doc/16-a-workload-with-an-oracle.md) for what the OS learned
 from it, which is the other half of why the project is here.
 
-> **State, 2026-08-14.** The MVP is complete and H3's debt is closed.
+> **State, 2026-08-17. 26 gates / 125 checks, all green [ran].** The MVP is
+> complete, H3's debt is closed, and the project has reached the far end of its
+> own arc: **spec §13** turns the corrected model into gated, falsifiable
+> statements about ear disease and its treatment
+> ([PATHOLOGIES.md](PATHOLOGIES.md), [GATE-D1](gates/test_D01_pathology_signatures.py)).
+>
 > **GATE-B2 — the specification's main result — passes: 24 of 24 curves show a
 > statistically significant interior maximum in SNR against noise.** The passive
 > layer, its energy, the place code and the whole measurement pipeline are
@@ -17,6 +22,9 @@ from it, which is the other half of why the project is here.
 > their provenance in their own bytes, and one hypothesis was falsified on the
 > way with its replacement accepted against a condition registered before it was
 > built.
+>
+> The write-up of the whole arc, including what it does **not** show, is
+> [doc 18](../../doc/18-from-a-hypothesis-to-a-therapeutic-surface.md).
 
 ## The result
 
@@ -60,6 +68,7 @@ rather than a fit.
 | **B2** | **a significant interior maximum in SNR(D)** | **24/24 curves** |
 | **E4** | is the auditory nerve near the optimum? | reachable to **~1 kHz**, not above |
 | **B3** | do the two noises cooperate? | **no — sub-additive**, `−1.22 dB` `[−1.58, −0.87]` |
+| **D1** | does the model tell pathologies apart? | **6 distinct signatures of 7 lesions**, one documented collision |
 
 ## The physiological verdict — E4, and what it says about 1995
 
@@ -148,6 +157,35 @@ The place map is then a real one, not a bump that happens to move: `x_cf` from
 the solved field and the resonant place from `Re(Z) = 0` agree to four decimals
 at 500 Hz, 3 kHz and 12 kHz.
 
+## From a corrected model to a therapeutic surface
+
+The thing nobody was aiming at, and it is a consequence of
+[ADR-0002](decisions/0002-the-place-code-needs-fluid-coupling-not-a-ground-spring.md)
+rather than of a plan.
+
+The string's only knobs were the membrane's own tension and mass, and **no
+intervention reaches either**. The transmission line put the *fluid* inside the
+operator — `β`, `M`, `R` — and fluid is what a diuretic or an osmotic agent acts
+on. The Hopf layer added `μ_H`, which salicylate and furosemide already move in
+humans, reversibly, today. The detector added `θ`. A falsified model was replaced
+by one with a **therapeutic surface**.
+
+**GATE-D1** attacks the claim that makes that more than a story: each pathology
+enters on a different knob, so each produces a different pattern of observables.
+Seven lesions, six distinct signatures, one documented collision — and two
+controls that are what make the count mean anything: a lesion that changes nothing
+reproduces the reference to `0.0`, and **no single observable separates the
+catalogue** (best column: 3 distinct values of 7). Probed rather than assumed —
+de-lesion the hydrops and it collapses onto healthy and the gate goes red **[ran]**.
+
+The table is read by its **zeros**: what identifies a lesion is not the column that
+moved but the five that did not. [PATHOLOGIES.md](PATHOLOGIES.md) has it, with four
+treatment directions, a falsifier for each, and a normative *"what the model cannot
+say"* field without which a direction does not publish.
+
+Nothing there has been compared against patient data, and the document says so in
+its first paragraph and its last.
+
 ## What is reported and is not a success
 
 * **`Q₁₀dB` is 2.2 to 2.7.** Spec §2.7 predicts a passive model will fall far
@@ -161,6 +199,12 @@ at 500 Hz, 3 kHz and 12 kHz.
   [ADR-0003](decisions/0003-the-noise-and-the-place-code-sit-on-different-operators.md)
   names the route (reciprocity: one solve per frequency, not one per source) and
   its stopping condition, and does not build it.
+* **The hydrops factors are inputs, not predictions**, and the model already
+  disagrees with the clinic in one place: it *sharpens* tuning under hydrops
+  (`Q` +5.6%) where Ménière's broadens it. `μ_H = −0.02` for a healthy cochlea is
+  a posit with no derivation. All three are in PATHOLOGIES.md §4 and
+  [ADR-0006](decisions/0006-pathology-as-a-parameter-transform.md), which is also
+  where the ordering of what would kill §13 first is written down.
 * **Euler-Maruyama misses the specification's own bar.** §5.3 allows it at 1%
   error; at §5.4's production step it is off by **45.8%** and needs a step 32×
   finer. Production uses the exact Van Loan scheme, which has no step-size bias
@@ -203,10 +247,11 @@ growth is the readability check described below rather than machinery.
 |---|---|
 | [`COCLEA-SR-SPEC.md`](COCLEA-SR-SPEC.md) | The specification. Where code and spec disagree, the spec wins — and where the spec is wrong, an ADR says so |
 | [`truth/`](truth/) | Closed forms in sympy and mpmath. **Imports nothing from `src/`** (spec §6.4 rule 4) |
-| [`src/coclea/`](src/coclea/) | units, profiles, assembly, modal, forced, transmission, dynamics, stochastic, detector, analysis, calibrate, sr, attest |
+| [`src/coclea/`](src/coclea/) | units, profiles, assembly, modal, forced, transmission, dynamics, stochastic, detector, analysis, calibrate, sr, hopf, fitting, pathology, attest |
 | [`gates/`](gates/) | One module per gate. Each writes `gates/reports/*.json` on **every** outcome |
 | [`experiments/`](experiments/) | E2 and E3, each with its control arms |
-| [`decisions/`](decisions/) | Three ADRs. The second says the first was wrong; the third says what the second left open |
+| [`PATHOLOGIES.md`](PATHOLOGIES.md) | Spec §13. Each pathology as a parameter transform, four treatment directions, and what the model **cannot** say about any of them |
+| [`decisions/`](decisions/) | Six ADRs. The second says the first was wrong; the third says what the second left open; the sixth says which numbers in §13 are posits |
 | [`literature/`](literature/) | The LITERATURA role's output: the verdict, its sensitivity, and what was **not** checked |
 | [`report/`](report/) | Figures. Each carries its run id, result hash and commit **in the PNG's own metadata** (§8.4) |
 | [`runs/`](runs/) | Content-addressed run directories with manifests |

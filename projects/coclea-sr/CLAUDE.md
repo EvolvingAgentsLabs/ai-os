@@ -70,7 +70,7 @@ found.
 ## Running the gate
 
 ```bash
-.venv/bin/python -m pytest gates/ -q     # 111 checks
+.venv/bin/python -m pytest gates/ -q     # 125 checks, 26 gates
 
 # The whole suite runs for minutes -- A09 (Lyapunov) alone is >100s and A05 is
 # 12s, while everything else is sub-second. For a live demonstration use the
@@ -78,7 +78,19 @@ found.
 .venv/bin/python -m pytest gates/test_A01*.py gates/test_A02*.py \
                           gates/test_A08*.py gates/test_A11*.py -q   # 28 checks, ~1.7s
 python3 verify_ledger.py                 # the chain, in stdlib only
+.venv/bin/python gates/check_reports.py  # reports with no test behind them
+python3 render_evidence.py               # report/evidence.html, from the ledger
+.venv/bin/python -m pytest tests/ -q     # the viewer's own tests, incl. the tamper test
 ```
+
+**Run `check_reports.py` after renaming or moving a test.** `gates/reports/` is
+never cleaned, so a renamed test leaves its old report behind — red, forever, and
+`ai-flows/src/gates.ts` reads that directory to compute the freeze verdict. Two
+such orphans were blocking every gated freeze on 2026-08-16, one of them from a
+test that had merely **moved to another module** and was passing there. It
+compares `(gate, test)` pairs for that reason, and it refuses to prune when
+collection is untrustworthy: a module that stops importing makes every one of its
+reports look like an orphan, and deleting those would turn a red gate green.
 
 Set `OMP_NUM_THREADS=1` for anything attested: a multithreaded BLAS reduction is
 not bit-reproducible, and the manifest records the value rather than assuming it.

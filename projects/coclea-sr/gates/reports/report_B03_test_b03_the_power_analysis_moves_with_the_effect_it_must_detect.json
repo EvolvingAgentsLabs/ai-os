@@ -1,0 +1,10 @@
+{
+  "failure": null,
+  "gate": "B03",
+  "n_for_0p5db": 63,
+  "n_for_1db": 16,
+  "passed": true,
+  "ratio": 3.9375,
+  "spec": "7.2 / 7.3",
+  "test": "test_b03_the_power_analysis_moves_with_the_effect_it_must_detect"
+}

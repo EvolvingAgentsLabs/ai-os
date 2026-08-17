@@ -6,6 +6,7 @@
   "ignoreIssues": {
     "scripts/migrate-principals-to-email.d.mts": ["files"],
     "plugins/chassis/src/source-auth-sign.ts": ["exports"],
+    "src/agents/agent-definition.ts": ["exports"],
     "src/slack/lib.ts": ["exports", "types"]
   },
   "workspaces": {

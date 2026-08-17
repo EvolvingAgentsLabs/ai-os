@@ -1,0 +1,22 @@
+{
+  "exponent_healthy": 0.36526481903442903,
+  "exponent_ohc_loss": 0.8105334264973415,
+  "exponent_prestin_block": 0.6381911549456322,
+  "failure": null,
+  "gate": "D01",
+  "knee_healthy": 0.00282842712474619,
+  "knee_ohc_loss": 0.3535533905932738,
+  "knee_prestin_block": 0.0894427190999916,
+  "passed": true,
+  "reversible": {
+    "conductive": false,
+    "healthy": false,
+    "hydrops": true,
+    "ohc-loss": false,
+    "overdriven": false,
+    "prestin-block": true,
+    "synaptopathy": false
+  },
+  "spec": "13",
+  "test": "test_d01_the_two_amplifier_lesions_are_ordered_by_depth"
+}

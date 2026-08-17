@@ -1,0 +1,15 @@
+{
+  "at": 1786911685.206764,
+  "environment": {
+    "machine": "arm64",
+    "numpy": "2.5.2",
+    "omp_num_threads": "(unset)",
+    "platform": "macOS-15.7.7-arm64-arm-64bit",
+    "python": "3.12.13",
+    "scipy": "1.18.0"
+  },
+  "git_commit": "06f07c5b22ae41d5f986195a95069e1f65a0a1e8",
+  "model": "(from ai-base/.env)",
+  "result_sha256": "7350c1fe4b31a56361170b2a37624e4e2ae90ccda2949ed6508561666582a371",
+  "run_id": "e7-ratio"
+}

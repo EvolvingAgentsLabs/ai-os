@@ -1,0 +1,16 @@
+{
+  "failure": null,
+  "gate": "B03",
+  "interaction_p_values": {
+    "detector_input:noise_scaling": 0.5747571029361955,
+    "eta:detector_input": 0.42942715183092095,
+    "eta:noise_scaling": 0.5357350477806659,
+    "eta:xi": 0.8537447697964007,
+    "xi:detector_input": 0.8296933785408271,
+    "xi:noise_scaling": 0.758307530064747
+  },
+  "passed": true,
+  "reported_after_holm": [],
+  "spec": "7.2 / 7.3",
+  "test": "test_b03_a_design_with_no_interaction_reports_none"
+}

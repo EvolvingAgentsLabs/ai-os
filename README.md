@@ -2,6 +2,19 @@
 
 # ai-os
 
+> **2026-08-17 — the workload reached the far end.** `projects/coclea-sr` took a
+> 1995 biophysics hypothesis from mathematics, through a **falsification of its
+> own model**, to a gated set of falsifiable statements about ear disease and its
+> treatment. **26 gates / 125 checks, all green [ran].** The whole arc, and what
+> it does **not** show, is [doc 18](doc/18-from-a-hypothesis-to-a-therapeutic-surface.md).
+>
+> Included in what it does not show: `physics-verifiers` measured the usual
+> argument for gates and **falsified it** — an LLM judge detected as well as a
+> physics verifier, twice
+> ([results](https://github.com/EvolvingAgentsLabs/physics-verifiers/blob/main/experiments/judge_vs_physics/RESULTS.md)).
+> Gates are not for detection; they are for generating truth the code under test
+> cannot produce, and for keeping it. Running on `qwen/qwen3.8-27b`.
+
 **An agent-based operating system**, built on [QM](https://github.com/yc-software/qm).
 
 Work outlives the conversation. Agents and their sub-agents are markdown files in
@@ -39,7 +52,7 @@ Español: [Correr ai-os](doc/es/manual.md).
 
 ## State
 
-`ai-base`, `ai-flows` and `ai-ui` run — **538 tests of our own**, on top of the
+`ai-base`, `ai-flows` and `ai-ui` run — **605 tests of our own**, on top of the
 3,768 `ai-base` carries from upstream. `ai-storage` is specified and not built,
 though the first piece of its argument now runs inside `ai-flows`: a project
 knowledge base an eight-thousand-token window can navigate — a flat file of the
@@ -57,7 +70,7 @@ every screenshot is from a live instance.
 | [`ai-flows/`](ai-flows/) | Flows, composition, the measurement harness, the knowledge base and the [system agents](ai-flows/agents/system/memory/) | Apache 2.0 |
 | [`ai-memory/`](ai-memory/) | The memory agents, as a tree that runs as a tree | Apache 2.0 |
 | [`ai-ui/`](ai-ui/) | The desk | Apache 2.0 |
-| [`projects/`](projects/) | Work running **on** the OS. Today: [`coclea-sr/`](projects/coclea-sr/), Python, 80 gates | Apache 2.0 |
+| [`projects/`](projects/) | Work running **on** the OS. Today: [`coclea-sr/`](projects/coclea-sr/), Python, **26 gates / 125 checks** | Apache 2.0 |
 | `ai-storage/` | Not built | — |
 
 `ai-base/` stays byte-identical to upstream. Anything we change there needs a
