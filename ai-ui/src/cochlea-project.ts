@@ -48,6 +48,18 @@
  * would be a note that already knew. That is the whole point of the failure:
  * the writer got everything it could see right.
  *
+ * ## It is the product's rule now, not this file's
+ *
+ * The first version of this scope carried its own implementation, because
+ * `ai-flows` had no check for it. That is the wrong place for a finding: a demo
+ * with a private instrument is a demo measuring itself.
+ *
+ * So `lint` in [`wiki.ts`](../../ai-flows/src/wiki.ts) gained the rule, the fact
+ * travels on `Provenance.supersededBy`, and this file now **filters the
+ * product's output** rather than computing anything. The scope's argument is
+ * unchanged and its history is the interesting part: the index passed every
+ * check the product had, and the product acquired one.
+ *
  * `test/cochlea-project.test.ts` asserts it in both directions. Give the note
  * its link and the check goes green; that is what makes the red one a
  * measurement rather than a decoration.
@@ -209,7 +221,14 @@ export function buildDecisionWiki(linkSupersession: boolean): { wiki: Wiki; note
       // changing the product to describe itself.
       unit: "clause",
       state: "complete",
-      source: { file: d.file, from: starts[i]!, to: starts[i]! + d.chars },
+      source: {
+        file: d.file,
+        from: starts[i]!,
+        to: starts[i]! + d.chars,
+        // Read from the document's own status line, never asserted by the
+        // writer. `wiki.ts` explains why that distinction is the whole thing.
+        ...(d.supersededBy ? { supersededBy: d.supersededBy } : {}),
+      },
       // Empty by default, and that is the finding rather than an oversight: a
       // writer shown one document has nothing to link to.
       links: linkSupersession && successor ? [successor.id] : [],
@@ -222,32 +241,17 @@ export function buildDecisionWiki(linkSupersession: boolean): { wiki: Wiki; note
 }
 
 /**
- * The check `verifyNote` cannot make, because it is not about the note.
+ * The complaints `lint` makes about this index — now including supersession.
  *
- * Returns one complaint per note that records a superseded decision without
- * pointing at what replaced it. The superseding fact is read from `DECISIONS` —
- * i.e. from the source documents' own status lines — so a note cannot make
- * itself pass by claiming to be current.
+ * This used to be a local implementation, because the product had no check for
+ * it. It does now: `wiki.ts`'s `lint` gained the rule and its two tests, and the
+ * fact travels on `Provenance.supersededBy`, read from the source document.
+ *
+ * So this is a filter over the product's own output rather than a second
+ * instrument. Keeping a private copy would have been the demo measuring itself.
  */
-export function supersededWithoutSuccessor(notes: readonly Note[]): string[] {
-  const byFile = new Map(notes.map((n) => [n.source.file, n]));
-  const out: string[] = [];
-
-  for (const d of DECISIONS) {
-    if (!d.supersededBy) continue;
-    const note = byFile.get(d.file);
-    if (!note) continue;
-    const successor = byFile.get(d.supersededBy);
-    if (!successor) continue;
-    if (!note.links.includes(successor.id)) {
-      out.push(
-        `${note.id} records a decision its own source marks superseded by ` +
-          `${d.supersededBy.split("/").pop()}, and links to nothing — a reader asking about ` +
-          `"${note.keywords[0]}" is answered with a decision that was reversed`,
-      );
-    }
-  }
-  return out;
+export function supersededWithoutSuccessor(wiki: Wiki): string[] {
+  return lint(wiki).filter((p) => p.includes("superseded by"));
 }
 
 interface Step {
@@ -462,8 +466,8 @@ function pathologyFlow(at: number): Record<string, unknown> {
  */
 function decisionIndexFlow(at: number): Record<string, unknown> {
   const { wiki, notes } = buildDecisionWiki(false);
-  const complaints = supersededWithoutSuccessor(notes);
-  const lintIssues = lint(wiki);
+  const complaints = supersededWithoutSuccessor(wiki);
+  const otherIssues = lint(wiki).filter((p) => !p.includes("superseded by"));
 
   const steps: Step[] = notes.map((n, i) => {
     const window = { text: "x".repeat(n.chars), from: n.source.from };
@@ -493,18 +497,19 @@ function decisionIndexFlow(at: number): Record<string, unknown> {
     agent: "COVERAGE-AUDITOR",
     intent: 'agent="COVERAGE-AUDITOR" lint the index and ask what a reader would be told',
     result:
-      `lint: ${lintIssues.length ? lintIssues.join("; ") : "clean"}. ` +
+      `Every note verified; ${otherIssues.length ? otherIssues.join("; ") : "no mechanical fault"}. ` +
       `${wiki.shards.length} shard(s), ${notes.length} note(s), all verified. ` +
       (complaints.length
-        ? `But the corpus has an order and the index does not: ${complaints[0]}`
+        ? `But the corpus has an order: ${complaints[0]}`
         : "Supersession check clean."),
     attempts: attempt("done", "coverage001", "run-index-coverage", null),
     contribution: {
       carried: 1,
       inputTokens: 2000,
       note:
-        "lint and verifyNote are both clean here; the finding comes from a check that " +
-        "knows the corpus has a time axis, and nothing else in the desk does",
+        "verifyNote is clean on every note; the finding comes from the rule that " +
+        "knows the corpus has a time axis — which the product gained because this " +
+        "scope needed it",
     },
   });
 

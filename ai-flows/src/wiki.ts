@@ -125,6 +125,20 @@ export interface Provenance {
   /** Character offsets into that document. Not line numbers: lines move. */
   from: number;
   to: number;
+  /**
+   * The document this one declares replaced it, if it declares one.
+   *
+   * **Read out of the source, never asserted by the writer.** An ADR's status
+   * line, a `Superseded-By:` header, a front-matter field — somewhere the source
+   * itself says it has been overruled. A note that had to judge its own currency
+   * would be a note that already knew, and the whole failure this exists to
+   * catch is a writer who got everything it could see right.
+   *
+   * Optional because most corpora have no time axis. A pile of field notes does
+   * not overrule itself; a decision record does, and so do policies, contracts,
+   * specifications and any document with a version.
+   */
+  supersededBy?: string;
 }
 
 export interface Note {
@@ -437,6 +451,40 @@ export function lint(wiki: Wiki): string[] {
           `(${note.source.from}-${note.source.to}) but carries ${note.chars}, ` +
           `so it cannot be walked back to its source`,
       );
+  }
+
+  // **A corpus of decisions is not a pile of facts.**
+  //
+  // Every check above is about one note being internally consistent. This one is
+  // about the index being consistent with *time*, and it exists because a note
+  // can pass every other check here and still answer a question wrongly: it can
+  // record a superseded decision perfectly — range, hash, window, keywords, all
+  // clean — and hand a reader a decision that was reversed.
+  //
+  // Found on the cochlea project's own six ADRs, where ADR-0001 was overruled by
+  // ADR-0002 three days later. `verifyNote` cannot see it (the note is correct
+  // about what it read) and no other rule here could either, because the fact
+  // lives in the relationship between two notes and one of them may be missing.
+  //
+  // Two distinct failures, reported separately because the fixes differ:
+  const byFile = new Map<string, Note>();
+  for (const note of Object.values(wiki.notes)) byFile.set(note.source.file, note);
+  for (const note of Object.values(wiki.notes)) {
+    const successorFile = note.source.supersededBy;
+    if (!successorFile) continue;
+    const successor = byFile.get(successorFile);
+    if (!successor) {
+      // Worse than the other one: the index read the overruled document and not
+      // the document that overruled it, so there is nothing to link *to*.
+      problems.push(
+        `${note.id} records a source superseded by ${successorFile}, which the index has not read`,
+      );
+    } else if (!note.links.includes(successor.id)) {
+      problems.push(
+        `${note.id} records a source superseded by ${successorFile} and does not link ` +
+          `${successor.id}, which covers it — a reader is answered with a decision that was reversed`,
+      );
+    }
   }
 
   // A note in no shard is unreachable by navigation, which is the only way the

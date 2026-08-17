@@ -244,6 +244,42 @@ describe("what code can decide, and does", () => {
     w.notes["n001"]!.keywords = [];
     assert.match(lint(w).join(" "), /no keywords/);
   });
+
+  it("catches an index that is correct about every note and wrong about the corpus", () => {
+    // The failure this was added for, from the cochlea project's own ADRs:
+    // ADR-0001 was overruled by ADR-0002 three days later. A note recording
+    // ADR-0001 is correct about everything it read — range, hash, window,
+    // keywords — and answers a question with a decision that was reversed.
+    const w = build(3);
+    w.notes["n001"]!.source = { file: "adr-0001.md", from: 0, to: 1800, supersededBy: "adr-0002.md" };
+    w.notes["n002"]!.source = { file: "adr-0002.md", from: 1800, to: 3600 };
+
+    const problems = lint(w);
+    assert.equal(problems.length, 1, problems.join(" | "));
+    assert.match(problems[0]!, /superseded by adr-0002\.md and does not link n002/);
+
+    // **The falsifiability half.** Link it and the check goes green. Without
+    // this the red result above would be a decoration rather than a measurement.
+    w.notes["n001"]!.links = ["n002"];
+    assert.deepEqual(lint(w), []);
+  });
+
+  it("distinguishes 'not linked' from 'not read at all'", () => {
+    // Different failures with different fixes. The second is worse: the index
+    // read the overruled document and not the one that overruled it, so there is
+    // nothing to link to and no amount of linking would help.
+    const w = build(3);
+    w.notes["n001"]!.source = { file: "adr-0001.md", from: 0, to: 1800, supersededBy: "adr-0009.md" };
+    assert.match(lint(w).join(" "), /superseded by adr-0009\.md, which the index has not read/);
+  });
+
+  it("says nothing about a corpus with no time axis", () => {
+    // Most corpora do not overrule themselves. A field notebook that started
+    // failing this check would be the check inventing a problem.
+    const w = build(6);
+    assert.deepEqual(lint(w), []);
+    for (const n of Object.values(w.notes)) assert.equal(n.source.supersededBy, undefined);
+  });
 });
 
 describe("the cheap half of retrieval", () => {
