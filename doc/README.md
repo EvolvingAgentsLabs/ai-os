@@ -32,6 +32,7 @@ changes kind gets its banner rewritten the same day.
 | [12 · Conformation](12-conformation.md) | Projects, agents and folders: what the layered workspace is, and why membership never lives in it |
 | [16 · A workload with an oracle](16-a-workload-with-an-oracle.md) | The first workload with a declared metric, the seam that reads it across languages, and the three ways its instruments lied. The `Gated` shape it argues for is now built — see 17 |
 | [17 · A project is born](17-a-project-is-born.md) | Starting, staffing and furnishing a project from the desk; the project that writes its own roster; lazy skills at a measured 95.8%; memory that survives the session. **Includes the route that confirmed its own write with its own reader** |
+| [18 · From a hypothesis to a therapeutic surface](18-from-a-hypothesis-to-a-therapeutic-surface.md) | The whole arc on one workload: a 1995 biophysics hypothesis posed as mathematics, simulated, **found to rest on a wrong model**, repaired against a pre-registered condition, bounded — and then turned into gated, falsifiable statements about pathology and its treatment. **§8 is what it does not show, including a companion experiment that came back against the usual argument for gates** |
 
 ## Specification — not built
 

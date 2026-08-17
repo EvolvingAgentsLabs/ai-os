@@ -35,6 +35,7 @@ documento que cambia de clase se reescribe el cartel el mismo día.
 | [12 · Conformación](12-conformation.md) | Proyectos, agentes y carpetas: qué es el workspace en capas, y por qué la membresía nunca vive ahí |
 | [16 · Una carga de trabajo con oráculo](16-a-workload-with-an-oracle.md) | La primera carga de trabajo con métrica declarada, la costura que la lee entre lenguajes, y las tres formas en que mintieron sus instrumentos. La shape `Gated` que argumenta ya está construida — ver 17 |
 | [17 · Nace un proyecto](17-a-project-is-born.md) | Empezar, dotar y amueblar un proyecto desde el escritorio; el proyecto que escribe su propio roster; skills perezosas con 95.8% medido; memoria que sobrevive la sesión. **Incluye la ruta que confirmó su propia escritura con su propio lector** |
+| [18 · De una hipótesis a una superficie terapéutica](18-from-a-hypothesis-to-a-therapeutic-surface.md) | El arco completo sobre una carga de trabajo: una hipótesis de biofísica de 1995 planteada como matemática, simulada, **encontrada apoyada en un modelo equivocado**, reparada contra una condición pre-registrada, acotada — y después convertida en afirmaciones gateadas y falsables sobre patologías y su tratamiento. **§8 es lo que no muestra, incluido un experimento acompañante que salió en contra del argumento habitual para los gates** |
 
 ## Especificación — no construido
 

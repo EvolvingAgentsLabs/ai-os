@@ -5,20 +5,20 @@
     "explorers": 5,
     "verifiers": 1,
     "rep": 1,
-    "flow_id": "3dfb13bb-6d0f-4049-a33d-8500a7d74a45",
-    "cost_usd": 0.09442150000000993,
-    "elapsed_s": 361.63885593414307,
+    "flow_id": "91874926-ecf4-488c-9a94-9f608c8da4b8",
+    "cost_usd": 0.0649585699999875,
+    "elapsed_s": 427.145546913147,
     "explorer_claims": [
-      1.0057021082,
-      1.005,
-      1.00838,
-      1.004196,
-      1.003736
+      1.0105,
+      1.0066,
+      1.0105,
+      1.0105,
+      1.0105
     ],
     "verifier_claims": [
-      1.00264222
+      1.013
     ],
-    "final": 1.005,
+    "final": 1.013,
     "correct": true,
     "retraction": false,
     "failed_steps": 0
