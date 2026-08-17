@@ -1,5 +1,9 @@
 # 16 · Una carga de trabajo con oráculo
 
+<img src="../assets/16-a-workload-with-an-oracle.jpg" alt="" width="100%">
+
+<sub>La referencia no toca la cadena. El único paso rojo es rojo por una comparación, no por cómo se veía.</sub>
+
 > **Referencia.** `ai-flows/src/gates.ts` corre y está testeado contra reportes
 > de gate que produjo Python — 18 tests, seis de ellos leyendo los archivos
 > reales del disco.

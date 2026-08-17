@@ -1,5 +1,9 @@
 # 17 · Nace un proyecto
 
+<img src="../assets/17-a-project-is-born.jpg" alt="" width="100%">
+
+<sub>Vacío, dotado, amueblado. El círculo tachado es un nombre declarado en markdown sin archivo detrás.</sub>
+
 > **Referencia.** Todo lo de abajo corrió. Los números salen del stack en vivo
 > —`make up`, después las rutas del propio escritorio— y todos son del
 > 2026-08-15.

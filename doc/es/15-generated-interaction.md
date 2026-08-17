@@ -1,5 +1,9 @@
 # 15 · Interacción generada — el escritorio después de la GUI
 
+<img src="../assets/15-generated-interaction.jpg" alt="" width="100%">
+
+<sub>Un objeto, tres veces, cada una con más de él a la vista — y un fork cuyas dos ramas sobreviven, una sin resolver.</sub>
+
 > **El inglés es canónico.** Traducción de [`doc/15-generated-interaction.md`](../15-generated-interaction.md).
 >
 > **En parte referencia, en parte especificación, y cada sección dice cuál.**

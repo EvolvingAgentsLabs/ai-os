@@ -1,5 +1,9 @@
 # 16 · A workload with an oracle
 
+<img src="assets/16-a-workload-with-an-oracle.jpg" alt="" width="100%">
+
+<sub>The reference never touches the chain. The one red step is red because of a comparison, not because of how it looked.</sub>
+
 > **Reference.** `ai-flows/src/gates.ts` runs and is tested against gate reports
 > that Python produced — 18 tests, and six of them read the real files off disk.
 >
