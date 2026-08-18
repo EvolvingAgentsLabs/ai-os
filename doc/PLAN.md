@@ -7,14 +7,18 @@
 
 ## The frame, and it changed today
 
-The project is **COCLEA-SR**, and there is a thesis review on **2026-11-15**.
+The project is **COCLEA-SR**. **There is no deadline** — an earlier version of
+this document said there was a thesis review on 2026-11-15, and that date was
+invented: it came from a brainstorm pasted into a conversation, not from anything
+anybody committed to. The standing instruction is simply *the sooner everything is
+resolved, the better*.
 
 `ai-os` is not built to serve the thesis. **The thesis tells us what `ai-os`
 should be**, and the channel is
 [`projects/coclea-sr/FRICTION.md`](../projects/coclea-sr/FRICTION.md): every real,
 repeated friction goes in, fixed with the shortest hack that works and never with
-architecture. On 2026-11-15 that file is the specification, written by the work
-instead of by enthusiasm.
+architecture. Whenever the next thing gets built, that file is its specification —
+written by the work instead of by enthusiasm.
 
 The correction that produced this frame is recorded rather than smoothed over:
 `ai-ui/src/gate-face.ts` was built while H9 — the only milestone still open from
@@ -110,7 +114,13 @@ Same shape as E10 v2, which stopped itself correctly:
 | **§7.4 / E7** | [E7-RESULTS] | ran, came back null, reason measured. Orthogonal to the thesis. |
 | **routing (ADR-0010)** | phase 0 done | ceiling **0.000** against a registered floor of 0.10. The mode matrix says the model is not the lever: 14 of 24 failures on the cheap and mid arms were `no_output` — termination, not capability. |
 
-## What not to do with three months
+## What not to do next
 
 Not the fibre axis, not E7, not more `ai-os` surface. Route A becomes the answer
 only if the precondition says route B cannot reach criticality.
+
+The ordering above does not depend on a calendar and did not change when the
+invented deadline came out. Route B first is right because it is **cheap and it
+tells you whether A is needed** — the precondition is one run, and a run that
+says "B cannot reach criticality" has saved a milestone. Anything paced by a date
+would have been paced by a date nobody set.

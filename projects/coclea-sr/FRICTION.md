@@ -1,9 +1,14 @@
 # FRICTION.md — what the thesis needed that the tooling did not have
 
 **Rule for this file.** Write the friction down; **fix it with the shortest hack
-that works and keep going.** Do not fix it with architecture. On 2026-11-15 this
-file is the specification for whatever comes next, written by the work instead of
-by enthusiasm.
+that works and keep going.** Do not fix it with architecture. **Whenever the next
+thing gets built, this file is its specification** — written by the work instead
+of by enthusiasm.
+
+No date. An earlier version of this line carried one and it was invented: it came
+from a brainstorm pasted into a conversation, not from anything anybody
+committed to. A file about not fooling yourself is a poor place to keep a
+deadline nobody set.
 
 An entry earns its place by being **real and repeated**. A thing that annoyed
 somebody once is not friction, it is a bad afternoon. Each entry records what
