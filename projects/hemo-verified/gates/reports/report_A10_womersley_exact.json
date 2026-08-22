@@ -1,0 +1,10 @@
+{
+  "failure": null,
+  "gate": "A10",
+  "measured": 0.18077633234118817,
+  "passed": true,
+  "slack": 2.0895515895144485,
+  "spec": "SPEC.md#4",
+  "test": "womersley_exact",
+  "tolerance": 0.377741472590122
+}

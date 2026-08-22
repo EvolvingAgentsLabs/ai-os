@@ -1,0 +1,10 @@
+{
+  "failure": null,
+  "gate": "A3",
+  "measured": 7.116767574302866e-14,
+  "passed": true,
+  "slack": 702566150685.3107,
+  "spec": "SPEC.md#4",
+  "test": "poiseuille_exact",
+  "tolerance": 0.05
+}

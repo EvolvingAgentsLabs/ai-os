@@ -1,0 +1,18 @@
+# Versioned. Changing a value here is a commit with an ADR.
+#
+# Set from the discretisation floor of the exact solutions, not from CFD:
+# calibrating a gate on the same solutions used to score it is how a gate learns
+# to pass. Measured floors on the exact fields, 64 radial nodes, 32 phases:
+#   A3 momentum residual  Poiseuille 1e-13, Womersley 4e-3  -> threshold 5e-2
+#   A2 local divergence   0 by construction for ur=0        -> threshold 5e-2
+#   A6 energy imbalance   Poiseuille 1e-14                  -> threshold 5e-2
+version: 1
+A1_mass_global: 0.01      # |flux imbalance| / mean inflow
+A2_mass_local: 0.05       # p95 of |div u| normalised by |grad u|
+A3_momentum: 0.05         # p95 of the normalised momentum residual
+A4_noslip: 1.0e-3         # |u| at the wall, over u_ref
+A5_bc: 0.02               # L2 of the inlet profile against the prescribed one
+A6_energy: 0.05           # |power in - dissipation| / power in
+# A10 has no entry: its bound is derived from the momentum equation and the
+# sampling interval, not chosen. See oracles/a10_envelope.py -- the invented
+# value that used to live here failed on the exact Womersley solution.

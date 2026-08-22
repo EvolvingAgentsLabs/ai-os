@@ -1,0 +1,10 @@
+{
+  "failure": null,
+  "gate": "A4",
+  "measured": 0.0,
+  "passed": true,
+  "slack_note": "observed quantity is exactly zero; slack is undefined",
+  "spec": "SPEC.md#4",
+  "test": "poiseuille_exact",
+  "tolerance": 0.001
+}
