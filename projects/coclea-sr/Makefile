@@ -26,6 +26,9 @@ figures:
 
 verify:
 	python3 verify_ledger.py
+	# informational: reports how tightly the gates bind, never blocks.
+	# `--strict` is for a CI job somebody opts into, not for the default path.
+	python3 gates/check_slack.py
 
 reproduce:
 	@echo "recording the run directories that exist now..."

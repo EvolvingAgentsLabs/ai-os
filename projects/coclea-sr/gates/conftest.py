@@ -95,6 +95,67 @@ def pytest_runtest_makereport(item, call):
     setattr(item, f"_outcome_{rep.when}", rep)
 
 
+# Field names that are unambiguously "smaller is better". `spread`, `shift`,
+# `ratio`, `order` and `span` are deliberately absent: A14 asserts `shift <
+# TOLERANCE_DB` in one test and `shift > TOLERANCE_DB` in another, so guessing
+# the direction from the name would invert the slack for half of them. A test
+# with an ambiguous quantity, or a lower-bound assertion, says so with
+# `slack_basis=` and `bound=`.
+_CLOSENESS = ("error", "defect", "residual", "drift", "difference")
+
+
+def _slack(payload):
+    """How much room is left between what was measured and what is allowed.
+
+    A gate is only evidence in proportion to how tightly it binds, and until
+    2026-08-22 that number existed in two reports out of 135 while the rest
+    carried the ingredients and never divided them. Recomputing it by hand
+    across the directory found C03 passing with a relative residual 760,000x
+    below its tolerance -- green against a power balance free to degrade five
+    orders of magnitude -- and A08 sitting 8% from red, one refactor away from
+    a failure that would mean nothing.
+
+    Neither number was chosen. Both were whatever made the test pass the day it
+    was written. This does not fix that; it makes it visible, which is the part
+    that was missing.
+
+    -> (slack, note). `slack` is None when it cannot be computed, and the note
+    says why rather than leaving a silent absence.
+    """
+    tol = payload.get("tolerance")
+    if not isinstance(tol, (int, float)) or isinstance(tol, bool):
+        return None, None
+    if tol <= 0 or tol != tol or tol in (float("inf"), float("-inf")):
+        return None, "tolerance is not a positive finite number"
+
+    basis = payload.get("slack_basis")
+    if isinstance(basis, str):
+        observed = payload.get(basis)
+        if not isinstance(observed, (int, float)) or isinstance(observed, bool):
+            return None, f"slack_basis={basis!r} is not a number in this report"
+    else:
+        cand = {
+            k: v for k, v in payload.items()
+            if isinstance(v, (int, float)) and not isinstance(v, bool)
+            and any(w in k.lower() for w in _CLOSENESS)
+        }
+        if not cand:
+            return None, "no unambiguous observed quantity; pass slack_basis="
+        # the binding one is the worst one, not the first one
+        observed = max(cand.values())
+
+    if observed != observed or observed in (float("inf"), float("-inf")):
+        return None, "observed quantity is not finite"
+    if payload.get("bound") == "lower":
+        return (observed / tol, None) if tol > 0 else (None, "bad lower bound")
+    if observed == 0:
+        # An exact identity leaves undefined slack, not infinite slack. Ten A11
+        # reports measure a symmetry defect of exactly zero; calling those the
+        # loosest gates in the suite would be an artifact of the division.
+        return None, "observed quantity is exactly zero; slack is undefined"
+    return tol / abs(observed), None
+
+
 @pytest.fixture
 def report(request):
     """Collect measurements, then write them whatever the test's outcome."""
@@ -127,6 +188,12 @@ def report(request):
         "failure": None if passed or call_rep is None else str(call_rep.longrepr)[-2000:],
         **payload,
     }
+    slack, slack_note = _slack(payload)
+    if slack is not None:
+        out["slack"] = slack
+    elif slack_note is not None:
+        out["slack_note"] = slack_note
+
     non_finite = _non_finite_paths(out)
     if non_finite:
         out["non_finite_fields"] = sorted(non_finite)

@@ -310,7 +310,7 @@ make a new version. `attest.supersede` records that, the replacements have
 reports the originals as a warning rather than a failure — because a verifier
 that fails forever on history is one nobody runs.
 
-## Nine ways the instrument lied
+## Ten ways the instrument lied
 
 None of them was found by reading. Kept because the workspace rules ask for it
 and because each first looked like a result.
@@ -370,6 +370,23 @@ lexically last one and reached for a *stale* E2 result. It failed with a
 `KeyError` only because the schema had changed in between; had it not, the figure
 would have shown old numbers under a correct-looking provenance stamp. Runs are
 now ordered by their manifest timestamp.
+
+**Nobody chose how tightly any gate binds.** Every gate compares a measurement
+against a tolerance, and until 2026-08-22 the ratio between the two — the slack
+— was computed in two reports out of 135. The rest carried both numbers and
+never divided them. Doing it by hand found `C03` green with a relative residual
+**760,000x** below its tolerance, a power balance free to degrade five orders of
+magnitude unnoticed, and `A08` sitting **8%** from red on a threshold that was
+whatever made the test pass the day it was written. Neither end is a bug by
+itself: slack far above an exact identity is legitimate when it only covers
+numerical noise, and a tight bound is right where the quantity is genuinely
+bounded. The defect is that the number was not recorded, so nobody could tell
+which was which. `gates/conftest.py` now computes it for every report and
+`gates/check_slack.py` flags both ends. It deliberately does **not** feed the
+freeze verdict: a loose gate is passing and a tight one may be well calibrated,
+so turning slack into a blocker would convert a calibration question into an
+outage — on thresholds themselves unchosen, which is the very mistake being
+reported here.
 
 ## The deliberate defect
 
