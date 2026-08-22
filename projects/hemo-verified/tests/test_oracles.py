@@ -92,3 +92,23 @@ def test_no_oracle_can_see_the_truth():
 def test_oracle_files_are_read_only_after_boot():
     for p in pathlib.Path("oracles").glob("a[0-9]*.py"):
         assert oct(p.stat().st_mode)[-3:] == "444", p
+
+
+def test_h0_is_reproducible_across_processes(tmp_path):
+    """Seeding the perturbations with hash() made H0 report a different AUC on
+    every run, because Python randomises string hashing per process. The
+    numbers moved in the fourth decimal and changed no conclusion, which is
+    luck, not a property. Two separate processes must now agree exactly.
+    """
+    import json
+    import subprocess
+    root = pathlib.Path(__file__).resolve().parent.parent
+
+    def run(out):
+        subprocess.run([sys.executable, "eval/h0.py", "--out", str(out)],
+                       cwd=root, check=True, capture_output=True)
+        d = json.loads((out / "h0.json").read_text())
+        d.pop("runtime", None)          # wall clock is not reproducible
+        return json.dumps(d, sort_keys=True)
+
+    assert run(tmp_path / "a") == run(tmp_path / "b")

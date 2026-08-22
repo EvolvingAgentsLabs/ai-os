@@ -76,12 +76,19 @@ tradition of writing these down:
 - **Womersley had a sign error.** The closed form left an O(1) momentum residual
   and its quasi-steady limit went to zero instead of Poiseuille. Caught by the
   limit check, not by reading.
+- **H0 was not reproducible.** The perturbations were seeded with `hash()`, and
+  Python randomises string hashing per process, so every run reported a slightly
+  different AUC. It moved in the fourth decimal and changed no conclusion —
+  which is luck, not a property. Now seeded with a stable checksum, with a test
+  that runs the pipeline in two separate processes and demands they agree
+  exactly.
 - **A10's threshold was invented and fired on a perfect field.** See
   [ADR-0001](decisions/0001-the-envelope-threshold-is-derived-not-chosen.md).
   The replacement is derived from the momentum equation and holds a flat slack
   of 2.1 across a 16x range of sampling rates.
 
-The first two would each have produced a clean H0 number that meant nothing.
+The first two would each have produced a clean H0 number that meant nothing, and
+the last two would have produced one nobody could reproduce.
 
 ## Run it
 

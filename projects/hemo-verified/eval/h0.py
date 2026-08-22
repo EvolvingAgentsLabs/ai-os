@@ -10,6 +10,7 @@ The oracles see only the perturbed prediction, the grid and the boundary
 conditions.
 """
 import argparse
+import binascii
 import hashlib
 import json
 import pathlib
@@ -91,7 +92,13 @@ def main():
                      "per_oracle": {x["id"]: x["score"] for x in r}})
         for pname, fn in perturb.ALL.items():
             for lv in LEVELS:
-                pf = fn(truth, lv, grid, bc, seed=hash((pname, lv)) % 2 ** 31)
+                # NOT hash(): Python randomises string hashing per process, so
+                # seeding the noise with it made H0 report a different AUC on
+                # every run. Caught by re-running after the merge and seeing the
+                # numbers move in the fourth decimal -- which changed no
+                # conclusion, by luck rather than by design.
+                seed = binascii.crc32(f"{pname}:{lv}".encode())
+                pf = fn(truth, lv, grid, bc, seed=seed)
                 err = pf.l2_error(truth, grid)
                 r, comp, dec = oracles.verdict(pf, grid, bc)
                 rows.append({"case": name, "perturbation": pname, "level": lv,
@@ -126,7 +133,10 @@ def main():
         "verdict": ("SURVIVES" if overall >= 0.8 else "KILLED"),
         "oracle_hashes": oracles.hashes(),
         "thresholds": oracles.thresholds(),
-        "seconds": round(time.time() - t0, 2),
+        # everything above this line is reproducible bit for bit; wall clock
+        # is not, so it lives apart rather than sitting inside the payload a
+        # reader is meant to be able to hash
+        "runtime": {"seconds": round(time.time() - t0, 2)},
         "rows": rows,
     }
     d = pathlib.Path(a.out)
