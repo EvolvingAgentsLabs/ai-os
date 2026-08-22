@@ -11,6 +11,7 @@
   "passed": true,
   "predicted_bound": 5e-07,
   "relative_drift": 4.946503771370518e-07,
+  "slack": 2.0216299152298673,
   "spec": "2.4 / 5.3",
   "test": "test_a_varying_profile_conserves_too",
   "tolerance": 1e-06

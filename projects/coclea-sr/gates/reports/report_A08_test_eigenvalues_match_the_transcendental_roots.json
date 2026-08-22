@@ -56,6 +56,7 @@
     7.85284851342182e-30,
     1.668636670024563e-29
   ],
+  "slack": 1.0841340486539945,
   "spec": "2.6 / 2.11",
   "test": "test_eigenvalues_match_the_transcendental_roots",
   "tolerance": 1e-05

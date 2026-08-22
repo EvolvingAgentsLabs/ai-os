@@ -45,6 +45,7 @@
   ],
   "sigma_opt_measured": 0.5473731587078151,
   "sigma_opt_predicted": 0.5,
+  "slack": 1.5831749886592914,
   "snr_ci": [
     [
       null,

@@ -9,6 +9,7 @@
   "n_periods": 20,
   "passed": true,
   "relative_residual": 5.350748551934227e-07,
+  "slack": 186.88973893914576,
   "spec": "2.4",
   "test": "test_the_energy_balance_closes_0.01",
   "tolerance": 0.0001,

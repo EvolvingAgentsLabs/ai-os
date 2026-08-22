@@ -10,6 +10,7 @@
   "max_relative_error": 6.113660809613365e-08,
   "omega": 0.3,
   "passed": true,
+  "slack": 163.56811919096984,
   "spec": "ADR-0002",
   "test": "test_the_solver_matches_the_closed_form_0.3",
   "tolerance": 1e-05,

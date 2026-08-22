@@ -2,6 +2,7 @@
   "failure": null,
   "gate": "A02",
   "passed": true,
+  "slack_note": "no unambiguous observed quantity; pass slack_basis=",
   "spec": "2.3 property 2",
   "structural": true,
   "structural_gram_offdiagonal": 2.220446049250313e-15,

@@ -9,6 +9,7 @@
   "power_dissipated": 0.31837584245152384,
   "power_in": 0.31837584412856945,
   "relative_residual": 5.267502684071254e-09,
+  "slack": 189843.28247690608,
   "spec": "ADR-0002",
   "test": "test_power_in_equals_power_dissipated_2000-500.0",
   "tolerance": 0.001

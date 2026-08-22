@@ -42,6 +42,7 @@
     7.4278883090379635e-06,
     9.278430164112816e-06
   ],
+  "slack": 10.77768525830811,
   "spec": "2.2 / 2.4",
   "test": "test_eigenvalues_match_the_closed_form",
   "tolerance": 0.0001

@@ -9,6 +9,7 @@
     "localised": 3.989198748980532e-07,
     "smoothstep": 3.549024715175176e-07
   },
+  "slack_note": "no unambiguous observed quantity; pass slack_basis=",
   "spec": "2.3 property 4 / 2.6",
   "test": "test_projection_and_reconstruction_round_trip",
   "tolerance": 1e-06,

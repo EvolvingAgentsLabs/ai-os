@@ -5,6 +5,7 @@
   "gate": "A08",
   "max_relative_error": 2.3181505128896075e-06,
   "passed": true,
+  "slack": 4.313783744583029,
   "spec": "2.6 / 2.11",
   "test": "test_it_holds_across_the_profile_family_0.5",
   "tolerance": 1e-05

@@ -9,6 +9,7 @@
   "n_paths": 8,
   "omega": 3.0,
   "passed": true,
+  "slack": 184.6915856148552,
   "spec": "4.1",
   "test": "test_the_sampled_variance_matches_the_closed_form_3.0-0.2-0.5",
   "tolerance": 0.0670820393249937,

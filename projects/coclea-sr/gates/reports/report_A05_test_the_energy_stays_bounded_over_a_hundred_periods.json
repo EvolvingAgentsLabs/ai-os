@@ -17,6 +17,7 @@
   "passed": true,
   "predicted_bound": 5.000000000000002e-07,
   "relative_drift": 4.999745601418935e-07,
+  "slack": 2.0001017646101804,
   "spec": "2.4 / 5.3",
   "test": "test_the_energy_stays_bounded_over_a_hundred_periods",
   "tolerance": 1e-06
