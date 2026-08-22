@@ -6,11 +6,17 @@ here from scratch. No code, no weights, no meshes, no thresholds and no geometry
 enter from anywhere else, and nothing derived from an undeclared source does
 either.
 
-**A promise does not make a repository publishable. A check does.**
-`verify_provenance.py` fails if a tracked file does not descend from an input
-declared here, or if a declared input's hash has moved under us. It runs in
-`make verify` and in CI, and a red provenance check blocks a release the way a
-red gate blocks a freeze.
+**A promise does not make a repository publishable. A check does — and the
+check is not written yet.**
+
+`verify_provenance.py` is specified and unimplemented as of 2026-08-22. Until it
+exists, this file is a document rather than a guarantee, and the boundary is held
+by review. That is worth stating plainly instead of writing the check's behaviour
+in the present tense, which is what this paragraph did in its first version.
+
+When written, it must: fail if a tracked file does not descend from an input
+declared here, fail if a declared input's hash has moved, run in `make verify`
+and in CI, and block a release the way a red gate blocks a freeze.
 
 ## Declared inputs
 

@@ -93,10 +93,12 @@ A promise does not make a repository publishable. A check does.
 
 - `PROVENANCE.md` lists every external input: origin, licence, version, hash.
 - `verify_provenance.py` (stdlib only, like the other guards in this workspace)
-  fails if a tracked file does not descend from a declared input, and fails if a
-  declared input's hash has moved.
-- It runs in `make verify` and in CI. A red provenance check blocks a release the
-  way a red gate blocks a freeze.
+  must fail if a tracked file does not descend from a declared input, and fail if
+  a declared input's hash has moved. **Specified, not yet written** — until it
+  exists the allow-list is held by review, and saying otherwise would be the
+  same class of error this project exists to catch.
+- Once written it runs in `make verify` and in CI, and a red provenance check
+  blocks a release the way a red gate blocks a freeze.
 
 Declared inputs for v0.1 are exactly two, both MIT:
 
