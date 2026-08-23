@@ -41,9 +41,21 @@ on:
       - ".github/workflows/projects.yml"
   workflow_dispatch:
 
+# `cancel-in-progress` is deliberately FALSE here, and `ci.yml` is right to set
+# it true. The difference is the runtime. `ci.yml` is two minutes: cancelling a
+# superseded run costs nothing and the answer arrives again immediately. This
+# workflow's gate job is 45 minutes, so on an active branch a doc-only push
+# supersedes it before it finishes and the evidence run simply never completes.
+#
+# That is not hypothetical. On 2026-08-23 this workflow's first run reached
+# 15 minutes into `make gates` and was cancelled by a push that touched three
+# markdown files -- and since the paths filter meant no replacement run started,
+# the result was no answer at all rather than a fresher one. A workflow whose
+# whole purpose is to produce evidence must not be interruptible by work that
+# cannot change what it measures.
 concurrency:
   group: projects-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
 
 jobs:
   coclea-sr:

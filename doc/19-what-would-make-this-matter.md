@@ -243,7 +243,8 @@ All three parts are built and were run **[ran]**:
 
 1. **The Python gates run on a schedule.**
    [`.github/workflows/projects.yml`](../.github/workflows/projects.yml) — nightly,
-   on demand, and on any PR that touches `projects/`. It builds both
+   on demand, and on any PR that touches `projects/`, and **not cancellable by a
+   later push** (§7's fifth finding). It builds both
    environments from their manifests, runs `make gates`, `check_reports.py`,
    `verify_ledger.py` and `check_slack.py` for `coclea-sr`, and `make test` plus
    `make reproduce` for `hemo-verified`. Not per-PR for everything: nine minutes
@@ -382,8 +383,9 @@ that follow from this document:
 
 P0 was written as housekeeping — wire the evidence into CI so it stops rotting.
 Building it required a clean clone on a machine that is not the author's, which
-is the *first two lines of P4*, arriving early and for free. It produced four
-findings, and none of them was reachable by reading.
+is the *first two lines of P4*, arriving early and for free. It produced five
+findings, and none of them was reachable by reading — the last one about the
+instrument itself.
 
 **1 · Neither project could be started from its own documentation.**
 `projects/coclea-sr/.venv` was a **committed symlink to an absolute path on one
@@ -426,6 +428,17 @@ moves.
 **4 · The published oracle table had a second, ordinary error.** A5 and A6 were
 transposed against the artifact they were copied from. Nothing had ever compared
 them; `scripts/check-h0-table.py` does now.
+
+**5 · And the instrument had a defect of its own, found by using it.** The
+nightly's first run reached fifteen minutes into `make gates` and was **cancelled
+by a push that touched three markdown files**. `cancel-in-progress` is correct
+for `ci.yml`, which is two minutes: a superseded run costs nothing and the answer
+comes back immediately. It is wrong for a 45-minute evidence run, because on an
+active branch the run is superseded before it can finish and the result is *no
+answer at all* rather than a fresher one — and the paths filter meant no
+replacement run started either. It is `false` here now, with the reason written
+above it. A workflow whose purpose is to produce evidence must not be
+interruptible by work that cannot change what it measures.
 
 ### What that says about §5's risk table
 

@@ -249,7 +249,8 @@ Las tres partes están construidas y corridas **[ran]**:
 
 1. **Los gates de Python corren en un schedule.**
    [`.github/workflows/projects.yml`](../../.github/workflows/projects.yml) —
-   nightly, a demanda, y en cualquier PR que toque `projects/`. Construye los dos
+   nightly, a demanda, y en cualquier PR que toque `projects/`, y **no
+   cancelable por un push posterior** (quinto hallazgo de la §7). Construye los dos
    entornos desde sus manifiestos, corre `make gates`, `check_reports.py`,
    `verify_ledger.py` y `check_slack.py` para `coclea-sr`, y `make test` más
    `make reproduce` para `hemo-verified`. No todo por PR: nueve minutos y tres
@@ -391,7 +392,8 @@ más tres que se siguen de este documento:
 P0 estaba escrito como tarea de mantenimiento — cablear la evidencia a CI para
 que deje de pudrirse. Construirlo requirió un clon limpio en una máquina que no
 es la del autor, que son *las primeras dos líneas de P4*, llegando temprano y
-gratis. Produjo cuatro hallazgos, y ninguno era alcanzable leyendo.
+gratis. Produjo cinco hallazgos, y ninguno era alcanzable leyendo — el último, sobre el
+instrumento mismo.
 
 **1 · Ninguno de los dos proyectos se podía arrancar desde su propia
 documentación.** `projects/coclea-sr/.venv` era un **symlink commiteado a una
@@ -434,6 +436,18 @@ upgrade. El README dice 0.652 y dice que esa fila se mueve.
 **4 · La tabla de oráculos publicada tenía un segundo error, ordinario.** A5 y A6
 estaban transpuestos contra el artefacto del que se copiaron. Nada los había
 comparado nunca; `scripts/check-h0-table.py` sí lo hace ahora.
+
+**5 · Y el instrumento tenía un defecto propio, encontrado al usarlo.** La
+primera corrida del nightly llegó a quince minutos dentro de `make gates` y la
+**canceló un push que tocaba tres archivos markdown**. `cancel-in-progress` está
+bien para `ci.yml`, que son dos minutos: cancelar una corrida superada no cuesta
+nada y la respuesta vuelve enseguida. Está mal para una corrida de evidencia de
+45 minutos, porque en una rama activa la corrida queda superada antes de poder
+terminar y el resultado es *ninguna respuesta* en vez de una más fresca — y el
+filtro de paths hizo que tampoco arrancara una corrida de reemplazo. Ahora está
+en `false`, con la razón escrita arriba. Un workflow cuyo propósito es producir
+evidencia no puede ser interrumpible por trabajo que no puede cambiar lo que
+mide.
 
 ### Qué dice eso de la tabla de riesgos de la §5
 
