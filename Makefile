@@ -165,6 +165,7 @@ gate:
 	DATABASE_URL="$(TEST_DB_URL)" ./scripts/check-test-count.sh
 	python3 scripts/check-gate-count.py
 	python3 scripts/check-h0-table.py
+	python3 scripts/check-coclea-results.py
 
 # The projects' own evidence. Not part of `gate` because it is minutes rather
 # than seconds and needs numpy, scipy and sympy -- `.github/workflows/projects.yml`
@@ -178,6 +179,7 @@ projects:
 	cd projects/hemo-verified && make test && make reproduce
 	python3 scripts/check-gate-count.py
 	python3 scripts/check-h0-table.py
+	python3 scripts/check-coclea-results.py
 
 clean-run:
 	rm -rf $(RUN_DIR)

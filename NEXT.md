@@ -70,33 +70,37 @@ The order below continues [19 § The plan](doc/19-what-would-make-this-matter.md
 now that P0 is done. Each item says what finishing it means and what would say it
 was the wrong item to pick.
 
-## 1. Check the last two numbers that have artifacts
+## 1. Watch the checks, now that all five are in
 
 [19 §8](doc/19-what-would-make-this-matter.md#8--every-published-number-and-what-checks-it)
-enumerates every number this repository publishes. Three of nine are guarded.
-**Two of the remaining six have producers already sitting in the repository**, and
-they are the cheapest work on this page:
+enumerates every number this repository publishes. **Five of nine are guarded**;
+the four that are not came from runs nobody kept, and no checker is possible for
+them.
 
-- **coclea's headline results against `runs/`.** 11.6%, 24 of 24, −1.22 dB with
-  CI [−1.58, −0.87], Q 2.2–2.7, CF ≈ 1 kHz — quoted in doc 16, doc 18, PLAN, the
-  project README and both Spanish mirrors, and traceable to
-  `runs/<id>-<hash>/result.json` under a verified hash chain. The distance
-  between the artifact and the sentence is a person copying a number, which is
-  exactly what produced *26 / 125* and the transposed A5/A6.
-- **the 3,768 upstream tests** in both READMEs. `ai-base` is pulled weekly from a
-  repository that moves daily, CI already runs those suites in five shards, and
-  nothing compares the two.
+The two built last are:
 
-**One trap, already recorded.** Two of the twenty run artifacts are *intact but
-not valid JSON* — F8's bare `NaN` and `-Infinity`. Python's `json.load` accepts
-both, so a checker written the obvious way would read a malformed artifact and
-report agreement. It has to pass `parse_constant` and refuse.
+- **`scripts/check-coclea-results.py`** — 11.6%, 24 of 24, −1.22 dB with CI
+  [−1.58, −0.87], Q 2.2–2.7 and CF ≈ 1 kHz, read out of the run artifacts that
+  `ledger.jsonl` says are current. It derives which run counts from the ledger's
+  `superseded` entries rather than sorting directory names, and it passes
+  `parse_constant` a function that raises, because two of the twenty artifacts
+  are intact and not valid JSON (F8) and `json.load` accepts both.
+- **`scripts/check-upstream-test-count.sh`** — the number beside 626 on the front
+  page, which a weekly `git subtree pull` can change without anybody noticing. It
+  runs `ai-base`'s suite unsharded in the nightly rather than summing five matrix
+  shards through artifacts.
 
-**Finished means:** every number with a producer in this repository has something
-that fails when it drifts. **Wrong item if:** mapping artifact fields to
-published sentences needs a hand-maintained table per claim — then the instrument
-is a second thing to keep in sync, which is the disease rather than the cure. If
-that is what it looks like after the first three claims, stop and say so.
+**What is left is not construction.** Watch the first few nightlies: every
+command in `projects.yml` was run by hand before the workflow was written, but a
+scheduled job nobody has seen succeed is a scheduled job. And **the full 135
+checks still have to complete somewhere** — the local run was stopped at 67, the
+first CI run was cancelled by a push, and `cancel-in-progress` is `false` now so
+the next one can finish.
+
+**Wrong item if:** the six-entry claim table in `check-coclea-results.py` starts
+needing edits for reasons other than somebody publishing a new claim. That is the
+line between the list of claims and a second thing to keep in sync, and it is
+worth re-reading the file's header before adding the seventh entry.
 
 ## 2. Decide what A4's per-oracle AUC means
 

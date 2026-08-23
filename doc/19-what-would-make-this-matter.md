@@ -488,26 +488,46 @@ this repository publish, and which of them does anything verify?**
 | 626 tests of our own | 5 files | the suites | `check-test-count.sh` |
 | 28 gates / 135 checks | 13 sites, 7 files | `gates/reports/*.json` | `check-gate-count.py` |
 | H0: composite, table, decisions, false-accept | `hemo-verified/README.md` | `gates/reports/h0.json` | `check-h0-table.py` |
-| **coclea's headline results** — 11.6%, 24 of 24, −1.22 dB CI [−1.58, −0.87], Q 2.2–2.7, CF ≈ 1 kHz | doc 16, doc 18, PLAN, `coclea-sr/README.md`, both mirrors | `runs/<id>-<hash>/result.json`, hash-chained | **nothing** |
-| **3,768 upstream tests** | `README.md`, `README.es.md` | `ai-base`'s own suites, which CI already runs in five shards | **nothing** |
+| coclea's headline results — 11.6%, 24 of 24, −1.22 dB CI [−1.58, −0.87], Q 2.2–2.7, CF ≈ 1 kHz | doc 16, doc 18, PLAN, `coclea-sr/README.md`, both mirrors, NEXT | `runs/<id>-<hash>/result.json`, hash-chained | `check-coclea-results.py` |
+| the upstream test count | `README.md`, `README.es.md` | `ai-base`'s own suites | `check-upstream-test-count.sh` |
 | δ 0% / 21.1% | doc 08, 10, 12 | one dated measurement | nothing, and it is dated, which is the honest form |
 | lazy skills 95.8%, index 4,397 vs 105,423 chars | doc 17, doc index | a run nobody kept | nothing |
 | the knowledge index at 4,523 of 8,000 tokens | `README.md`, doc 05 | a run nobody kept | nothing |
 | memory bench 10.0 / 3.0 | doc 05, 08 | `bench:memory`, needs a key | nothing |
 
-Three of nine are guarded, and **the two worth building next are the two whose
-producers are already sitting in the repository**. The coclea headline results
-are the sharper of them: they are the numbers the whole project is quoted for,
-they live in content-addressed directories with a verified hash chain, and the
-distance between the artifact and the sentence in doc 18 is a human copying a
-number. That is the exact gap that produced *26 / 125* and A5/A6.
+**Five of nine are guarded now.** The two that were not, and whose producers were
+already sitting in the repository, were built the same day this table was
+written — because the sweep is what made it obvious they were the only two
+buildable ones left. The coclea headline results were the sharper of them: they
+are the numbers the whole project is quoted for, they live in content-addressed
+directories with a verified hash chain, and the distance between the artifact
+and the sentence in doc 18 was a human copying a number. That is the exact gap
+that produced *26 / 125* and A5/A6.
+
+**Which run counts is not "the newest directory".** `ledger.jsonl` carries a
+`state` per entry and a later entry can mark an artifact `superseded`, so the
+checker derives the current run from the ledger — the last non-superseded
+`result.json` for each experiment prefix — rather than sorting by name. Two
+artifacts are superseded today and both happen to be the malformed ones below,
+which is a coincidence worth not relying on.
 
 **One trap to design around, and it is already recorded.** Two of the twenty run
 artifacts are *intact but not valid JSON* — FRICTION F8's bare `NaN` and
 `-Infinity`. Python's `json.load` **accepts both**, so a checker written the
-obvious way would read a malformed artifact and report agreement. It has to pass
-`parse_constant` and refuse, which is F8's own lesson turned into a constraint on
-the instrument that would enforce it.
+obvious way would read a malformed artifact and report agreement. It passes
+`parse_constant` a function that raises, which is F8's own lesson turned into a
+constraint on the instrument that would enforce it.
+
+**And the plan's own stopping rule had to be applied rather than quoted.**
+[NEXT.md] said to stop if this needed a hand-maintained table per claim, since
+"the instrument is a second thing to keep in sync, which is the disease rather
+than the cure". It **is** a table per claim — six entries. What makes it worth
+having is a distinction the rule did not draw: the table does not move when a
+*number* moves. Re-run E3, get 11.4%, and the check fails and the document is
+edited; the table is untouched. It changes only when somebody publishes a **new**
+claim, which is the same cost as `CLAIMANTS` in the other three checkers. A table
+you must edit whenever the thing it describes moves is the disease. A table you
+must edit when somebody adds a claim is just the list of claims.
 
 **And the rest of the table is the honest limit.** Four of these numbers came
 from runs nobody kept. No checker can be built for them, and the useful move is
@@ -539,6 +559,15 @@ number, not a policy.
   nightly that runs both projects' evidence. **[read]**: the workflow file has
   not run on GitHub yet, but every command in it was run here first.
 - `scripts/check-h0-table.py` **[ran]** — it failed on three cells and passes now.
+- `scripts/check-coclea-results.py` **[ran]** — green, and failed correctly when
+  11.6% and −1.22 dB were each perturbed on purpose. Its first two versions were
+  wrong in ways worth recording: one consumed the minus sign into the pattern and
+  called every signed claim a mismatch, and one matched a bare "N of N" and
+  reported an ADR counting nine flows as a disagreement about 24 curves.
+- `scripts/check-upstream-test-count.sh` — **not run here**. `ai-base`'s suite
+  needs Node 24 and several minutes, and it was still running when this was
+  written; the nightly job that calls it is where it gets its first real
+  execution, and this PR's own CI is what says whether it works.
 - `check-test-count.sh` now scans every document rather than two, verified
   against a deliberately drifted doc 18 **[ran]**.
 - `projects/hemo-verified/eval/reproduce.py` and `make reproduce` **[ran]** —

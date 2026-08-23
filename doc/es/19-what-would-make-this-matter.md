@@ -499,26 +499,49 @@ números publica este repositorio, y cuáles verifica algo?**
 | 626 tests propios | 5 archivos | los suites | `check-test-count.sh` |
 | 28 gates / 135 chequeos | 13 lugares, 7 archivos | `gates/reports/*.json` | `check-gate-count.py` |
 | H0: compuesto, tabla, decisiones, falso-aceptado | `hemo-verified/README.md` | `gates/reports/h0.json` | `check-h0-table.py` |
-| **los resultados de titular de coclea** — 11.6%, 24 de 24, −1.22 dB CI [−1.58, −0.87], Q 2.2–2.7, CF ≈ 1 kHz | doc 16, doc 18, PLAN, `coclea-sr/README.md`, los dos espejos | `runs/<id>-<hash>/result.json`, encadenado por hash | **nada** |
-| **3.768 tests de upstream** | `README.md`, `README.es.md` | los suites de `ai-base`, que CI ya corre en cinco shards | **nada** |
+| los resultados de titular de coclea — 11.6%, 24 de 24, −1.22 dB CI [−1.58, −0.87], Q 2.2–2.7, CF ≈ 1 kHz | doc 16, doc 18, PLAN, `coclea-sr/README.md`, los dos espejos, NEXT | `runs/<id>-<hash>/result.json`, encadenado por hash | `check-coclea-results.py` |
+| el conteo de tests de upstream | `README.md`, `README.es.md` | los suites propios de `ai-base` | `check-upstream-test-count.sh` |
 | δ 0% / 21.1% | doc 08, 10, 12 | una medición fechada | nada, y está fechada, que es la forma honesta |
 | skills perezosas 95.8%, índice 4.397 vs 105.423 chars | doc 17, índice de doc | una corrida que nadie guardó | nada |
 | el índice de conocimiento en 4.523 de 8.000 tokens | `README.md`, doc 05 | una corrida que nadie guardó | nada |
 | bench de memoria 10.0 / 3.0 | doc 05, 08 | `bench:memory`, necesita una clave | nada |
 
-Tres de nueve están guardados, y **los dos que conviene construir después son los
-dos cuyos productores ya están en el repositorio**. Los resultados de titular de
-coclea son el más filoso de los dos: son los números por los que se cita al
-proyecto entero, viven en directorios direccionados por contenido con una cadena
-de hashes verificada, y la distancia entre el artefacto y la frase del doc 18 es
-una persona copiando un número. Es exactamente el hueco que produjo *26 / 125* y
-la transposición de A5/A6.
+**Ahora hay cinco de nueve guardados.** Los dos que no lo estaban, y cuyos
+productores ya estaban en el repositorio, se construyeron el mismo día en que se
+escribió esta tabla — porque el barrido es lo que hizo obvio que eran los dos
+únicos construibles que quedaban. Los resultados de titular de coclea eran el más
+filoso de los dos: son los números por los que se cita al proyecto entero, viven
+en directorios direccionados por contenido con una cadena de hashes verificada, y
+la distancia entre el artefacto y la frase del doc 18 era una persona copiando un
+número. Es exactamente el hueco que produjo *26 / 125* y la transposición de
+A5/A6.
+
+**Cuál corrida cuenta no es "el directorio más nuevo".** `ledger.jsonl` lleva un
+`state` por entrada y una entrada posterior puede marcar un artefacto
+`superseded`, así que el checker deriva la corrida vigente del ledger — el último
+`result.json` no superseded de cada prefijo de experimento — en vez de ordenar
+por nombre. Hoy hay dos artefactos superseded y resultan ser los malformados de
+abajo, coincidencia en la que conviene no apoyarse.
 
 **Una trampa que hay que contemplar en el diseño, y ya está registrada.** Dos de
 los veinte artefactos de corrida son *íntegros y no son JSON válido* — el `NaN` y
 el `-Infinity` desnudos de FRICTION F8. El `json.load` de Python **acepta los
 dos**, así que un checker escrito de la manera obvia leería un artefacto
-malformado y reportaría acuerdo. Tiene que pasar `parse_constant` y negarse.
+malformado y reportaría acuerdo. Le pasa a `parse_constant` una función que
+levanta excepción, que es la lección de F8 convertida en restricción sobre el
+instrumento que la haría cumplir.
+
+**Y la regla de parada del propio plan había que aplicarla, no citarla.**
+[NEXT.md] decía frenar si esto necesitaba una tabla mantenida a mano por
+afirmación, porque "el instrumento es una segunda cosa que mantener sincronizada,
+que es la enfermedad y no la cura". **Es** una tabla por afirmación — seis
+entradas. Lo que la hace valer es una distinción que la regla no trazaba: la
+tabla no se mueve cuando se mueve un *número*. Re-corré E3, obtené 11.4%, y el
+check falla y se edita el documento; la tabla queda intacta. Solo cambia cuando
+alguien publica una afirmación **nueva**, que es el mismo costo que `CLAIMANTS`
+en los otros tres checkers. Una tabla que hay que editar cada vez que se mueve lo
+que describe es la enfermedad. Una tabla que hay que editar cuando alguien agrega
+una afirmación es simplemente la lista de afirmaciones.
 
 **Y el resto de la tabla es el límite honesto.** Cuatro de estos números salieron
 de corridas que nadie guardó. No se les puede construir un checker, y el
@@ -551,6 +574,16 @@ decisión por número, no una política.
   workflow todavía no corrió en GitHub, pero cada comando de adentro se corrió
   acá primero.
 - `scripts/check-h0-table.py` **[ran]** — falló en tres celdas y ahora pasa.
+- `scripts/check-coclea-results.py` **[ran]** — verde, y falló correctamente
+  cuando se perturbaron a propósito el 11.6% y el −1.22 dB. Sus dos primeras
+  versiones estaban mal de maneras que vale registrar: una se comía el signo menos
+  dentro del patrón y llamaba discrepancia a toda afirmación con signo, y otra
+  matcheaba un "N de N" pelado y reportaba un ADR que contaba nueve flows como un
+  desacuerdo sobre 24 curvas.
+- `scripts/check-upstream-test-count.sh` — **no corrido acá**. El suite de
+  `ai-base` necesita Node 24 y varios minutos, y seguía corriendo cuando se
+  escribió esto; el job nightly que lo llama es donde se ejecuta por primera vez
+  de verdad, y el CI de este propio PR es el que dice si funciona.
 - `check-test-count.sh` ahora escanea todo documento en vez de dos, verificado
   contra un doc 18 derivado a propósito **[ran]**.
 - `projects/hemo-verified/eval/reproduce.py` y `make reproduce` **[ran]** —

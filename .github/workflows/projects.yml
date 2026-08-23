@@ -144,6 +144,38 @@ jobs:
         run: python3 scripts/check-gate-count.py
       - name: HEMO-VERIFIED's oracle table
         run: python3 scripts/check-h0-table.py
+      - name: COCLEA-SR's headline results
+        # Reads the run artifacts the ledger says are current. It does not
+        # re-run the experiments -- `make reproduce` in the job above is what
+        # says the runs still hold, and this only says that what got published
+        # is what was produced.
+        run: python3 scripts/check-coclea-results.py
+
+  upstream-test-count:
+    name: The upstream test count
+    runs-on: ubuntu-latest
+    # `ai-base` is subtree-pulled weekly from a repository that moves daily, so
+    # this is the number here most certain to rot, and until 2026-08-23 nothing
+    # watched it. `ci.yml` runs these suites already but shards them five ways
+    # and each shard reports only its own total; summing across matrix jobs
+    # needs artifacts passed between them, which is more machinery than the
+    # number is worth. Unsharded, once, nightly is cheaper in every sense.
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: ai-base/.node-version
+          cache: npm
+          cache-dependency-path: ai-base/package-lock.json
+      - name: Install
+        working-directory: ai-base
+        run: npm ci
+      - name: The published upstream count matches the suite
+        run: ./scripts/check-upstream-test-count.sh
 
   projects:
     name: Projects
@@ -152,6 +184,7 @@ jobs:
       - coclea-sr
       - hemo-verified
       - published-numbers
+      - upstream-test-count
     steps:
       - name: Checks passed
-        run: echo "coclea-sr's gates, hemo-verified's H0, and the published numbers passed."
+        run: echo "coclea-sr's gates, hemo-verified's H0, and every published number passed."
