@@ -28,6 +28,7 @@ SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
@@ -95,7 +96,35 @@ def measured() -> tuple[int, int]:
     return len(gates), checks
 
 
+def scanned(roots):
+    """Every document that can carry a claim, across every root given.
+
+    `.html` as well as `.md`, because the number this script guards is also
+    printed on the website -- a separate repository, which CI cannot see. The
+    failure mode that made this necessary is written into the script's own error
+    message: it told the reader to "update the copy in the website repository"
+    and had no way to tell whether they had.
+    """
+    for root in roots:
+        for pattern in ("**/*.md", "**/*.html"):
+            for path in sorted(root.glob(pattern)):
+                if "node_modules" in path.parts or ".git" in path.parts:
+                    continue
+                yield root, path
+
+
 def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "--also", action="append", default=[], metavar="DIR",
+        help="another checkout to scan -- the website, before publishing it",
+    )
+    args = ap.parse_args()
+    extra = [Path(d).resolve() for d in args.also]
+    for d in extra:
+        if not d.is_dir():
+            sys.exit(f"FAIL  --also {d} is not a directory")
+
     gates, checks = measured()
     print(f"reports  {gates} gates / {checks} checks, all green [read from artifacts]")
 
@@ -103,9 +132,7 @@ def main() -> int:
     found_in: set[Path] = set()
     failed = False
 
-    for path in sorted(ROOT.glob("**/*.md")):
-        if "node_modules" in path.parts or ".git" in path.parts:
-            continue
+    for root, path in scanned([ROOT] + extra):
         text = path.read_text(encoding="utf-8", errors="replace")
         # A claim wrapped across two blockquote lines is still a claim. Join
         # the continuation so "26 gates / 125\n> checks" is not invisible to
@@ -121,8 +148,8 @@ def main() -> int:
                 # The second pattern reads checks-then-gates.
                 claimed = (a, b) if pattern is CLAIM_PATTERNS[0] else (b, a)
                 found_in.add(path)
-                rel = path.relative_to(ROOT)
-                if path not in listed:
+                rel = path.relative_to(root)
+                if root is ROOT and path not in listed:
                     print(f"FAIL  {rel} publishes the count and is not in CLAIMANTS")
                     failed = True
                 if claimed != (gates, checks):
@@ -140,8 +167,9 @@ def main() -> int:
 
     if failed:
         print()
-        print("Update the numbers above, and the copy in the website repository:")
-        print("  evolvingagentslabs.github.io/index.html")
+        print("Update the numbers above. The website is a separate repository and")
+        print("CI cannot see it, so check it before publishing:")
+        print("  python3 scripts/check-gate-count.py --also ../evolvingagentslabs.github.io")
         return 1
     return 0
 

@@ -470,17 +470,21 @@ autor corrió el código:
 **Y una fila se fortaleció, no se debilitó.** En la misma máquina desconocida, el
 `verify_ledger.py` de `coclea-sr` re-derivó su cadena de hashes,
 `check_reports.py` encontró que todo reporte tiene un test detrás, y
-`check_slack.py` reportó 25 gates con slack de 1.08× a 760.977× **[ran]**. El
-suite de gates en sí se **detuvo en 67 de 135 chequeos**, verde hasta ahí: había
-gastado alrededor de media hora en esos contra nueve minutos para los 135 en la
-máquina del autor, y solo el integrador SDE de A13 lo tuvo un cuarto de hora. Eso
-es una medición sobre este hardware y la razón de que el suite sea un nightly y
-no un job por PR — y **los 135 completos todavía no se re-corrieron en ningún
-lado**, así que el primer nightly es el que va a decir. Los reportes que había
-reescrito diferían de los commiteados solo en sus últimos decimales, con
-`passed: true` en todos, y deliberadamente **no** se commitean: son los últimos
-bits de esta máquina, y los artefactos del autor siguen siendo los autoritativos
-hasta que una máquina que alguien haya elegido produzca unos mejores.
+`check_slack.py` reportó 25 gates con slack de 1.08× a 760.977× **[ran]**. Y
+después el workflow corrió en un runner de GitHub y **los 135 chequeos volvieron
+verdes en 23 minutos 27 segundos [ran]** — la primera vez que el suite completo se
+ejecuta en otro lado que no sea la máquina del autor, seguido en el mismo job por
+`check_reports.py`, `verify_ledger.py`, `check_slack.py`, y el conteo publicado
+chequeado contra reportes producidos segundos antes. Contra nueve minutos en la
+máquina del autor, así que el runner es unas 2,6× más lento y el job es
+cómodamente un nightly y no uno por PR.
+
+Antes de eso un intento local se detuvo en 67 de 135, verde hasta ahí, y los
+reportes que había reescrito diferían de los commiteados solo en sus últimos
+decimales con `passed: true` en todos. Esos deliberadamente **no** se commitean:
+son los últimos bits de una máquina, y los artefactos del autor siguen siendo los
+autoritativos hasta que una máquina que alguien haya elegido produzca unos
+mejores.
 
 La maquinaria de atestación de la que este repositorio está más orgulloso hizo su
 trabajo en hardware que nunca había visto; el proyecto que no la tenía es el que
@@ -542,6 +546,14 @@ alguien publica una afirmación **nueva**, que es el mismo costo que `CLAIMANTS`
 en los otros tres checkers. Una tabla que hay que editar cada vez que se mueve lo
 que describe es la enfermedad. Una tabla que hay que editar cuando alguien agrega
 una afirmación es simplemente la lista de afirmaciones.
+
+**El sitio es un repositorio aparte, y era la última superficie sin vigilar.**
+Traía <!-- gate-count: superseded --> *26 gates / 125 chequeos* en dos páginas después de que este repositorio ya
+estaba corregido — y `check-gate-count.py` venía *imprimiendo* "actualizá la copia
+en el repositorio del sitio" sin ninguna forma de saber si alguien lo había hecho.
+Los dos escáneres aceptan ahora `--also <dir>` y leen `.html` además de `.md`, así
+que el sitio se chequea contra los mismos artefactos antes de publicarse. CI sigue
+sin poder verlo; una persona corriendo dos comandos, sí.
 
 **Y el resto de la tabla es el límite honesto.** Cuatro de estos números salieron
 de corridas que nadie guardó. No se les puede construir un checker, y el

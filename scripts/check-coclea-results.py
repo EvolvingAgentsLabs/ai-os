@@ -51,6 +51,7 @@ SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
@@ -199,6 +200,17 @@ def same(published: str, actual) -> bool:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "--also", action="append", default=[], metavar="DIR",
+        help="another checkout to scan -- the website, before publishing it",
+    )
+    args = ap.parse_args()
+    extra = [Path(d).resolve() for d in args.also]
+    for d in extra:
+        if not d.is_dir():
+            sys.exit(f"FAIL  --also {d} is not a directory")
+
     runs = current_runs()
     print("runs     " + ", ".join(
         f"{k} → {v['_artifact'].split('/')[1]}" for k, v in sorted(runs.items())
@@ -208,31 +220,38 @@ def main() -> int:
     failed = False
     seen: dict[str, set[Path]] = {label: set() for label, _, _ in CLAIMS}
 
-    for path in sorted(ROOT.glob("**/*.md")):
-        if "node_modules" in path.parts or ".git" in path.parts:
-            continue
-        text = re.sub(r"\n>[ \t]*", " ", path.read_text(encoding="utf-8", errors="replace"))
-        rel = path.relative_to(ROOT)
-        for label, expected_of, pattern in CLAIMS:
-            expected = expected_of(runs)
-            for match in pattern.finditer(text):
-                groups = match.groups()
-                if len(groups) != len(expected):
-                    continue
-                seen[label].add(path)
-                if path not in listed:
-                    print(f"FAIL  {rel} quotes “{label}” and is not in CLAIMANTS")
-                    failed = True
-                bad = [
-                    (g, e) for g, e in zip(groups, expected) if not same(g, e)
-                ]
-                if bad:
-                    got = ", ".join(g for g in groups)
-                    want = ", ".join(str(e) for e in expected)
-                    print(f"FAIL  {rel} — {label}: says {got}; the run says {want}")
-                    failed = True
-                else:
-                    print(f"ok    {rel} — {label}: {', '.join(groups)}")
+    # `.html` too, and across every root given: these numbers are also printed on
+    # the website, which is a separate repository CI cannot see.
+    for root in [ROOT] + extra:
+      for pattern in ("**/*.md", "**/*.html"):
+        for path in sorted(root.glob(pattern)):
+            if "node_modules" in path.parts or ".git" in path.parts:
+                continue
+            text = re.sub(r"\n>[ \t]*", " ", path.read_text(encoding="utf-8", errors="replace"))
+            rel = path.relative_to(root)
+            for label, expected_of, pattern in CLAIMS:
+                expected = expected_of(runs)
+                for match in pattern.finditer(text):
+                    groups = match.groups()
+                    if len(groups) != len(expected):
+                        continue
+                    seen[label].add(path)
+                    # CLAIMANTS is this repository's list. An extra root passed
+                    # with --also is somebody else's checkout, and its numbers
+                    # are checked without being told where they may live.
+                    if root is ROOT and path not in listed:
+                        print(f"FAIL  {rel} quotes “{label}” and is not in CLAIMANTS")
+                        failed = True
+                    bad = [
+                        (g, e) for g, e in zip(groups, expected) if not same(g, e)
+                    ]
+                    if bad:
+                        got = ", ".join(g for g in groups)
+                        want = ", ".join(str(e) for e in expected)
+                        print(f"FAIL  {rel} — {label}: says {got}; the run says {want}")
+                        failed = True
+                    else:
+                        print(f"ok    {rel} — {label}: {', '.join(groups)}")
 
     for label, _, _ in CLAIMS:
         if not seen[label]:

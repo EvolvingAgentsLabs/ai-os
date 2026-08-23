@@ -7,6 +7,75 @@
 > **Project.** Why this exists. Nothing here is a claim about running software.
 
 
+## The question this has to answer first
+
+Because it is the one the project actually gets asked, and it is a fair question:
+
+> **Why are you building another agent framework?**
+
+The answer that was true in 2025 was *because agents that evolve on their own do
+not exist yet*. That answer has expired. They exist, several of them are funded,
+and this organisation's own attempt at it is archived with 453 stars on it.
+
+The answer that is true now is narrower and it is not about generation at all:
+
+> **Everyone can generate. Almost nobody can tell you, six months later, whether
+> the number in their README is still the number their code produces — and prove
+> it to a stranger.**
+
+That is the layer this repository builds, and it is the reason the four pillars
+below are *how* rather than *why*. A flow engine, a canvas and a memory address
+space are all categories with well-funded competitors; **truth that the code
+under test cannot produce** is not.
+
+### What that means concretely, and all of it runs
+
+| | |
+|---|---|
+| **Truth from outside the code** | `truth/` must not import `src/`. Closed forms on one side, the solver on the other, a gate comparing them. Four words of policy, and the load-bearing structure of a whole thesis |
+| **A kernel that does not care what language the work is in** | a Python process writes a JSON gate report; a TypeScript kernel parses, summarises and decides, and executes nothing. That is the operating-system claim, and it is the one with a running seam behind it |
+| **"Did not run" is not "passed"** | the freeze verdict returns `blockers` and `unknown` as separate lists and refuses on either |
+| **Attestation instead of assertion** | content-addressed runs, a hash-chained ledger, `make reproduce`, and the environment recorded inside the artifact so a comparison can tell *disagrees* from *was produced somewhere else* |
+| **Every published number tied to its producer** | five of the nine numbers this repository publishes are checked against the artifact that produced them, nightly ([19 §8](19-what-would-make-this-matter.md#8--every-published-number-and-what-checks-it)) |
+
+### The strong version of this argument is measured false, and we measured it
+
+The pitch that would sell better is *"a model cannot tell whether its own output
+is wrong."* It is not true. A companion experiment gave a frontier model twelve
+fabricated physics results and nine subtly defective ones and it caught **all of
+them**, twice, naming causes at the level of *"the boundary treatment at the free
+end fails to halve the control volume"*
+([results](https://github.com/EvolvingAgentsLabs/physics-verifiers/blob/main/experiments/judge_vs_physics/RESULTS.md)).
+
+So the claim is the narrow one that survives it, and it is worth stating exactly:
+
+- **A model can judge a task. It cannot generate one with a known answer.** You
+  do not create truth by asserting it, however good the assertion is.
+- **A judge that is right every time still hands you no ledger, no freeze and no
+  reproduction command.** Detection is not the same product as attestation, and
+  the second is what a reviewer, a regulator or a colleague six months later
+  needs.
+
+### What it bought, in one day, on this repository
+
+The instruments were finished on 2026-08-23 and immediately run by somebody who
+had never run this system. They found five things, none of which was reachable by
+reading the code ([19 §7](19-what-would-make-this-matter.md#7--what-running-p0-found-on-the-same-day)):
+
+1. A published count that had been wrong in thirteen places for six days.
+2. An **attested artifact that could not have been produced by the code committed
+   beside it** — the report was regenerated in the middle of the commit that
+   existed to make it reproducible, and nothing looked.
+3. A reported statistic that moves with a **library version** rather than with
+   the data — 66 of its 98 measurements are exactly zero, and one value crossing
+   into that tie block drags a rank statistic 0.054.
+4. A transposed row in a table nobody had ever compared to its own artifact.
+5. A defect in the new instrument itself, found by using it.
+
+Neither project could even be started from its own documentation. That is what a
+verification layer is worth, and none of it is an argument — it is a list of
+things that were wrong and are not any more.
+
 ## The claim
 
 Agents today are **applications**. ai-os is the argument that they should be an

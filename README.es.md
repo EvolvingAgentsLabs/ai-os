@@ -2,26 +2,56 @@
 
 # ai-os
 
-> **2026-08-17 — la carga de trabajo llegó al otro extremo.**
-> `projects/coclea-sr` llevó una hipótesis de biofísica de 1995 desde la
-> matemática, a través de una **falsación de su propio modelo**, hasta un conjunto
-> gateado de afirmaciones falsables sobre patologías del oído y su tratamiento.
-> **28 gates / 135 chequeos, todos verdes [ran].** El arco completo, y lo que
-> **no** muestra, está en [doc 18](doc/es/18-from-a-hypothesis-to-a-therapeutic-surface.md).
->
-> Incluido en lo que no muestra: `physics-verifiers` midió el argumento habitual
-> para los gates y lo **falsó** — un juez LLM detectó tan bien como un verificador
-> de física, dos veces
-> ([resultados](https://github.com/EvolvingAgentsLabs/physics-verifiers/blob/main/experiments/judge_vs_physics/RESULTS.md)).
-> Los gates no son para detectar; son para generar verdad que el código bajo
-> prueba no puede producir, y para conservarla. Corriendo sobre `qwen/qwen3.8-27b`.
+**¿Otro framework de agentes?** No lo es.
 
-**Un sistema operativo de agentes**, construido sobre [QM](https://github.com/yc-software/qm).
+> Todo el mundo puede generar. Casi nadie te puede decir, seis meses después, si
+> el número que está en su README sigue siendo el número que produce su código —
+> **y probártelo a vos, que sos un desconocido.**
 
-El trabajo sobrevive a la conversación. Los agentes y sus subagentes son archivos
-markdown en la carpeta del propio proyecto. La interfaz es un escritorio que
-acomodás, no un log de chat. Y toda afirmación sobre si eso ayuda tiene una
-medición atrás — incluidas las que volvieron diciendo que no.
+ai-os es la capa que hace que el trabajo de los agentes sea chequeable por algo
+que no es otro modelo, y que lo mantiene chequeado. Es **un sistema operativo de
+agentes**, construido sobre [QM](https://github.com/yc-software/qm), y la parte de
+sistema operativo es el *cómo*; la frase de arriba es el *por qué*.
+
+| | |
+|---|---|
+| **Verdad de afuera del código** | `truth/` no puede importar `src/`. El valor contra el que chequea un gate **no lo puede producir el código bajo prueba** |
+| **Un kernel al que no le importa el lenguaje del trabajo** | Python escribe un reporte de gate en JSON; un kernel en TypeScript parsea, resume y decide, y no ejecuta nada |
+| **"No corrió" no es "pasó"** | el veredicto de freeze devuelve `blockers` y `unknown` por separado y se niega ante cualquiera de los dos |
+| **Atestación, no afirmación** | corridas direccionadas por contenido, un ledger encadenado por hash, `make reproduce`, y el entorno registrado en el artefacto |
+| **Cada número publicado atado a su productor** | cinco de los nueve números de esta página y de `doc/` se chequean contra el artefacto que los produjo, todas las noches |
+
+**La versión fuerte de ese argumento es falsa y fuimos nosotros los que la
+medimos.** `physics-verifiers` le dio a un modelo frontier doce resultados de
+física fabricados y nueve sutilmente defectuosos. Los cazó **todos, dos veces**
+([resultados](https://github.com/EvolvingAgentsLabs/physics-verifiers/blob/main/experiments/judge_vs_physics/RESULTS.md)).
+Así que la afirmación es más angosta, y es la parte que sobrevive: **un modelo
+puede juzgar una tarea pero no puede generar una con respuesta conocida** — no se
+crea verdad afirmándola — y **un juez que acierta siempre igual no te entrega
+ledger, ni freeze, ni comando de reproducción.**
+
+**Cuánto vale, medido y no argumentado.** Los checkers se terminaron el 2026-08-23
+y los corrió alguien que nunca había corrido este sistema. En un día encontraron
+un conteo publicado que estuvo mal en trece lugares durante seis días; un
+**reporte atestado que no pudo haber salido del código commiteado al lado**; un
+estadístico que se mueve con una versión de biblioteca y no con los datos; una
+tabla transpuesta que nadie había comparado con su propio artefacto; y un defecto
+en el instrumento nuevo. Ninguno de los dos proyectos se podía arrancar desde su
+propia documentación. Nada de eso era alcanzable leyendo —
+[19 §7](doc/es/19-what-would-make-this-matter.md#7--qué-encontró-correr-p0-el-mismo-día).
+
+**Y la carga de trabajo que lo hace real.** `projects/coclea-sr` llevó una
+hipótesis de biofísica de 1995 desde la matemática, a través de una **falsación de
+su propio modelo**, hasta un conjunto gateado de afirmaciones falsables sobre
+patologías del oído y su tratamiento — **28 gates / 135 chequeos, todos verdes
+[ran]**. El arco completo, y lo que **no** muestra, está en
+[doc 18](doc/es/18-from-a-hypothesis-to-a-therapeutic-surface.md).
+
+El trabajo también sobrevive a la conversación: los agentes y sus subagentes son
+archivos markdown en la carpeta del propio proyecto, y la interfaz es un
+escritorio que acomodás en vez de un log de chat. Toda afirmación sobre si *eso*
+ayuda también tiene una medición atrás — incluidas las que volvieron diciendo que
+no.
 
 ### → **[evolvingagentslabs.github.io](https://evolvingagentslabs.github.io/)** — qué es, y un escritorio que podés usar en el navegador
 

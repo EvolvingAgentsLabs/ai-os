@@ -9,6 +9,76 @@
 
 > **El inglés es canónico.** Traducción de [`doc/00-vision.md`](../00-vision.md).
 
+## La pregunta que esto tiene que contestar primero
+
+Porque es la que el proyecto realmente recibe, y es una pregunta justa:
+
+> **¿Por qué estás construyendo otro framework de agentes?**
+
+La respuesta que era cierta en 2025 era *porque los agentes que evolucionan solos
+todavía no existen*. Esa respuesta venció. Existen, varios están financiados, y el
+intento propio de esta organización está archivado con 453 estrellas encima.
+
+La respuesta que es cierta ahora es más angosta y no va de generación en absoluto:
+
+> **Todo el mundo puede generar. Casi nadie te puede decir, seis meses después, si
+> el número que está en su README sigue siendo el número que produce su código — y
+> probártelo a vos, que sos un desconocido.**
+
+Esa es la capa que construye este repositorio, y es la razón por la que los cuatro
+pilares de abajo son el *cómo* y no el *por qué*. Un motor de flows, un canvas y un
+espacio de direcciones de memoria son categorías con competidores bien
+financiados; **verdad que el código bajo prueba no puede producir**, no.
+
+### Qué significa concretamente, y todo esto corre
+
+| | |
+|---|---|
+| **Verdad de afuera del código** | `truth/` no puede importar `src/`. Formas cerradas de un lado, el solver del otro, un gate comparándolos. Cuatro palabras de política, y la estructura portante de una tesis entera |
+| **Un kernel al que no le importa el lenguaje del trabajo** | un proceso Python escribe un reporte de gate en JSON; un kernel en TypeScript parsea, resume y decide, y no ejecuta nada. Esa es la afirmación de sistema operativo, y es la que tiene una costura corriendo detrás |
+| **"No corrió" no es "pasó"** | el veredicto de freeze devuelve `blockers` y `unknown` como listas separadas y se niega ante cualquiera de las dos |
+| **Atestación en vez de afirmación** | corridas direccionadas por contenido, un ledger encadenado por hash, `make reproduce`, y el entorno registrado dentro del artefacto para que una comparación distinga *no coincide* de *se produjo en otro lado* |
+| **Cada número publicado atado a su productor** | cinco de los nueve números que publica este repositorio se chequean contra el artefacto que los produjo, todas las noches ([19 §8](19-what-would-make-this-matter.md#8--todo-número-publicado-y-qué-lo-chequea)) |
+
+### La versión fuerte de este argumento está medida como falsa, y la medimos nosotros
+
+El pitch que vendería mejor es *"un modelo no puede darse cuenta de que su propia
+salida está mal"*. No es cierto. Un experimento compañero le dio a un modelo
+frontier doce resultados de física fabricados y nueve sutilmente defectuosos y los
+cazó **todos**, dos veces, nombrando causas al nivel de *"el tratamiento de borde
+en el extremo libre no divide a la mitad el volumen de control"*
+([resultados](https://github.com/EvolvingAgentsLabs/physics-verifiers/blob/main/experiments/judge_vs_physics/RESULTS.md)).
+
+Así que la afirmación es la angosta que sobrevive, y vale decirla exacta:
+
+- **Un modelo puede juzgar una tarea. No puede generar una con respuesta
+  conocida.** No se crea verdad afirmándola, por buena que sea la afirmación.
+- **Un juez que acierta siempre igual no te entrega ledger, ni freeze, ni comando
+  de reproducción.** Detectar no es el mismo producto que atestar, y lo segundo es
+  lo que necesita un revisor, un regulador o un colega seis meses después.
+
+### Qué compró, en un día, sobre este repositorio
+
+Los instrumentos se terminaron el 2026-08-23 y los corrió enseguida alguien que
+nunca había corrido este sistema. Encontraron cinco cosas, ninguna alcanzable
+leyendo el código
+([19 §7](19-what-would-make-this-matter.md#7--qué-encontró-correr-p0-el-mismo-día)):
+
+1. Un conteo publicado que estuvo mal en trece lugares durante seis días.
+2. Un **artefacto atestado que no pudo haber salido del código commiteado al
+   lado** — el reporte se regeneró en medio del commit que existía para hacerlo
+   reproducible, y nadie miró.
+3. Un estadístico reportado que se mueve con una **versión de biblioteca** y no
+   con los datos — 66 de sus 98 mediciones son exactamente cero, y un valor que
+   cruza a ese bloque de empates arrastra 0.054 al estadístico de rangos.
+4. Una fila transpuesta en una tabla que nadie había comparado nunca con su propio
+   artefacto.
+5. Un defecto en el instrumento nuevo, encontrado al usarlo.
+
+Ninguno de los dos proyectos se podía siquiera arrancar desde su propia
+documentación. Eso es lo que vale una capa de verificación, y nada de eso es un
+argumento — es una lista de cosas que estaban mal y ya no lo están.
+
 ## La afirmación
 
 Los agentes hoy son **aplicaciones**. ai-os es el argumento de que deberían ser un

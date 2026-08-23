@@ -64,13 +64,11 @@ jobs:
   coclea-sr:
     name: coclea-sr — 28 gates
     runs-on: ubuntu-latest
-    # The suite is documented at nine minutes on the author's machine. On a
-    # shared runner on 2026-08-23 it reached 67 of 135 checks in about half an
-    # hour before it was stopped -- A13's SDE integrator held it a quarter of an
-    # hour by itself -- so the whole suite here is an hour's order of magnitude
-    # and has never been timed end to end. The timeout is a runaway guard rather
-    # than an estimate; if it starts firing, that is the signal to split the slow
-    # modules into their own job, not to raise it again.
+    # Measured, not estimated: 23m27s for all 135 checks on a GitHub runner on
+    # 2026-08-23, against nine minutes on the author's machine. The timeout is a
+    # runaway guard with room for a slower runner and for the suite to grow; if
+    # it starts firing, that is the signal to split A13 and B02 into their own
+    # job, not to raise it again.
     timeout-minutes: 90
     defaults:
       run:

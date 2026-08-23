@@ -16,7 +16,8 @@ memory agents as a tree. **`ai-storage` still does not exist.**
 Two projects run **on** the OS, and as of today both of them run **in CI**:
 
 - [`projects/coclea-sr/`](projects/coclea-sr/) — **28 gates / 135 checks, all
-  green**, every §10 milestone closed, `make reproduce` REPRODUCED. The narrative
+  green**, now confirmed on CI in 23m27s as well as on the author's machine;
+  every §10 milestone closed, `make reproduce` REPRODUCED. The narrative
   is [18](doc/18-from-a-hypothesis-to-a-therapeutic-surface.md); what to do next
   on it is [doc/PLAN.md](doc/PLAN.md).
 - [`projects/hemo-verified/`](projects/hemo-verified/) — H0 survives at **AUC
@@ -61,6 +62,18 @@ make gate       # the TypeScript, plus every published-number check
 make projects   # the two projects' own evidence; minutes, not seconds
 ```
 
+**Before publishing the website**, which is a separate repository CI cannot see:
+
+```bash
+python3 scripts/check-gate-count.py    --also ../evolvingagentslabs.github.io
+python3 scripts/check-coclea-results.py --also ../evolvingagentslabs.github.io
+```
+
+Both scan `.html` as well as `.md`. The site carried <!-- gate-count: superseded -->
+*26 gates / 125 checks* on
+two pages after the repository had been corrected, which is the whole argument
+for the flag.
+
 Regenerate the site demo after any desk change:
 `cd ai-ui && node scripts/build-demo.ts --out ../../evolvingagentslabs.github.io/demo/index.html`
 
@@ -90,12 +103,12 @@ The two built last are:
   runs `ai-base`'s suite unsharded in the nightly rather than summing five matrix
   shards through artifacts.
 
-**What is left is not construction.** Watch the first few nightlies: every
-command in `projects.yml` was run by hand before the workflow was written, but a
-scheduled job nobody has seen succeed is a scheduled job. And **the full 135
-checks still have to complete somewhere** — the local run was stopped at 67, the
-first CI run was cancelled by a push, and `cancel-in-progress` is `false` now so
-the next one can finish.
+**What is left is not construction.** The workflow has now run green end to end:
+**135 checks in 23 minutes 27 seconds on a GitHub runner**, the first execution
+of the whole suite anywhere but the author's machine, with the report hygiene,
+the ledger, the slack audit and the published count all green behind it. What
+remains is to watch the first few *scheduled* firings — the nightly trigger
+itself has not fired yet, and a schedule nobody has seen fire is a schedule.
 
 **Wrong item if:** the six-entry claim table in `check-coclea-results.py` starts
 needing edits for reasons other than somebody publishing a new claim. That is the

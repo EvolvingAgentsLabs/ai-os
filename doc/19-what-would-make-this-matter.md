@@ -461,16 +461,19 @@ author ran the code:
 **And one row got stronger, not weaker.** On the same unfamiliar machine,
 `coclea-sr`'s `verify_ledger.py` re-derived its hash chain, `check_reports.py`
 found every report with a test behind it, and `check_slack.py` reported 25 gates
-with slack from 1.08× to 760,977× **[ran]**. The gate suite itself was **stopped
-at 67 of 135 checks**, green to that point: it had spent about half an hour on
-those against nine minutes for all 135 on the author's machine, and A13's SDE
-integrator alone held it for a quarter of an hour. That is a measurement about
-this hardware and the reason the suite is a nightly rather than a per-PR job —
-and **the full 135 have not been re-run anywhere yet**, so the first nightly is
-what will say. The reports it had rewritten differed from the committed ones
-only in their last decimals, `passed: true` throughout, and are deliberately
-**not** committed: they are this machine's last bits, and the author's artifacts
-stay authoritative until a machine somebody chose produces better ones.
+with slack from 1.08× to 760,977× **[ran]**. And then the workflow ran on a
+GitHub runner and **all 135 checks came back green in 23 minutes 27 seconds
+[ran]** — the first time the whole suite has executed anywhere but the author's
+machine, followed in the same job by `check_reports.py`, `verify_ledger.py`,
+`check_slack.py`, and the published count checked against reports produced
+seconds earlier. Against nine minutes on the author's machine, so the runner is
+about 2.6× slower and the job is comfortably a nightly rather than a per-PR one.
+
+A local attempt was stopped at 67 of 135 before that, green to that point, and
+the reports it had rewritten differed from the committed ones only in their last
+decimals with `passed: true` throughout. Those are deliberately **not**
+committed: they are one machine's last bits, and the author's artifacts stay
+authoritative until a machine somebody chose produces better ones.
 
 The attestation machinery this repository is proudest of did its job on hardware
 it had never seen; the project that did not have that machinery is the one that
@@ -528,6 +531,14 @@ edited; the table is untouched. It changes only when somebody publishes a **new*
 claim, which is the same cost as `CLAIMANTS` in the other three checkers. A table
 you must edit whenever the thing it describes moves is the disease. A table you
 must edit when somebody adds a claim is just the list of claims.
+
+**The website is a separate repository, and it was the last unwatched surface.**
+It carried <!-- gate-count: superseded --> *26 gates / 125 checks* on two pages after this repository had been
+corrected — and `check-gate-count.py` had been *printing* "update the copy in the
+website repository" with no way to tell whether anybody had. Both scanners take
+`--also <dir>` now and read `.html` as well as `.md`, so the site is checked
+against the same artifacts before it is published. CI still cannot see it; a
+person running two commands can.
 
 **And the rest of the table is the honest limit.** Four of these numbers came
 from runs nobody kept. No checker can be built for them, and the useful move is

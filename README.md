@@ -2,25 +2,53 @@
 
 # ai-os
 
-> **2026-08-17 — the workload reached the far end.** `projects/coclea-sr` took a
-> 1995 biophysics hypothesis from mathematics, through a **falsification of its
-> own model**, to a gated set of falsifiable statements about ear disease and its
-> treatment. **28 gates / 135 checks, all green [ran].** The whole arc, and what
-> it does **not** show, is [doc 18](doc/18-from-a-hypothesis-to-a-therapeutic-surface.md).
->
-> Included in what it does not show: `physics-verifiers` measured the usual
-> argument for gates and **falsified it** — an LLM judge detected as well as a
-> physics verifier, twice
-> ([results](https://github.com/EvolvingAgentsLabs/physics-verifiers/blob/main/experiments/judge_vs_physics/RESULTS.md)).
-> Gates are not for detection; they are for generating truth the code under test
-> cannot produce, and for keeping it. Running on `qwen/qwen3.8-27b`.
+**Why another agent framework?** It isn't one.
 
-**An agent-based operating system**, built on [QM](https://github.com/yc-software/qm).
+> Everyone can generate. Almost nobody can tell you, six months later, whether the
+> number in their README is still the number their code produces — **and prove it
+> to a stranger.**
 
-Work outlives the conversation. Agents and their sub-agents are markdown files in
-a project's own folder. The interface is a desk you arrange, not a chat log. And
-every claim about whether that helps has a measurement attached — including the
-ones that came back saying it did not.
+ai-os is the layer that makes agent work checkable by something that is not
+another model, and keeps it checked. It is
+**an agent-based operating system**, built on [QM](https://github.com/yc-software/qm),
+and the operating-system part is *how*; the sentence above is *why*.
+
+| | |
+|---|---|
+| **Truth from outside the code** | `truth/` must not import `src/`. The value a gate checks **cannot be produced by the code under test** |
+| **A kernel that ignores the language of the work** | Python writes a JSON gate report; a TypeScript kernel parses, summarises and decides, and runs nothing |
+| **"Did not run" is not "passed"** | the freeze verdict returns `blockers` and `unknown` separately and refuses on either |
+| **Attestation, not assertion** | content-addressed runs, a hash-chained ledger, `make reproduce`, and the environment recorded in the artifact |
+| **Every published number tied to its producer** | five of the nine numbers on this page and in `doc/` are checked against the artifact that produced them, nightly |
+
+**The strong version of that argument is false and we are the ones who measured
+it.** `physics-verifiers` gave a frontier model twelve fabricated physics results
+and nine subtly defective ones. It caught **all of them, twice**
+([results](https://github.com/EvolvingAgentsLabs/physics-verifiers/blob/main/experiments/judge_vs_physics/RESULTS.md)).
+So the claim is narrower, and it is the part that survives: **a model can judge a
+task but cannot generate one with a known answer** — you do not create truth by
+asserting it — and **a judge that is right every time still hands you no ledger,
+no freeze and no reproduction command.**
+
+**What it is worth, measured rather than argued.** The checkers were finished on
+2026-08-23 and run by somebody who had never run this system. In one day they
+found a published count wrong in thirteen places for six days; an **attested
+report that could not have been produced by the code committed beside it**; a
+statistic that moves with a library version rather than with the data; a
+transposed table nobody had compared to its own artifact; and a defect in the new
+instrument itself. Neither project could be started from its own documentation.
+None of it was reachable by reading — [19 §7](doc/19-what-would-make-this-matter.md#7--what-running-p0-found-on-the-same-day).
+
+**And the workload that makes it real.** `projects/coclea-sr` took a 1995
+biophysics hypothesis from mathematics, through a **falsification of its own
+model**, to a gated set of falsifiable statements about ear disease and its
+treatment — **28 gates / 135 checks, all green [ran]**. The whole arc, and what it
+does **not** show, is [doc 18](doc/18-from-a-hypothesis-to-a-therapeutic-surface.md).
+
+Work also outlives the conversation: agents and their sub-agents are markdown
+files in a project's own folder, and the interface is a desk you arrange rather
+than a chat log. Every claim about whether *that* helps has a measurement
+attached too — including the ones that came back saying it did not.
 
 ### → **[evolvingagentslabs.github.io](https://evolvingagentslabs.github.io/)** — what it is, and a desk you can use in the browser
 
