@@ -74,6 +74,9 @@ CLAIMANTS = [
     "doc/PLAN.md",
     "projects/coclea-sr/README.md",
     "projects/coclea-sr/literature/comparison.md",
+    # The verification page quotes six of these sentences in order to resolve
+    # them; quoting them is publishing them.
+    "scripts/verify-page/page.html",
 ]
 
 #: Minus signs. The documents use U+2212 and the keyboard hyphen

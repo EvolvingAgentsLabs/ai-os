@@ -52,6 +52,10 @@ CLAIMANTS = [
     "doc/19-what-would-make-this-matter.md",
     "doc/es/19-what-would-make-this-matter.md",
     "projects/coclea-sr/README.md",
+    # The verification page's template. It is not documentation, but its text
+    # ships to readers on the website, so it publishes the count exactly as much
+    # as the README does. CI caught it the first time it was written.
+    "scripts/verify-page/page.html",
 ]
 
 # A document that records a *former* count — this repository supersedes rather
