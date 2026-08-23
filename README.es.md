@@ -6,7 +6,7 @@
 > `projects/coclea-sr` llevó una hipótesis de biofísica de 1995 desde la
 > matemática, a través de una **falsación de su propio modelo**, hasta un conjunto
 > gateado de afirmaciones falsables sobre patologías del oído y su tratamiento.
-> **26 gates / 125 chequeos, todos verdes [ran].** El arco completo, y lo que
+> **28 gates / 135 chequeos, todos verdes [ran].** El arco completo, y lo que
 > **no** muestra, está en [doc 18](doc/es/18-from-a-hypothesis-to-a-therapeutic-surface.md).
 >
 > Incluido en lo que no muestra: `physics-verifiers` midió el argumento habitual
@@ -70,7 +70,7 @@ captura es de una instancia viva.
 | [`ai-flows/`](ai-flows/) | Flows, composición, el instrumental de medición, la base de conocimiento y los [agentes de sistema](ai-flows/agents/system/memory/) | Apache 2.0 |
 | [`ai-memory/`](ai-memory/) | Los agentes de memoria, como un árbol que corre como árbol | Apache 2.0 |
 | [`ai-ui/`](ai-ui/) | El escritorio | Apache 2.0 |
-| [`projects/`](projects/) | Trabajo corriendo **sobre** el sistema. Hoy: [`coclea-sr/`](projects/coclea-sr/), Python, **26 gates / 125 chequeos** | Apache 2.0 |
+| [`projects/`](projects/) | Trabajo corriendo **sobre** el sistema. Dos: [`coclea-sr/`](projects/coclea-sr/), Python, **28 gates / 135 chequeos**, y [`hemo-verified/`](projects/hemo-verified/), cuyo gate de muerte sobrevivió con AUC 0.906 | Apache 2.0 |
 | `ai-storage/` | No construido | — |
 
 `ai-base/` queda byte a byte igual a upstream. Cualquier cambio ahí necesita una

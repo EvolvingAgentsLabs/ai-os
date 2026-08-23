@@ -5,11 +5,11 @@
 <sub>Una trayectoria que decae y se detiene, y otra que se propaga sobre una base que la primera no tenía — abriéndose en siete firmas, una de ellas abierta porque es un posit.</sub>
 
 > **Referencia.** Todo lo de abajo corrió, o está marcado como que no corrió.
-> [`projects/coclea-sr/`](../../projects/coclea-sr/) tiene **26 gates / 125
+> [`projects/coclea-sr/`](../../projects/coclea-sr/) tiene **28 gates / 135
 > chequeos, todos verdes [ran]**, una hipótesis falsada por su propio brazo de
 > control **[ran]**, y una sección de patologías cuya afirmación de
 > discriminación está ella misma gateada **[ran]**. `ai-base`, `ai-flows` y
-> `ai-ui` corren 605 tests propios **[ran]**.
+> `ai-ui` corren 626 tests propios **[ran]**.
 >
 > Este capítulo es el que responde *"¿para qué sirve realmente un OS
 > multi-agente?"* con un ejemplo trabajado en vez de con un argumento. También es
@@ -363,7 +363,7 @@ el próximo documento no lo vuelva a abrir.
 
 ```bash
 cd projects/coclea-sr
-.venv/bin/python -m pytest gates/ -q      # 26 gates, 125 chequeos, ~9 min
+.venv/bin/python -m pytest gates/ -q      # 28 gates, 135 chequeos, ~9 min
 .venv/bin/python gates/check_reports.py   # reportes sin test detrás
 python3 verify_ledger.py                  # la cadena de hashes, sólo stdlib
 python3 render_evidence.py                # report/evidence.html, desde el ledger

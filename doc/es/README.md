@@ -74,6 +74,7 @@ Documentos sobre el trabajo, no sobre el sistema.
 | [06 · Licenciamiento](06-licensing.md) | Apache 2.0 sobre MIT: qué se permite, qué se exige, qué se prohíbe |
 | [07 · Política de congelado](07-freeze-policy.md) | Qué significa "congelado" para los otros repos de la organización, operativamente |
 | [08 · Roadmap](08-roadmap.md) | Milestones en orden de dependencia, con los bloqueos dichos con honestidad |
+| [19 · Qué haría que esto importe](19-what-would-make-this-matter.md) | El repositorio completo leído desde afuera: qué corre, para quién es, qué es genuinamente distinto, y un plan ordenado por el hecho de que hay un autor y ningún usuario. **Incluye la deriva que encontró y el check que ahora la frena** |
 
 ## Reglas de la casa
 

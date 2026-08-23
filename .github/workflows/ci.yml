@@ -186,6 +186,17 @@ jobs:
       - name: Oxlint
         run: npm run lint:ox
 
+  gate-count:
+    name: Published gate count
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - name: The published gate count matches the reports
+        run: python3 scripts/check-gate-count.py
+
   ledger:
     name: ai-base ledger
     if: github.event_name == 'pull_request'
@@ -225,7 +236,8 @@ jobs:
       - flows
       - ui
       - lint
+      - gate-count
     steps:
       - name: Checks passed
-        run: echo "scope guard, typecheck, five test shards, postgres, ai-flows, ai-ui and lint passed."
+        run: echo "scope guard, typecheck, five test shards, postgres, ai-flows, ai-ui, lint and the gate count passed."
         working-directory: .

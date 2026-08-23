@@ -12,7 +12,7 @@
 > refusals it makes, are in [17](17-a-project-is-born.md).
 >
 > The workload it describes, [`projects/coclea-sr/`](../projects/coclea-sr/),
-> runs: 125 gate checks across 26 gates **[ran]**, one hypothesis falsified by its own control
+> runs: 135 gate checks across 28 gates **[ran]**, one hypothesis falsified by its own control
 > arm **[ran]**, and a §R2 answer that the narrowed model could not reproduce
 > ([ADR-0004](../projects/coclea-sr/decisions/0004-the-narrowed-model-three-ingredients.md)).
 
@@ -207,7 +207,7 @@ The project reached its own main result on 2026-08-14 — **GATE-B2, a
 statistically significant interior maximum in SNR against noise, at 24 of 24
 probe-and-frequency combinations**, with the measured optimum 11.6% from the
 parameter-free prediction `σ_opt = θ/2`. 80 gate **checks** green that day, up
-from 45; 125 across 26 gates as of 2026-08-17. Where the workload went after
+from 45; 135 across 28 gates as of 2026-08-17. Where the workload went after
 that — through a pathology section whose discrimination claim is itself gated —
 is [18](18-from-a-hypothesis-to-a-therapeutic-surface.md).
 

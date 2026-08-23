@@ -1,21 +1,38 @@
 # Next
 
-> **Snapshot, 2026-08-09.** A plan is the document most likely to rot, so this
-> one is short and dated. If it disagrees with `doc/`, `doc/` is right.
+> **Snapshot, 2026-08-23.** A plan is the document most likely to rot, so this
+> one is short and dated. The previous version carried `2026-08-09` and was
+> nineteen merged pull requests behind by the time anybody noticed — which is the
+> finding that produced [19](doc/19-what-would-make-this-matter.md).
+> If this disagrees with `doc/`, `doc/` is right.
 
 ## Where things stand
 
-`ai-base`, `ai-flows` and `ai-ui` run. `ai-storage` does not exist. 402 tests of
-our own; CI checks that number against the suites, so it cannot drift again.
+`ai-base`, `ai-flows` and `ai-ui` run — **626 tests of our own**, checked against
+the suites by CI so the number cannot drift again. `ai-memory` runs the six
+memory agents as a tree. **`ai-storage` still does not exist.**
 
-Everything is merged to `main` in both repositories, nothing is open, and
-[the site](https://evolvingagentslabs.github.io/) serves a
-[playable desk](https://evolvingagentslabs.github.io/demo/).
+Two projects run **on** the OS:
+
+- [`projects/coclea-sr/`](projects/coclea-sr/) — **28 gates / 135 checks, all
+  green**, every §10 milestone closed, `make reproduce` REPRODUCED. The narrative
+  is [18](doc/18-from-a-hypothesis-to-a-therapeutic-surface.md); what to do next
+  on it is [doc/PLAN.md](doc/PLAN.md).
+- [`projects/hemo-verified/`](projects/hemo-verified/) — H0 survives at **AUC
+  0.906** against a kill threshold of 0.80.
+
+**Neither project runs in CI.** There is no Python in `.github/workflows/ci.yml`,
+so the repository's strongest evidence is guarded by somebody remembering to run
+it. That is the first item below.
+
+Everything is merged to `main`, and [the site](https://evolvingagentslabs.github.io/)
+serves a [playable desk](https://evolvingagentslabs.github.io/demo/).
 
 ## Getting the stack back up
 
 Postgres runs in Docker as `aios-pg` on **55432** (`aios/aios`). Two databases:
-`aiosui` for the live instance, `flowtest` for the test suite.
+`aiosui` for the live instance, `flowtest` for the test suite. `make up` does the
+whole sequence; the long form:
 
 ```bash
 export SP=/tmp/aios-data                       # anywhere; workspaces live here
@@ -45,6 +62,7 @@ cd ai-flows && npm run typecheck && npm run typecheck:scripts \
 cd ai-base  && npm run format:check && npm run lint && npm run lint:knip
 cd ..       && DATABASE_URL="postgresql://aios:aios@localhost:55432/flowtest" \
                ./scripts/check-test-count.sh
+cd ..       && python3 scripts/check-gate-count.py
 ```
 
 Regenerate the site demo after any desk change:
@@ -52,62 +70,63 @@ Regenerate the site demo after any desk change:
 
 ---
 
-## 1. Run M5's stopwatch — start here
+The order below is [19 § The plan](doc/19-what-would-make-this-matter.md#6--the-plan),
+with the commands. Each item there states what "done" means and what would say it
+was the wrong item; that is not repeated here.
 
-**Why first.** It is the only debt the design set itself, it is cheap, and it is
-the one task that can save us from building on a false premise. Every other item
-below assumes the desk is worth having.
+## 1. Finish P0 — stop the evidence rotting
 
-**The measurement**, unchanged from [04-ai-ui § How this gets falsified](doc/04-ai-ui.md):
-a person, and a flow **they did not run**, three days old. Time to answer *what
-is the state, what is blocked, what did it produce?* — desk against the `web-ui`
-transcript.
+Done already: `scripts/check-gate-count.py` and its CI job, so the published gate
+count cannot drift. What remains, and it is hours:
 
-**The claim:** the desk is faster, and the gap widens with flow age.
+- **A scheduled job that runs the Python gates.** Not per-PR — `make gates` is
+  nine minutes and needs numpy, scipy and sympy. Nightly or weekly, both
+  projects, failing loudly.
+- **`gates/check_reports.py` in the same job**, because a fresh count over stale
+  reports is the exact failure FRICTION F3 records.
+- **Extend `check-test-count.sh` past the two READMEs** — doc 18 carried 605
+  while the READMEs carried 626.
+
+## 2. Seed the flow for M5's stopwatch, today
+
+**It has to be three days old**, so seeding it is what makes the measurement
+possible later in the week. Everything else on this page can wait; this cannot,
+because waiting is its input.
+
+The measurement, unchanged from
+[04-ai-ui § How this gets falsified](doc/04-ai-ui.md): a person, and a flow **they
+did not run**, three days old. Time to answer *what is the state, what is
+blocked, what did it produce?* — desk against the `web-ui` transcript.
 
 **Check the headroom before building anything for this.** If the flat explorer
-answers as fast as the desk, the canvas is decoration and M5 should be
-re-argued rather than polished. That is a real outcome and the document already
-says so.
+answers as fast as the desk, the canvas is decoration and M5 should be re-argued
+rather than polished. Two subjects is a signal about whether the instrument
+works, not evidence; say which.
 
-Practical notes: the flow has to be three days old, so **seed it now and run the
-comparison later in the week**. Two subjects is not evidence; it is a signal
-about whether the instrument works at all. Say which.
+## 3. coclea §7.5, route B — the precondition
 
----
+One run, and it is unchanged and not reordered: see [doc/PLAN.md](doc/PLAN.md).
+The feedback correction must stay small against `u` across the whole `mu` range;
+if it is not small at `mu_H = −0.02`, route B cannot reach criticality and route A
+is required. Knowing that costs one run rather than a milestone.
 
-## 2. `ai-storage`, for real
+## 4. hemo-verified H1
 
-The shape is already fixed by the sketch on the desk and by
-[05-ai-storage § The shape, drawn before it is built](doc/05-ai-storage.md):
-four levels, one rung per promotion, provenance required, consolidation keeps
-what carried forward.
+H0's own stated limit is that the corruptions and the oracles share an author. H1
+is whether the portfolio ranks the errors a trained surrogate actually makes.
+Decide **before** buying the training whether a published surrogate's errors will
+do — F5, applied before the work.
 
-**The open question is written down and is the whole difficulty:** when two
-notes say the same thing, which survives? Consolidation cannot be a loop over
-finished flows, and that is why.
+## 5. One user who is not the author
 
-The cheap first move is not a store. It is to answer that question on paper with
-two real flows from `aiosui`, and only then decide whether it needs
-`evolving-memory`'s connector or twenty lines.
-
-**Do not port `evolving-memory`.** The hard half — *which steps of a trace
-mattered* — is `contribution.ts`, which already runs on every flow.
-
----
-
-## 3. M4, scoped memory
-
-Its gate passed on 2026-08-06 (baseline 3.0 on a long-horizon fixture, so the
-axis has room) and nothing was built. It overlaps item 2 and should be decided
-together with it rather than scheduled separately.
-
----
+`make up` from a clean clone on a clean machine, timed, by somebody who has not
+seen this repository. Every failure becomes a FRICTION entry, fixed with the
+shortest hack that works. The output is a number: time to a first gated result.
 
 ## Smaller, if a session ends early
 
 - **The remaining flow shapes.** `Sequence`, `Loop`, `Fan-out`, `Deliberation`,
-  `Watch`, and merge. `Open` is the only one that runs.
+  `Watch`, and merge. `Open` and `Gated` are the ones that run.
 - **`?tab=` and `?select=` survive a reload on the demo but not its state** — the
   simulated world lives in the page. Fine, and the chrome says so; worth
   revisiting only if somebody asks.
@@ -123,4 +142,7 @@ together with it rather than scheduled separately.
   M5's control arm and it is evidence only while it stays inert. A test enforces
   this too.
 - **Do not publish a number that nothing checks.** That is how 315, 331 and 333
-  ended up being three different truths on the same day.
+  ended up being three different truths on the same day — and how
+  <!-- gate-count: superseded --> *26 gates / 125 checks* survived in thirteen places for six days after it stopped being true.
+- **No more desk before the stopwatch**, and **no third project before a second
+  user.**

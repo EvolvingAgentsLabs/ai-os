@@ -81,6 +81,7 @@ Documents about the work rather than the system.
 | [06 · Licensing](06-licensing.md) | Apache 2.0 over MIT: what is permitted, required, forbidden |
 | [07 · Freeze policy](07-freeze-policy.md) | What "frozen" means for the organisation's other repositories, operationally |
 | [08 · Roadmap](08-roadmap.md) | Milestones in dependency order, with the honest blockers |
+| [19 · What would make this matter](19-what-would-make-this-matter.md) | The whole repository read from outside: what runs, who it is for, what is genuinely different, and a plan ordered by the fact that there is one author and no user. **Includes the drift it found and the check that now stops it** |
 | [**The plan**](PLAN.md) | What is in flight today, what it costs to pick up, and the four rules this week re-earned |
 | [`upstream/`](upstream/) | Proposals aimed at `yc-software/qm`, kept here until sent. Their `CONTRIBUTING.md` asks for **human-written, informal** text and says *"do not have AI artificially expand what you'd like to do into a formal proposal"* — so these are checklists of evidence to be rewritten in the sender's own voice, never pasted |
 

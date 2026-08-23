@@ -229,8 +229,37 @@ def plate_18():
     save(fig, "18-from-a-hypothesis-to-a-therapeutic-surface.jpg")
 
 
+def plate_19():
+    """What the gate encloses, and what it does not.
+
+    Left, a teal enclosure holding a dozen ordinary marks: the suites CI runs.
+    Inside it, one amber open mark — a published claim — with a thin line running
+    out through the wall to the field it is a claim about.
+
+    Right, that field: 135 small marks in nine rows, the gate checks, with nothing
+    drawn around them. The largest body of evidence in the repository is the part
+    no enclosure reaches, and the plate says it by leaving the rectangle off.
+    """
+    fig, ax = canvas()
+
+    box(ax, 120, 150, 470, 300)
+    for row in range(3):
+        for col in range(4):
+            dot(ax, 190 + col * 110, 202 + row * 70)
+
+    claim_x, claim_y = 300, 412
+    dot(ax, claim_x, claim_y, AMBER, open_=True)
+    line(ax, [claim_x + 16, 838], [claim_y - 2, 372], AMBER, lw=1.1)
+
+    for row in range(9):
+        for col in range(15):
+            dot(ax, 850 + col * 33, 150 + row * 37, r=2.6)
+    save(fig, "19-what-would-make-this-matter.jpg")
+
+
 if __name__ == "__main__":
     plate_15()
     plate_16()
     plate_17()
     plate_18()
+    plate_19()

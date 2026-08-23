@@ -5,10 +5,10 @@
 <sub>A trajectory that decays and stops, and a second one that propagates on a base the first did not have — opening into seven signatures, one of them open because it is a posit.</sub>
 
 > **Reference.** Everything below either ran or is marked as not having run.
-> [`projects/coclea-sr/`](../projects/coclea-sr/) holds **26 gates / 125 checks,
+> [`projects/coclea-sr/`](../projects/coclea-sr/) holds **28 gates / 135 checks,
 > all green [ran]**, one hypothesis falsified by its own control arm **[ran]**,
 > and a pathology section whose discrimination claim is itself gated **[ran]**.
-> `ai-base`, `ai-flows` and `ai-ui` run 605 tests of their own **[ran]**.
+> `ai-base`, `ai-flows` and `ai-ui` run 626 tests of their own **[ran]**.
 >
 > This chapter is the one that answers *"what is a multi-agent OS actually for"*
 > with a worked example rather than an argument. It is also the chapter with the
@@ -351,7 +351,7 @@ guessed — so the next document does not reopen it.
 
 ```bash
 cd projects/coclea-sr
-.venv/bin/python -m pytest gates/ -q      # 26 gates, 125 checks, ~9 min
+.venv/bin/python -m pytest gates/ -q      # 28 gates, 135 checks, ~9 min
 .venv/bin/python gates/check_reports.py   # reports with no test behind them
 python3 verify_ledger.py                  # the hash chain, stdlib only
 python3 render_evidence.py                # report/evidence.html, from the ledger

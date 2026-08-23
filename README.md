@@ -5,7 +5,7 @@
 > **2026-08-17 — the workload reached the far end.** `projects/coclea-sr` took a
 > 1995 biophysics hypothesis from mathematics, through a **falsification of its
 > own model**, to a gated set of falsifiable statements about ear disease and its
-> treatment. **26 gates / 125 checks, all green [ran].** The whole arc, and what
+> treatment. **28 gates / 135 checks, all green [ran].** The whole arc, and what
 > it does **not** show, is [doc 18](doc/18-from-a-hypothesis-to-a-therapeutic-surface.md).
 >
 > Included in what it does not show: `physics-verifiers` measured the usual
@@ -70,7 +70,7 @@ every screenshot is from a live instance.
 | [`ai-flows/`](ai-flows/) | Flows, composition, the measurement harness, the knowledge base and the [system agents](ai-flows/agents/system/memory/) | Apache 2.0 |
 | [`ai-memory/`](ai-memory/) | The memory agents, as a tree that runs as a tree | Apache 2.0 |
 | [`ai-ui/`](ai-ui/) | The desk | Apache 2.0 |
-| [`projects/`](projects/) | Work running **on** the OS. Today: [`coclea-sr/`](projects/coclea-sr/), Python, **26 gates / 125 checks** | Apache 2.0 |
+| [`projects/`](projects/) | Work running **on** the OS. Two: [`coclea-sr/`](projects/coclea-sr/), Python, **28 gates / 135 checks**, and [`hemo-verified/`](projects/hemo-verified/), whose kill gate survived at AUC 0.906 | Apache 2.0 |
 | `ai-storage/` | Not built | — |
 
 `ai-base/` stays byte-identical to upstream. Anything we change there needs a
