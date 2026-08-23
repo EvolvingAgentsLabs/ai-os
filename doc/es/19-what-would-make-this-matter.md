@@ -442,12 +442,17 @@ primera corrida del nightly llegó a quince minutos dentro de `make gates` y la
 **canceló un push que tocaba tres archivos markdown**. `cancel-in-progress` está
 bien para `ci.yml`, que son dos minutos: cancelar una corrida superada no cuesta
 nada y la respuesta vuelve enseguida. Está mal para una corrida de evidencia de
-45 minutos, porque en una rama activa la corrida queda superada antes de poder
-terminar y el resultado es *ninguna respuesta* en vez de una más fresca — y el
-filtro de paths hizo que tampoco arrancara una corrida de reemplazo. Ahora está
-en `false`, con la razón escrita arriba. Un workflow cuyo propósito es producir
-evidencia no puede ser interrumpible por trabajo que no puede cambiar lo que
-mide.
+45 minutos, porque cada push la reinicia desde cero, y una rama con trabajo
+activo entonces nunca llega al final de ninguna.
+
+Un filtro `paths` no te salva de esto, y creer que sí fue el error de este propio
+documento durante unos diez minutos: en `pull_request`, `paths` se evalúa contra
+**el diff completo del pull request**, no contra el del push — así que un PR que
+toque `projects/` aunque sea una vez re-dispara la corrida de evidencia en cada
+commit posterior, por más ajeno que sea. Ahora `cancel-in-progress` está en
+`false`, así que una corrida posterior hace cola detrás de la actual en vez de
+matarla. Un workflow cuyo propósito es producir evidencia no puede ser
+interrumpible por trabajo que no puede cambiar lo que mide.
 
 ### Qué dice eso de la tabla de riesgos de la §5
 

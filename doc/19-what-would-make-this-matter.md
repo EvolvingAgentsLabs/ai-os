@@ -433,12 +433,18 @@ them; `scripts/check-h0-table.py` does now.
 nightly's first run reached fifteen minutes into `make gates` and was **cancelled
 by a push that touched three markdown files**. `cancel-in-progress` is correct
 for `ci.yml`, which is two minutes: a superseded run costs nothing and the answer
-comes back immediately. It is wrong for a 45-minute evidence run, because on an
-active branch the run is superseded before it can finish and the result is *no
-answer at all* rather than a fresher one — and the paths filter meant no
-replacement run started either. It is `false` here now, with the reason written
-above it. A workflow whose purpose is to produce evidence must not be
-interruptible by work that cannot change what it measures.
+comes back immediately. It is wrong for a 45-minute evidence run, because every
+push restarts it from zero, and a branch under active work can therefore never
+reach the end of one.
+
+A `paths` filter does not save you from this, and believing it did was this
+document's own error for about ten minutes: on `pull_request`, `paths` is
+evaluated against **the pull request's whole diff**, not the push's — so a PR
+that touches `projects/` at all re-triggers the evidence run on every subsequent
+commit, however unrelated. `cancel-in-progress` is `false` here now, so a later
+run queues behind the current one instead of killing it. A workflow whose
+purpose is to produce evidence must not be interruptible by work that cannot
+change what it measures.
 
 ### What that says about §5's risk table
 

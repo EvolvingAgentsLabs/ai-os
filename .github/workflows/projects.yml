@@ -49,10 +49,13 @@ on:
 #
 # That is not hypothetical. On 2026-08-23 this workflow's first run reached
 # 15 minutes into `make gates` and was cancelled by a push that touched three
-# markdown files -- and since the paths filter meant no replacement run started,
-# the result was no answer at all rather than a fresher one. A workflow whose
-# whole purpose is to produce evidence must not be interruptible by work that
-# cannot change what it measures.
+# markdown files. The `paths` filter below does not prevent it: on
+# `pull_request`, `paths` is evaluated against the pull request's whole diff, not
+# the push's, so a PR that touches `projects/` at all re-triggers this workflow
+# on every later commit. With `cancel-in-progress: false` a later run queues
+# behind the current one instead of killing it. A workflow whose whole purpose is
+# to produce evidence must not be interruptible by work that cannot change what
+# it measures.
 concurrency:
   group: projects-${{ github.ref }}
   cancel-in-progress: false
