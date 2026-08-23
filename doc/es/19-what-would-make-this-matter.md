@@ -441,13 +441,16 @@ autor corrió el código:
 `verify_ledger.py` de `coclea-sr` re-derivó su cadena de hashes,
 `check_reports.py` encontró que todo reporte tiene un test detrás, y
 `check_slack.py` reportó 25 gates con slack de 1.08× a 760.977× **[ran]**. El
-suite de gates en sí seguía corriendo cuando se escribió esto — son 45 minutos en
-este hardware contra nueve en el del autor, que es por qué es un nightly y no un
-job por PR — y los reportes que había reescrito hasta ese momento diferían de los
-commiteados solo en sus últimos decimales, con `passed: true` en todos. Esos
-reportes regenerados deliberadamente **no** se commitean: son los últimos bits de
-esta máquina, y los artefactos del autor siguen siendo los autoritativos hasta
-que una máquina que alguien haya elegido produzca unos mejores.
+suite de gates en sí se **detuvo en 67 de 135 chequeos**, verde hasta ahí: había
+gastado alrededor de media hora en esos contra nueve minutos para los 135 en la
+máquina del autor, y solo el integrador SDE de A13 lo tuvo un cuarto de hora. Eso
+es una medición sobre este hardware y la razón de que el suite sea un nightly y
+no un job por PR — y **los 135 completos todavía no se re-corrieron en ningún
+lado**, así que el primer nightly es el que va a decir. Los reportes que había
+reescrito diferían de los commiteados solo en sus últimos decimales, con
+`passed: true` en todos, y deliberadamente **no** se commitean: son los últimos
+bits de esta máquina, y los artefactos del autor siguen siendo los autoritativos
+hasta que una máquina que alguien haya elegido produzca unos mejores.
 
 La maquinaria de atestación de la que este repositorio está más orgulloso hizo su
 trabajo en hardware que nunca había visto; el proyecto que no la tenía es el que

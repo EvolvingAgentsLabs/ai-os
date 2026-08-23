@@ -430,14 +430,16 @@ author ran the code:
 **And one row got stronger, not weaker.** On the same unfamiliar machine,
 `coclea-sr`'s `verify_ledger.py` re-derived its hash chain, `check_reports.py`
 found every report with a test behind it, and `check_slack.py` reported 25 gates
-with slack from 1.08× to 760,977× **[ran]**. The gate suite itself was still
-running when this was written — it is 45 minutes on this hardware against nine
-on the author's, which is why it is a nightly and not a per-PR job — and the
-reports it had rewritten by then differed from the committed ones only in their
-last decimals, `passed: true` throughout. Those regenerated reports are
-deliberately **not** committed: they are this machine's last bits, and the
-author's artifacts stay authoritative until a machine somebody chose produces
-better ones.
+with slack from 1.08× to 760,977× **[ran]**. The gate suite itself was **stopped
+at 67 of 135 checks**, green to that point: it had spent about half an hour on
+those against nine minutes for all 135 on the author's machine, and A13's SDE
+integrator alone held it for a quarter of an hour. That is a measurement about
+this hardware and the reason the suite is a nightly rather than a per-PR job —
+and **the full 135 have not been re-run anywhere yet**, so the first nightly is
+what will say. The reports it had rewritten differed from the committed ones
+only in their last decimals, `passed: true` throughout, and are deliberately
+**not** committed: they are this machine's last bits, and the author's artifacts
+stay authoritative until a machine somebody chose produces better ones.
 
 The attestation machinery this repository is proudest of did its job on hardware
 it had never seen; the project that did not have that machinery is the one that

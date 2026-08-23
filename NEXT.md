@@ -100,7 +100,10 @@ was the wrong item; that is not repeated here.
 `projects.yml` are all in. The remaining work is not construction:
 
 - **Watch the first few nightlies.** The workflow's commands were each run by
-  hand before it was written, but the workflow itself has not run on GitHub. A
+  hand before it was written, but the workflow itself has not run on GitHub, and
+  **the full 135 checks have not been re-run anywhere** — the local run was
+  stopped at 67, green to that point, after about half an hour. The first
+  nightly is the first time all of them run outside the author's machine, and a
   scheduled job nobody has seen succeed is a scheduled job.
 - **Decide what A4's per-oracle AUC means.** It moves 0.706 → 0.652 between BLAS
   builds because 66 of its 98 measurements are exactly `0.0` and one uncorrupted
