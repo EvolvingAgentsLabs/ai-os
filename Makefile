@@ -163,6 +163,21 @@ gate:
 	            && DATABASE_URL="$(TEST_DB_URL)" npm test
 	cd ai-base  && npm run format:check && npm run lint && npm run lint:knip
 	DATABASE_URL="$(TEST_DB_URL)" ./scripts/check-test-count.sh
+	python3 scripts/check-gate-count.py
+	python3 scripts/check-h0-table.py
+
+# The projects' own evidence. Not part of `gate` because it is minutes rather
+# than seconds and needs numpy, scipy and sympy -- `.github/workflows/projects.yml`
+# runs it nightly. This target is the same thing by hand, for when somebody has
+# changed something under `projects/` and does not want to wait for the nightly.
+.PHONY: projects
+projects:
+	cd projects/coclea-sr && make gates \
+	    && .venv/bin/python gates/check_reports.py \
+	    && python3 verify_ledger.py && python3 gates/check_slack.py
+	cd projects/hemo-verified && make test && make reproduce
+	python3 scripts/check-gate-count.py
+	python3 scripts/check-h0-table.py
 
 clean-run:
 	rm -rf $(RUN_DIR)

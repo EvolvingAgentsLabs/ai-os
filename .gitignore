@@ -5,3 +5,11 @@ node_modules/
 ai-flows/*.html
 ai-base/data-*/
 .run/
+
+# Editable installs leave these next to the source. `projects/coclea-sr` ignores
+# `.venv/` and `__pycache__/` already; `hemo-verified` had no manifest at all
+# until 2026-08-23 and so had never produced one.
+*.egg-info/
+.venv/
+__pycache__/
+*.pyc

@@ -59,6 +59,11 @@ knowledge base an eight-thousand-token window can navigate — a flat file of th
 same material stops fitting at 16 units, the index is still at 4,523 of 8,000
 tokens at 2,000 ([05](doc/05-ai-storage.md)).
 
+Both projects' evidence now runs **nightly** in
+[`projects.yml`](.github/workflows/projects.yml) — the gates, the ledger, the
+report hygiene, H0's reproduction, and every published number checked against the
+artifact it came from. Until 2026-08-23 there was no Python in CI at all.
+
 Nothing in this repository describes software that exists unless it says so, and
 every screenshot is from a live instance.
 

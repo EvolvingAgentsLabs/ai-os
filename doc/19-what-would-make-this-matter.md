@@ -6,19 +6,21 @@
 
 > **Project.** A reading of the whole repository on 2026-08-23: what runs, who it
 > is for, what is genuinely different, what would kill it, and what to do next.
-> **Nothing here is a new measurement.** Every number is either quoted from a
-> document that recorded it or **[read]** off an artifact on disk, and the two
-> places where that distinction bites are marked in §1. The one number this
-> document changed is the published gate count, and it now has a check.
+> §§1–6 were written **without running anything**: every number there is quoted
+> from a document that recorded it or **[read]** off an artifact on disk, and the
+> two places where that distinction bites are marked in §1. **§7 is what happened
+> when P0 was then built and run**, on a machine that was not the author's, and
+> it found four things reading could not.
 
 ## The short version
 
 1. **Three of the four pillars run; one does not exist.** `ai-flows` and `ai-ui`
    are real and tested. `ai-storage` is 0 lines of code and 1 specification.
-2. **The strongest evidence in the repository is the part CI never runs.** There
-   is no Python anywhere in `.github/workflows/ci.yml` **[read]**, so
+2. **The strongest evidence in the repository was the part CI never ran.** There
+   was no Python anywhere in `.github/workflows/ci.yml`, so
    `projects/coclea-sr` — 28 gates, 135 checks — and `projects/hemo-verified`
-   are outside every automated guard the repository has.
+   sat outside every automated guard the repository had. That is what P0 fixed,
+   and §7 is what fixing it found.
 3. **And it had already rotted.** <!-- gate-count: superseded --> Thirteen claim sites across seven
    files said *26 gates / 125 checks* while the reports on disk held **28 / 135**. That is the
    exact failure `scripts/check-test-count.sh` was written to stop, applied to
@@ -39,8 +41,12 @@
 | `ai-ui/` | 12,160 lines | the desk, the trace face, the gate face, the demo builder | yes |
 | `ai-memory/` | 1,116 lines | six memory agents as a tree that runs as a tree | via `ai-flows` |
 | `ai-storage/` | **0 lines** | [05](05-ai-storage.md), and nothing else | — |
-| `projects/coclea-sr/` | 14,433 lines Python | 28 gates / 135 checks, all `passed: true` **[read from the report artifacts, not re-run here]** | **no** |
-| `projects/hemo-verified/` | 918 lines Python | H0 survives: AUC 0.906 against a kill threshold of 0.80 | **no** |
+| `projects/coclea-sr/` | 14,433 lines Python | 28 gates / 135 checks, all `passed: true` | **no** → nightly, §7 |
+| `projects/hemo-verified/` | 918 lines Python | H0 survives: AUC 0.906 against a kill threshold of 0.80 | **no** → nightly, §7 |
+
+The last two rows are why this document exists, and the arrow is what P0 did
+about it. They were read off report artifacts when §1 was written; §7 is what
+they said when they were run.
 
 **Cadence:** 54 commits, first `2026-08-04`, most recent `2026-08-22`, one
 author. Nineteen days. That number is the single most important input to §6 and
@@ -53,6 +59,7 @@ it is easy to read past.
 | gates / checks | <!-- gate-count: superseded --> **26 / 125**, in thirteen places across seven files | **28 / 135** in `projects/coclea-sr/gates/reports/` |
 | tests of our own | **605** in [18](18-from-a-hypothesis-to-a-therapeutic-surface.md), **626** in `README.md` | 626 — the README is the one CI checks |
 | the plan | `NEXT.md`, dated 2026-08-09 in its own header, *"402 tests"* | last touched 2026-08-11 and nineteen merged pull requests behind |
+| H0's oracle table | A4 **0.706**, A5 **0.522**, A6 **0.521** | 0.652, 0.521, 0.522 — one transposition and one number that is a property of the machine (§7) |
 
 None of this is sloppiness in the ordinary sense. `doc/PLAN.md` had **28 / 135**
 correct on the day it changed; the count simply lives in thirteen places and only one
@@ -230,25 +237,41 @@ means and what would say the item was the wrong one.
 | **P5** | Say it once, narrowly | a day of writing | (b) and (c) from §2 cannot find this |
 | **P6** | `ai-storage`, against 3.0 | a milestone | it is real work and it is behind five cheaper things |
 
-### P0 · Stop the evidence rotting
+### P0 · Stop the evidence rotting — **done, and running it is §7**
 
-Partly done in the change that carries this document: the gate count is checked
-against the reports and wired into CI **[ran]**. What remains:
+All three parts are built and were run **[ran]**:
 
-1. **Run the Python gates on a schedule.** Not per-PR — nine minutes, three
-   scientific dependencies, and `projects/` changes rarely. A nightly or weekly
-   job that runs `make gates` for both projects and fails loudly is enough, and
-   it is the difference between a red gate being found by CI and being found by
-   a document.
-2. **Extend `check-test-count.sh` past the two READMEs**, since doc 18 carried
-   605 while the READMEs carried 626.
-3. **Run `gates/check_reports.py` in the same job**, because a fresh count over
-   stale reports is the failure this whole section is about.
+1. **The Python gates run on a schedule.**
+   [`.github/workflows/projects.yml`](../.github/workflows/projects.yml) — nightly,
+   on demand, and on any PR that touches `projects/`. It builds both
+   environments from their manifests, runs `make gates`, `check_reports.py`,
+   `verify_ledger.py` and `check_slack.py` for `coclea-sr`, and `make test` plus
+   `make reproduce` for `hemo-verified`. Not per-PR for everything: nine minutes
+   and three scientific dependencies would tax every unrelated pull request.
+2. **`check-test-count.sh` scans every document**, not the two READMEs. The file
+   list is discovered with `git ls-files` rather than written down, so a count in
+   a file nobody listed can no longer be invisible — which is exactly how doc 18
+   held 605 against the READMEs' 626.
+3. **`check_reports.py` runs in the same job**, on the venv interpreter, because
+   `python3` there has no pytest and that is how it was documented wrong for a
+   week (FRICTION F3).
 
-**Done means:** a red gate, a stale report and a drifted number each fail
-something automatically. **Wrong item if:** the scheduled job proves too flaky or
-too slow to keep green, in which case say so and pin a monthly attested run
-instead of leaving a red badge people learn to ignore.
+Two things were added that this section did not anticipate, both because running
+it produced them: `hemo-verified` had **no reproduction command at all**, so it
+has one now (`eval/reproduce.py`), and its published oracle table disagreed with
+its own artifact in two cells, so [`scripts/check-h0-table.py`](../scripts/check-h0-table.py)
+reads the table out of `h0.json` and refuses the difference.
+
+**The count is now checked against reports produced seconds earlier**, not
+against whatever is committed: the nightly job runs `check-gate-count.py` inside
+the `coclea-sr` job after `make gates`, and again in a separate job against the
+committed artifacts. The two answers differing is itself a finding.
+
+**Done means:** a red gate, a stale report, a drifted number and an artifact
+that does not reproduce each fail something automatically. That is now true.
+**Wrong item if:** the nightly proves too flaky or too slow to keep green, in
+which case say so and pin a monthly attested run rather than leave a red badge
+people learn to ignore.
 
 ### P1 · Run M5's stopwatch
 
@@ -355,6 +378,72 @@ that follow from this document:
 - **Do not restate the gate argument in the strong form.** "The model cannot
   tell" is measured false, twice, by this organisation.
 
+## 7 · What running P0 found, on the same day
+
+P0 was written as housekeeping — wire the evidence into CI so it stops rotting.
+Building it required a clean clone on a machine that is not the author's, which
+is the *first two lines of P4*, arriving early and for free. It produced four
+findings, and none of them was reachable by reading.
+
+**1 · Neither project could be started from its own documentation.**
+`projects/coclea-sr/.venv` was a **committed symlink to an absolute path on one
+laptop** — gitignored and tracked anyway — so a fresh clone gets a dangling link
+and `uv venv .venv` refuses with *File exists*. `projects/hemo-verified` had **no
+manifest at all**: the `Makefile` called `.venv/bin/python`, the README said
+`make test`, and nothing said what to install. Both are fixed; both are
+FRICTION F9.
+
+**2 · HEMO-VERIFIED's attested report was not produced by HEMO-VERIFIED's code.**
+`eval/h0.py` writes `runtime: {seconds}`; the committed `h0.json` carried a
+top-level `seconds` and no `runtime`. That nesting was introduced by **#59, the
+commit titled *"H0 was not reproducible, and it looked like it was"***. The
+artifact was regenerated in the middle of that change and never again, so the
+repository's attestation could not have come from the repository's code. It has
+a `make reproduce` now, and it fails on exactly this.
+
+**3 · One reported statistic is a property of the machine that computed it.**
+On a different BLAS the composite AUC, the Spearman coefficient, the
+ACCEPT/ESCALATE/REJECT counts and the false-accept rate all came back
+**bit-identical**, and `A4 alone` moved **0.706 → 0.652**. 66 of A4's 98
+measurements are exactly `0.0`, so one uncorrupted case sitting at `1.03e-13` on
+one machine and `0.0` on the other crosses into a 66-wide tie block and drags a
+rank statistic 0.054 with it. The headline result is untouched, because A4 is
+`HARD` and contributes a pass/fail against a threshold far above the noise
+floor, never its score. The README now says 0.652 **and says the row moves**.
+
+**4 · The published oracle table had a second, ordinary error.** A5 and A6 were
+transposed against the artifact they were copied from. Nothing had ever compared
+them; `scripts/check-h0-table.py` does now.
+
+### What that says about §5's risk table
+
+Two rows of it stopped being hypothetical the moment somebody who was not the
+author ran the code:
+
+- *"The evidence is unguarded"* — it was, and what came through was not a red
+  gate but something worse to find late: an attestation whose provenance nobody
+  had ever checked.
+- *"Nobody wants an agent OS from a lab of one"* — the mechanism is visible now.
+  It is not taste. It is that a single-author project cannot perform the one
+  test that finds these, because the author always already has it working.
+
+**And one row got stronger, not weaker.** On the same unfamiliar machine,
+`coclea-sr`'s `verify_ledger.py` re-derived its hash chain, `check_reports.py`
+found every report with a test behind it, and `check_slack.py` reported 25 gates
+with slack from 1.08× to 760,977× **[ran]**. The gate suite itself was still
+running when this was written — it is 45 minutes on this hardware against nine
+on the author's, which is why it is a nightly and not a per-PR job — and the
+reports it had rewritten by then differed from the committed ones only in their
+last decimals, `passed: true` throughout. Those regenerated reports are
+deliberately **not** committed: they are this machine's last bits, and the
+author's artifacts stay authoritative until a machine somebody chose produces
+better ones.
+
+The attestation machinery this repository is proudest of did its job on hardware
+it had never seen; the project that did not have that machinery is the one that
+had the problem. That is the cleanest argument for §3's fourth differentiator
+anywhere in this repository, and a check produced it rather than a claim.
+
 ## What this document changed
 
 - `scripts/check-gate-count.py`, and a CI job that runs it. **[ran]** — it
@@ -373,10 +462,30 @@ that follow from this document:
   `<!-- gate-count: superseded -->` so the check knows a record of a former
   number from a stale one.
 
-**And what it did not:** nothing was re-run. The gates were read off 135 JSON
-artifacts, not executed — this environment has no numpy — and P0 exists because
-that distinction is currently the only thing standing between a green claim and a
-red suite.
+### And then P0 was built, which changed the rest
+
+- [`.github/workflows/projects.yml`](../.github/workflows/projects.yml) — the
+  nightly that runs both projects' evidence. **[read]**: the workflow file has
+  not run on GitHub yet, but every command in it was run here first.
+- `scripts/check-h0-table.py` **[ran]** — it failed on three cells and passes now.
+- `check-test-count.sh` now scans every document rather than two, verified
+  against a deliberately drifted doc 18 **[ran]**.
+- `projects/hemo-verified/eval/reproduce.py` and `make reproduce` **[ran]** —
+  REPRODUCED against a regenerated artifact, and it fails against the one that
+  was committed, which is §7's second finding.
+- `eval/h0.py` records the environment a report was produced on, so a
+  comparison can tell *disagrees* from *was produced somewhere else*.
+- `projects/hemo-verified/pyproject.toml`, and `projects/coclea-sr/.venv`
+  deleted and untracked — FRICTION **F9**.
+- The oracle table corrected from its own artifact, with A4 marked as moving
+  between machines — FRICTION **F10**.
+
+**What was still not done:** P1 through P6. P1 needs a second person and three
+days of waiting, P3 needs a trained surrogate, P4 needs a machine nobody here
+has, P5 is deliberately blocked behind P0 and P1 by this document's own
+argument, and P2 is the thesis's next run and belongs to whoever is running the
+thesis. Saying which of those are *blocked* and which are merely *not started*
+is the whole point of ordering them.
 
 ---
 

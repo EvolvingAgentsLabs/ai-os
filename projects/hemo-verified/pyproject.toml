@@ -1,0 +1,35 @@
+[project]
+name = "hemo-verified"
+version = "0.1.0"
+description = "Can physics checks tell you a flow prediction is wrong without seeing the right answer?"
+requires-python = ">=3.12"
+dependencies = [
+  "numpy>=2.5",
+  "scipy>=1.18",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+# Flat layout: `import oracles` resolves from the working directory when the
+# suite runs, and these three are the only importable packages here — `gates`,
+# `tests` and `decisions` are directories of scripts and prose. Naming them
+# explicitly is what lets `pip install -e ".[dev]"` work at all; without it
+# setuptools refuses on "multiple top-level packages discovered in a flat
+# layout", which is the error a clean clone met first.
+[tool.setuptools]
+packages = ["oracles", "analytical", "eval"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+# There was no manifest here at all until 2026-08-23. The Makefile called
+# `.venv/bin/python` and the README said `make test`, and neither said what to
+# install or how to build the environment -- so the project could be run only by
+# somebody who already had it working. `coclea-sr` has carried a `pyproject.toml`
+# since it was created; this one was missing the whole time and nothing noticed,
+# because the only person running it never started from a clean clone.
+#
+# That is FRICTION F9 and it is why the scheduled gate job in CI builds both
+# environments from these manifests rather than from a machine's history.

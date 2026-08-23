@@ -59,6 +59,12 @@ tokens puede navegar — un archivo plano del mismo material deja de entrar a la
 16 unidades; el índice sigue en 4.523 de 8.000 tokens con 2.000
 ([05](doc/es/05-ai-storage.md)).
 
+La evidencia de los dos proyectos ahora corre **nightly** en
+[`projects.yml`](.github/workflows/projects.yml) — los gates, el ledger, la
+higiene de reportes, la reproducción de H0, y cada número publicado chequeado
+contra el artefacto del que salió. Hasta el 2026-08-23 no había nada de Python
+en CI.
+
 Nada en este repositorio describe software que exista salvo que lo diga, y toda
 captura es de una instancia viva.
 

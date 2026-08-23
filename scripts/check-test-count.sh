@@ -35,19 +35,49 @@ flows=$(total_of ai-flows)
 ui=$(total_of ai-ui)
 actual=$((flows + ui))
 
+# ## It scans every document, not the two READMEs
+#
+# The first version checked `README.md` and `README.es.md`. On 2026-08-23 doc 18
+# was found carrying **605** while both READMEs carried 626 -- a claim in a file
+# nobody had listed, which is the same failure this script exists to prevent,
+# one directory over. So the file list is now discovered rather than written
+# down: any markdown file that states a test count is checked, and a file that
+# states one is never invisible to this check again.
+#
+# The phrasings are the ones the documents actually use, in both languages.
+# Adding a fourth way to say it is fine; adding it without adding it here is how
+# the count drifts.
+pattern='[0-9,\.]+ tests (of our own|of their own|propios)'
+
 fail=0
+found=0
+while IFS= read -r f; do
+  # `|| true`: `set -e` plus `pipefail` would abort on the first document
+  # that simply does not mention a test count, which is most of them.
+  claimed=$(grep -ohE "$pattern" "$f" | grep -oE '^[0-9,\.]+' | tr -d ',.' | sort -u || true)
+  [ -n "$claimed" ] || continue
+  found=$((found + 1))
+  for c in $claimed; do
+    if [ "$c" != "$actual" ]; then
+      echo "FAIL  $f says $c; the suites report $actual (ai-flows $flows + ai-ui $ui)"
+      fail=1
+    else
+      echo "ok    $f — $actual"
+    fi
+  done
+done < <(git ls-files '*.md' ':!:ai-base/*')
+
 for f in README.md README.es.md; do
-  claimed=$(grep -oE '[0-9,\.]+ tests (of our own|propios)' "$f" | grep -oE '^[0-9,\.]+' | tr -d ',.' || true)
-  if [ -z "$claimed" ]; then
-    echo "FAIL  $f states no test count"
+  if ! grep -qE "$pattern" "$f"; then
+    echo "FAIL  $f states no test count, and the front page has to"
     fail=1
-  elif [ "$claimed" != "$actual" ]; then
-    echo "FAIL  $f says $claimed; the suites report $actual (ai-flows $flows + ai-ui $ui)"
-    fail=1
-  else
-    echo "ok    $f — $actual"
   fi
 done
+
+if [ "$found" -eq 0 ]; then
+  echo "FAIL  no document states a test count at all"
+  fail=1
+fi
 
 if [ "$fail" -ne 0 ]; then
   echo

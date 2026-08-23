@@ -176,6 +176,65 @@ it found it by refusing to conflate *intact* with *valid*.
 
 ---
 
+### F9 · A project that only its author can start
+
+**Hit:** once, and it is the first time anybody tried. On 2026-08-23 both
+projects were built from a clean clone on a machine that was not the author's:
+
+* `projects/coclea-sr/.venv` was a **committed symlink to an absolute path on
+  one laptop** (`/Users/…/coclea-sr/.venv`). It is in `.gitignore` and it was
+  tracked anyway, so a fresh clone gets a dangling link and `uv venv .venv`
+  refuses with *File exists*.
+* `projects/hemo-verified` had **no manifest at all**. The `Makefile` called
+  `.venv/bin/python`, the README said `make test`, and nothing anywhere said
+  what to install or how to build the environment.
+
+**Hack:** the symlink is deleted and untracked; `hemo-verified` gets a
+`pyproject.toml` naming its three importable packages, because a flat layout
+makes setuptools refuse otherwise; and the README's *Run it* block now starts
+with the two lines that build the environment.
+
+**What this says about the pattern:** every other entry in this file was found
+by the work. This one could only be found by somebody who did not already have
+it working, which is the one thing a single-author project cannot do for itself
+— and it is why *one user who is not the author* is an item on the plan rather
+than a nicety.
+
+---
+
+### F10 · An attestation nobody attested
+
+**Hit:** once, and it went through the commit that existed to prevent it.
+
+`eval/h0.py` writes `runtime: {seconds}`. The committed `gates/reports/h0.json`
+carried a top-level `seconds` and no `runtime` at all — and that nesting was
+introduced by **#59, the commit titled "H0 was not reproducible, and it looked
+like it was"**. So the attested report in the repository could not have been
+produced by the code in the repository: it was regenerated in the middle of the
+change and never again.
+
+Underneath that, a second thing the same clean run surfaced: the composite AUC,
+the Spearman coefficient, the decision counts and the false-accept rate came
+back **bit-identical** across machines, and `A4 alone` moved 0.706 → 0.652. 66
+of A4's 98 measurements are exactly `0.0`, so one uncorrupted case sitting at
+`1.03e-13` on one BLAS and `0.0` on another crosses into a 66-wide tie block and
+drags a rank statistic with it. The composite never moves because A4 is `HARD`.
+
+**Hack:** `make reproduce` for `hemo-verified`, mirroring the one this project
+has always had; `h0.json` records the environment it was produced on, so the
+check can tell *disagrees* from *was produced somewhere else*;
+`scripts/check-h0-table.py` refuses to let the README and the artifact say
+different things; and the nightly `projects.yml` workflow runs all of it.
+
+**What this says about the pattern:** #59 added a test that runs the pipeline in
+two processes and demands they agree exactly. That test is right and it is
+blind here, because both processes share one BLAS and neither of them is the
+artifact in `git`. **A reproducibility test that never reads the committed
+artifact is testing the code against itself** — which is [F5](#f5--a-control-arm-that-is-derived-instead-of-run)'s
+shape again, one level up.
+
+---
+
 ## Deliberately not recorded
 
 Things that were annoying once and are not friction: a shell without `timeout`, a

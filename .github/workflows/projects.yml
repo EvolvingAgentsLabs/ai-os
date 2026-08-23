@@ -1,0 +1,140 @@
+# The evidence CI never ran.
+#
+# `ci.yml` guards the TypeScript: nine jobs over `ai-base`, `ai-flows` and
+# `ai-ui`. It contains no Python at all, so `projects/coclea-sr` — 28 gates, 135
+# checks, the thing every external claim in this repository rests on — and
+# `projects/hemo-verified` were guarded by somebody remembering to run them.
+#
+# Two things went through that hole before anybody built this file:
+#
+#   * the published gate count sat at 26/125 for six days after it became
+#     28/135, and
+#   * HEMO-VERIFIED's attested `h0.json` was produced by code that the commit
+#     fixing it then replaced, so the artifact in the repository could not have
+#     come from the code in the repository.
+#
+# Neither is exotic. Both are what happens when the only thing standing between
+# a green claim and a red suite is a habit.
+#
+# ## Why this is a separate workflow, and not per-PR
+#
+# `make gates` is nine minutes and needs numpy, scipy and sympy. Putting that on
+# every pull request would buy very little — `projects/` changes rarely — and
+# would cost every unrelated PR nine minutes. So it runs nightly, on demand, and
+# on any PR that actually touches `projects/`.
+#
+# ## Why it does not install with `uv`
+#
+# The runner's own `python3` is 3.12, which is what both manifests ask for, and
+# adding a third-party action means pinning another SHA. Fewer moving parts on a
+# job whose whole purpose is to be trustworthy when nobody is watching it.
+name: Projects
+
+on:
+  schedule:
+    # 04:00 UTC. Nightly, because the cost of finding a red gate a day late is
+    # small and the cost of finding it a month late is a document written from it.
+    - cron: "0 4 * * *"
+  pull_request:
+    paths:
+      - "projects/**"
+      - ".github/workflows/projects.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: projects-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  coclea-sr:
+    name: coclea-sr — 28 gates
+    runs-on: ubuntu-latest
+    # The suite is documented at nine minutes on the author's machine and took
+    # roughly 45 on a shared runner on 2026-08-23 -- A13's SDE integrator and
+    # B02's sweep are most of it. The timeout is a runaway guard rather than an
+    # estimate, so it is generous; if it starts firing, that is the signal to
+    # split the slow modules into their own job, not to raise it again.
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: projects/coclea-sr
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - name: Build the environment from the manifest
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --quiet --upgrade pip
+          .venv/bin/python -m pip install --quiet -e ".[dev]"
+      - name: The gates
+        run: make gates
+      - name: Every report has a test behind it
+        # FRICTION F3: `gates/reports/` is never cleaned, so a renamed or moved
+        # test leaves a red report behind forever, and `ai-flows/src/gates.ts`
+        # reads that directory to compute the freeze verdict. Runs on the venv
+        # python because it collects the suite; `python3` here has no pytest,
+        # which is how it was documented wrong for a week.
+        run: .venv/bin/python gates/check_reports.py
+      - name: The ledger verifies, and the slack is reported
+        run: |
+          python3 verify_ledger.py
+          python3 gates/check_slack.py
+      - name: The published count matches the reports that just ran
+        # Deliberately after `make gates` rather than in the job below: there the
+        # count is checked against the committed reports, here against reports
+        # produced seconds ago. The second is the one that cannot be stale.
+        working-directory: .
+        run: python3 scripts/check-gate-count.py
+
+  hemo-verified:
+    name: hemo-verified — H0
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: projects/hemo-verified
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - name: Build the environment from the manifest
+        # Flat layout, so `pyproject.toml` names its three importable packages
+        # explicitly; without that setuptools refuses and there is no manifest
+        # install at all, which is the state a clean clone found this project in.
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --quiet --upgrade pip
+          .venv/bin/python -m pip install --quiet -e ".[dev]"
+      - name: The precondition
+        run: make test
+      - name: The kill gate, and the report reproduces
+        # `make h0` is deliberately NOT run here. It writes `gates/reports/h0.json`
+        # into the checkout, and `make reproduce` would then be comparing a fresh
+        # run against a fresh run and reporting REPRODUCED every time. Reproduce
+        # runs H0 itself, into a temporary directory, and inherits its non-zero
+        # exit when the composite AUC falls below the kill threshold — so this
+        # one step is both the gate and the reproduction.
+        run: make reproduce
+      - name: The slack audit
+        run: python3 gates/check_slack.py --dir gates/reports
+
+  published-numbers:
+    name: Published numbers match their artifacts
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - name: The gate count
+        run: python3 scripts/check-gate-count.py
+      - name: HEMO-VERIFIED's oracle table
+        run: python3 scripts/check-h0-table.py
+
+  projects:
+    name: Projects
+    runs-on: ubuntu-latest
+    needs:
+      - coclea-sr
+      - hemo-verified
+      - published-numbers
+    steps:
+      - name: Checks passed
+        run: echo "coclea-sr's gates, hemo-verified's H0, and the published numbers passed."

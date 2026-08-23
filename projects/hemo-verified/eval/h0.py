@@ -75,6 +75,44 @@ def spearman(a, b):
     return float((ra * rb).sum() / d) if d > 0 else float("nan")
 
 
+def environment():
+    """What this run was produced on.
+
+    Two numbers computed from the same code on two machines are the same claim
+    only if the arithmetic underneath them is the same. The oracles reduce over
+    64x8 (and 64x8x32) fields through numpy, so the BLAS build is part of the
+    experiment whether or not anybody wrote it down. Until 2026-08-23 nobody
+    had, and the reproducibility test compared two processes on one machine --
+    which is the one comparison that cannot see this.
+    """
+    import platform
+
+    blas = []
+    try:
+        deps = np.__config__.show(mode="dicts").get("Build Dependencies") or {}
+        for k, v in deps.items():
+            if "blas" in k.lower() or "lapack" in k.lower():
+                blas.append(f"{k}={v.get('name')}/{v.get('version')}")
+    except Exception:
+        blas.append("unknown")
+    return {
+        "python": platform.python_version(),
+        "numpy": np.__version__,
+        "scipy": scipy_version(),
+        "blas": sorted(blas),
+        "machine": platform.machine(),
+    }
+
+
+def scipy_version():
+    try:
+        import scipy
+
+        return scipy.__version__
+    except Exception:  # pragma: no cover - scipy is a hard dependency
+        return "absent"
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="gates/reports")
@@ -133,10 +171,18 @@ def main():
         "verdict": ("SURVIVES" if overall >= 0.8 else "KILLED"),
         "oracle_hashes": oracles.hashes(),
         "thresholds": oracles.thresholds(),
-        # everything above this line is reproducible bit for bit; wall clock
-        # is not, so it lives apart rather than sitting inside the payload a
-        # reader is meant to be able to hash
+        # everything above this line is reproducible bit for bit **on one
+        # machine**; wall clock is not, so it lives apart rather than sitting
+        # inside the payload a reader is meant to be able to hash.
+        #
+        # `environment` sits out here for the opposite reason: it is stable
+        # within a machine and differs between them, and recording it is what
+        # lets `make reproduce` tell "this run disagrees" from "this run was
+        # produced somewhere else". Added after a clean-clone run on a
+        # different BLAS moved A4's per-oracle AUC by 0.054 while every other
+        # field stayed bit-identical -- see README, defect four.
         "runtime": {"seconds": round(time.time() - t0, 2)},
+        "environment": environment(),
         "rows": rows,
     }
     d = pathlib.Path(a.out)

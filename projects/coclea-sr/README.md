@@ -249,7 +249,11 @@ answer that had already been measured.
 
 ```bash
 cd projects/coclea-sr
-python3.12 -m venv .venv && .venv/bin/pip install numpy scipy sympy mpmath pytest
+python3.12 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+#            ^ from pyproject.toml, so the dependency list lives in one place.
+#              This line used to name the five packages again, and until
+#              2026-08-23 a dangling `.venv` symlink to one laptop was
+#              committed here, so on any other machine it refused first.
 
 .venv/bin/python -m pytest gates/ -q                            # every gate
 PYTHONPATH=src .venv/bin/python experiments/e2_tonotopy.py      # the place map, 3 arms

@@ -21,9 +21,14 @@ Two projects run **on** the OS:
 - [`projects/hemo-verified/`](projects/hemo-verified/) — H0 survives at **AUC
   0.906** against a kill threshold of 0.80.
 
-**Neither project runs in CI.** There is no Python in `.github/workflows/ci.yml`,
-so the repository's strongest evidence is guarded by somebody remembering to run
-it. That is the first item below.
+**Both projects now run nightly** in
+[`.github/workflows/projects.yml`](.github/workflows/projects.yml), built from
+their manifests, with `check_reports.py`, `verify_ledger.py`, `check_slack.py`,
+`make reproduce` and the published-number checks alongside. Until 2026-08-23
+there was no Python in CI at all, and
+[19 §7](doc/19-what-would-make-this-matter.md#7--what-running-p0-found-on-the-same-day)
+is what building that found — including an attested `h0.json` that could not have
+been produced by the code committed beside it.
 
 Everything is merged to `main`, and [the site](https://evolvingagentslabs.github.io/)
 serves a [playable desk](https://evolvingagentslabs.github.io/demo/).
@@ -62,7 +67,21 @@ cd ai-flows && npm run typecheck && npm run typecheck:scripts \
 cd ai-base  && npm run format:check && npm run lint && npm run lint:knip
 cd ..       && DATABASE_URL="postgresql://aios:aios@localhost:55432/flowtest" \
                ./scripts/check-test-count.sh
-cd ..       && python3 scripts/check-gate-count.py
+cd ..       && python3 scripts/check-gate-count.py \
+            && python3 scripts/check-h0-table.py
+```
+
+**The projects' own evidence**, which `ci.yml` does not run and
+`projects.yml` does, nightly:
+
+```bash
+cd projects/coclea-sr    && python3.12 -m venv .venv \
+    && .venv/bin/pip install -e ".[dev]" \
+    && make gates && .venv/bin/python gates/check_reports.py \
+    && python3 verify_ledger.py && python3 gates/check_slack.py
+cd projects/hemo-verified && python3.12 -m venv .venv \
+    && .venv/bin/pip install -e ".[dev]" \
+    && make test && make reproduce
 ```
 
 Regenerate the site demo after any desk change:
@@ -74,18 +93,23 @@ The order below is [19 § The plan](doc/19-what-would-make-this-matter.md#6--the
 with the commands. Each item there states what "done" means and what would say it
 was the wrong item; that is not repeated here.
 
-## 1. Finish P0 — stop the evidence rotting
+## 1. P0 is done — what is left is to watch it
 
-Done already: `scripts/check-gate-count.py` and its CI job, so the published gate
-count cannot drift. What remains, and it is hours:
+`scripts/check-gate-count.py`, `scripts/check-h0-table.py`, the extended
+`check-test-count.sh`, `projects/hemo-verified/eval/reproduce.py` and the nightly
+`projects.yml` are all in. The remaining work is not construction:
 
-- **A scheduled job that runs the Python gates.** Not per-PR — `make gates` is
-  nine minutes and needs numpy, scipy and sympy. Nightly or weekly, both
-  projects, failing loudly.
-- **`gates/check_reports.py` in the same job**, because a fresh count over stale
-  reports is the exact failure FRICTION F3 records.
-- **Extend `check-test-count.sh` past the two READMEs** — doc 18 carried 605
-  while the READMEs carried 626.
+- **Watch the first few nightlies.** The workflow's commands were each run by
+  hand before it was written, but the workflow itself has not run on GitHub. A
+  scheduled job nobody has seen succeed is a scheduled job.
+- **Decide what A4's per-oracle AUC means.** It moves 0.706 → 0.652 between BLAS
+  builds because 66 of its 98 measurements are exactly `0.0` and one uncorrupted
+  case crosses into that tie block. The README now says 0.652 and says the row
+  moves; whether a `HARD` oracle should be reported with a rank statistic at all
+  is a decision for whoever owns the science, not for the check that found it.
+- **Regenerate `h0.json` on the machine the paper will quote**, now that it
+  records its own environment. `make reproduce` then means bit-identity rather
+  than a classification.
 
 ## 2. Seed the flow for M5's stopwatch, today
 
@@ -122,6 +146,13 @@ do — F5, applied before the work.
 `make up` from a clean clone on a clean machine, timed, by somebody who has not
 seen this repository. Every failure becomes a FRICTION entry, fixed with the
 shortest hack that works. The output is a number: time to a first gated result.
+
+**Its first two lines have already been paid**, by accident: building P0 needed
+both projects standing up on a machine that was not the author's, and neither
+of them could be started from its own documentation — a committed `.venv`
+symlink to one laptop, and a project with no manifest at all. Both are FRICTION
+F9. That is the cheapest possible evidence that this item is not a nicety, and
+it cost nothing to collect because something else needed it first.
 
 ## Smaller, if a session ends early
 

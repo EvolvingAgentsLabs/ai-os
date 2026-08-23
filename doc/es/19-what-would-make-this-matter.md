@@ -6,20 +6,22 @@
 
 > **Proyecto.** Una lectura del repositorio completo el 2026-08-23: qué corre,
 > para quién es, qué es genuinamente distinto, qué lo mataría, y qué hacer
-> después. **Nada acá es una medición nueva.** Cada número está citado de un
-> documento que lo registró o **[read]** de un artefacto en disco, y los dos
-> lugares donde esa distinción muerde están marcados en §1. El único número que
-> este documento cambió es el conteo de gates publicado, y ahora tiene un check.
+> después. Las §§1–6 se escribieron **sin correr nada**: cada número de ahí está
+> citado de un documento que lo registró o **[read]** de un artefacto en disco, y
+> los dos lugares donde esa distinción muerde están marcados en §1. **La §7 es lo
+> que pasó cuando después se construyó y se corrió P0**, en una máquina que no
+> era la del autor, y encontró cuatro cosas que leer no encuentra.
 
 ## La versión corta
 
 1. **Tres de los cuatro pilares corren; uno no existe.** `ai-flows` y `ai-ui` son
    reales y están testeados. `ai-storage` son 0 líneas de código y 1
    especificación.
-2. **La evidencia más fuerte del repositorio es la parte que CI nunca corre.** No
-   hay Python en ningún lado de `.github/workflows/ci.yml` **[read]**, así que
+2. **La evidencia más fuerte del repositorio era la parte que CI nunca corría.**
+   No había Python en ningún lado de `.github/workflows/ci.yml`, así que
    `projects/coclea-sr` — 28 gates, 135 chequeos — y `projects/hemo-verified`
-   quedan fuera de toda guarda automática que el repositorio tiene.
+   quedaban fuera de toda guarda automática que el repositorio tenía. Eso es lo
+   que arregló P0, y la §7 es lo que encontró arreglarlo.
 3. **Y ya se había podrido.** <!-- gate-count: superseded --> Trece lugares con la afirmación, en siete
    archivos, decían *26 gates / 125 chequeos* mientras los reportes en disco tenían
    **28 / 135**. Es exactamente la falla que `scripts/check-test-count.sh` fue
@@ -40,8 +42,12 @@
 | `ai-ui/` | 12.160 líneas | el escritorio, la cara de traza, la cara de gate, el generador del demo | sí |
 | `ai-memory/` | 1.116 líneas | seis agentes de memoria como un árbol que corre como árbol | vía `ai-flows` |
 | `ai-storage/` | **0 líneas** | [05](05-ai-storage.md), y nada más | — |
-| `projects/coclea-sr/` | 14.433 líneas Python | 28 gates / 135 chequeos, todos `passed: true` **[leído de los artefactos de reporte, no re-corrido acá]** | **no** |
-| `projects/hemo-verified/` | 918 líneas Python | H0 sobrevive: AUC 0.906 contra un umbral de muerte de 0.80 | **no** |
+| `projects/coclea-sr/` | 14.433 líneas Python | 28 gates / 135 chequeos, todos `passed: true` | **no** → nightly, §7 |
+| `projects/hemo-verified/` | 918 líneas Python | H0 sobrevive: AUC 0.906 contra un umbral de muerte de 0.80 | **no** → nightly, §7 |
+
+Las dos últimas filas son por qué existe este documento, y la flecha es lo que
+P0 hizo al respecto. Se leyeron de artefactos de reporte cuando se escribió la
+§1; la §7 es lo que dijeron cuando se las corrió.
 
 **Cadencia:** 54 commits, el primero `2026-08-04`, el último `2026-08-22`, un
 autor. Diecinueve días. Ese número es la entrada más importante de §6 y es fácil
@@ -54,6 +60,7 @@ pasarlo de largo.
 | gates / chequeos | <!-- gate-count: superseded --> **26 / 125**, en trece lugares de siete archivos | **28 / 135** en `projects/coclea-sr/gates/reports/` |
 | tests propios | **605** en [18](18-from-a-hypothesis-to-a-therapeutic-surface.md), **626** en `README.md` | 626 — el README es el que CI chequea |
 | el plan | `NEXT.md`, fechado 2026-08-09 en su propio encabezado, *"402 tests"* | tocado por última vez el 2026-08-11 y diecinueve pull requests atrás |
+| la tabla de oráculos de H0 | A4 **0.706**, A5 **0.522**, A6 **0.521** | 0.652, 0.521, 0.522 — una transposición y un número que es una propiedad de la máquina (§7) |
 
 Nada de esto es descuido en el sentido corriente. `doc/PLAN.md` tenía **28 / 135**
 bien el día que cambió; el conteo simplemente vive en trece lugares y un solo
@@ -236,25 +243,42 @@ significa terminado y qué diría que el ítem era el equivocado.
 | **P5** | Decirlo una vez, angosto | un día de escritura | (b) y (c) de §2 no pueden encontrar esto |
 | **P6** | `ai-storage`, contra 3.0 | un milestone | es trabajo real y está detrás de cinco cosas más baratas |
 
-### P0 · Frenar la podredumbre de la evidencia
+### P0 · Frenar la podredumbre de la evidencia — **hecho, y correrlo es la §7**
 
-Parcialmente hecho en el cambio que trae este documento: el conteo de gates se
-chequea contra los reportes y está cableado a CI **[ran]**. Lo que queda:
+Las tres partes están construidas y corridas **[ran]**:
 
-1. **Correr los gates de Python en un schedule.** No por PR — nueve minutos, tres
-   dependencias científicas, y `projects/` cambia poco. Un job nocturno o semanal
-   que corra `make gates` para los dos proyectos y falle fuerte alcanza, y es la
-   diferencia entre que un gate rojo lo encuentre CI o lo encuentre un documento.
-2. **Extender `check-test-count.sh` más allá de los dos READMEs**, ya que el doc 18
-   traía 605 mientras los READMEs traían 626.
-3. **Correr `gates/check_reports.py` en el mismo job**, porque un conteo fresco
-   sobre reportes viejos es la falla de la que trata toda esta sección.
+1. **Los gates de Python corren en un schedule.**
+   [`.github/workflows/projects.yml`](../../.github/workflows/projects.yml) —
+   nightly, a demanda, y en cualquier PR que toque `projects/`. Construye los dos
+   entornos desde sus manifiestos, corre `make gates`, `check_reports.py`,
+   `verify_ledger.py` y `check_slack.py` para `coclea-sr`, y `make test` más
+   `make reproduce` para `hemo-verified`. No todo por PR: nueve minutos y tres
+   dependencias científicas serían un impuesto sobre cada PR no relacionado.
+2. **`check-test-count.sh` escanea todo documento**, no los dos READMEs. La lista
+   de archivos se descubre con `git ls-files` en vez de escribirse, así que un
+   conteo en un archivo que nadie listó ya no puede ser invisible — que es
+   exactamente cómo el doc 18 sostuvo 605 contra los 626 de los READMEs.
+3. **`check_reports.py` corre en el mismo job**, sobre el intérprete del venv,
+   porque el `python3` de ahí no tiene pytest y así estuvo documentado mal
+   durante una semana (FRICTION F3).
 
-**Terminado significa:** un gate rojo, un reporte viejo y un número derivado hacen
-fallar algo automáticamente. **Ítem equivocado si:** el job agendado resulta
-demasiado flaky o lento para mantenerlo verde, en cuyo caso hay que decirlo y fijar
-una corrida atestada mensual en vez de dejar un badge rojo que la gente aprende a
-ignorar.
+Se agregaron dos cosas que esta sección no anticipaba, las dos porque correrla
+las produjo: `hemo-verified` **no tenía ningún comando de reproducción**, así que
+ahora lo tiene (`eval/reproduce.py`), y su tabla de oráculos publicada no
+coincidía con su propio artefacto en dos celdas, así que
+[`scripts/check-h0-table.py`](../../scripts/check-h0-table.py) lee la tabla desde
+`h0.json` y rechaza la diferencia.
+
+**El conteo ahora se chequea contra reportes producidos segundos antes**, no
+contra lo que esté commiteado: el nightly corre `check-gate-count.py` dentro del
+job de `coclea-sr` después de `make gates`, y otra vez en un job aparte contra
+los artefactos commiteados. Que las dos respuestas difieran es en sí un hallazgo.
+
+**Terminado significa:** un gate rojo, un reporte viejo, un número derivado y un
+artefacto que no reproduce hacen fallar algo automáticamente. Eso ya es cierto.
+**Ítem equivocado si:** el nightly resulta demasiado flaky o lento para
+mantenerlo verde, en cuyo caso hay que decirlo y fijar una corrida atestada
+mensual en vez de dejar un badge rojo que la gente aprende a ignorar.
 
 ### P1 · Correr el cronómetro de M5
 
@@ -362,6 +386,75 @@ más tres que se siguen de este documento:
 - **No repetir el argumento de los gates en su forma fuerte.** "El modelo no puede
   darse cuenta" está medido como falso, dos veces, por esta organización.
 
+## 7 · Qué encontró correr P0, el mismo día
+
+P0 estaba escrito como tarea de mantenimiento — cablear la evidencia a CI para
+que deje de pudrirse. Construirlo requirió un clon limpio en una máquina que no
+es la del autor, que son *las primeras dos líneas de P4*, llegando temprano y
+gratis. Produjo cuatro hallazgos, y ninguno era alcanzable leyendo.
+
+**1 · Ninguno de los dos proyectos se podía arrancar desde su propia
+documentación.** `projects/coclea-sr/.venv` era un **symlink commiteado a una
+ruta absoluta de una laptop** — gitigonorado y trackeado igual — así que un clon
+fresco recibe un link colgado y `uv venv .venv` se niega con *File exists*.
+`projects/hemo-verified` **no tenía manifiesto alguno**: el `Makefile` llamaba a
+`.venv/bin/python`, el README decía `make test`, y nada decía qué instalar. Los
+dos están arreglados; los dos son FRICTION F9.
+
+**2 · El reporte atestado de HEMO-VERIFIED no fue producido por el código de
+HEMO-VERIFIED.** `eval/h0.py` escribe `runtime: {seconds}`; el `h0.json`
+commiteado tenía un `seconds` en la raíz y ningún `runtime`. Ese anidado lo
+introdujo **el #59, el commit titulado *"H0 was not reproducible, and it looked
+like it was"***. El artefacto se regeneró en medio de ese cambio y nunca más, así
+que la atestación del repositorio no pudo haber salido del código del
+repositorio. Ahora tiene `make reproduce`, y falla exactamente con esto.
+
+**3 · Un estadístico reportado es una propiedad de la máquina que lo calculó.**
+Sobre otro BLAS, el AUC compuesto, el coeficiente de Spearman, los conteos
+ACCEPT/ESCALATE/REJECT y la tasa de falso-aceptado volvieron **bit a bit
+idénticos**, y `A4 alone` se movió **0.706 → 0.652**. 66 de las 98 mediciones de
+A4 son exactamente `0.0`, así que un caso sin corromper que estaba en `1.03e-13`
+en una máquina y en `0.0` en la otra cruza a un bloque de 66 empates y arrastra
+0.054 al estadístico de rangos. El resultado de titular no se toca, porque A4 es
+`HARD` y aporta un pasa/no-pasa contra un umbral muy por encima del piso de
+ruido, nunca su score. El README ahora dice 0.652 **y dice que esa fila se
+mueve**.
+
+**4 · La tabla de oráculos publicada tenía un segundo error, ordinario.** A5 y A6
+estaban transpuestos contra el artefacto del que se copiaron. Nada los había
+comparado nunca; `scripts/check-h0-table.py` sí lo hace ahora.
+
+### Qué dice eso de la tabla de riesgos de la §5
+
+Dos filas dejaron de ser hipotéticas en el momento en que alguien que no era el
+autor corrió el código:
+
+- *"La evidencia no está guardada"* — no lo estaba, y lo que pasó por el agujero
+  no fue un gate rojo sino algo peor de encontrar tarde: una atestación cuya
+  procedencia nadie había chequeado nunca.
+- *"Nadie quiere un OS de agentes de un lab de uno"* — ahora el mecanismo es
+  visible. No es cuestión de gusto. Es que un proyecto de un solo autor no puede
+  hacer la única prueba que encuentra estas cosas, porque el autor siempre ya lo
+  tiene funcionando.
+
+**Y una fila se fortaleció, no se debilitó.** En la misma máquina desconocida, el
+`verify_ledger.py` de `coclea-sr` re-derivó su cadena de hashes,
+`check_reports.py` encontró que todo reporte tiene un test detrás, y
+`check_slack.py` reportó 25 gates con slack de 1.08× a 760.977× **[ran]**. El
+suite de gates en sí seguía corriendo cuando se escribió esto — son 45 minutos en
+este hardware contra nueve en el del autor, que es por qué es un nightly y no un
+job por PR — y los reportes que había reescrito hasta ese momento diferían de los
+commiteados solo en sus últimos decimales, con `passed: true` en todos. Esos
+reportes regenerados deliberadamente **no** se commitean: son los últimos bits de
+esta máquina, y los artefactos del autor siguen siendo los autoritativos hasta
+que una máquina que alguien haya elegido produzca unos mejores.
+
+La maquinaria de atestación de la que este repositorio está más orgulloso hizo su
+trabajo en hardware que nunca había visto; el proyecto que no la tenía es el que
+tuvo el problema. Ese es el argumento más limpio a favor del cuarto diferenciador
+de la §3 que hay en todo el repositorio, y lo produjo un check, no una
+afirmación.
+
 ## Qué cambió este documento
 
 - `scripts/check-gate-count.py`, y un job de CI que lo corre. **[ran]** — falló en
@@ -380,9 +473,31 @@ más tres que se siguen de este documento:
   `<!-- gate-count: superseded -->` invisible para que el check distinga un
   registro de un número anterior de un número viejo sin corregir.
 
-**Y qué no hizo:** no se re-corrió nada. Los gates se leyeron de 135 artefactos
-JSON, no se ejecutaron — este entorno no tiene numpy — y P0 existe porque esa
-distinción es hoy lo único que separa una afirmación verde de una suite roja.
+### Y después se construyó P0, que cambió el resto
+
+- [`.github/workflows/projects.yml`](../../.github/workflows/projects.yml) — el
+  nightly que corre la evidencia de los dos proyectos. **[read]**: el archivo de
+  workflow todavía no corrió en GitHub, pero cada comando de adentro se corrió
+  acá primero.
+- `scripts/check-h0-table.py` **[ran]** — falló en tres celdas y ahora pasa.
+- `check-test-count.sh` ahora escanea todo documento en vez de dos, verificado
+  contra un doc 18 derivado a propósito **[ran]**.
+- `projects/hemo-verified/eval/reproduce.py` y `make reproduce` **[ran]** —
+  REPRODUCED contra un artefacto regenerado, y falla contra el que estaba
+  commiteado, que es el segundo hallazgo de la §7.
+- `eval/h0.py` registra el entorno en el que se produjo un reporte, para que una
+  comparación pueda distinguir *no coincide* de *se produjo en otro lado*.
+- `projects/hemo-verified/pyproject.toml`, y `projects/coclea-sr/.venv` borrado y
+  destrackeado — FRICTION **F9**.
+- La tabla de oráculos corregida desde su propio artefacto, con A4 marcada como
+  que se mueve entre máquinas — FRICTION **F10**.
+
+**Qué siguió sin hacerse:** P1 a P6. P1 necesita una segunda persona y tres días
+de espera, P3 necesita un surrogate entrenado, P4 necesita una máquina que acá no
+hay, P5 está deliberadamente bloqueada detrás de P0 y P1 por el propio argumento
+de este documento, y P2 es la próxima corrida de la tesis y le pertenece a quien
+esté corriendo la tesis. Decir cuáles de esas están *bloqueadas* y cuáles
+simplemente *no empezadas* es todo el punto de ordenarlas.
 
 ---
 
