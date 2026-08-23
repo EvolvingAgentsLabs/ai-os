@@ -564,10 +564,19 @@ number, not a policy.
   wrong in ways worth recording: one consumed the minus sign into the pattern and
   called every signed claim a mismatch, and one matched a bare "N of N" and
   reported an ADR counting nine flows as a disagreement about 24 curves.
-- `scripts/check-upstream-test-count.sh` — **not run here**. `ai-base`'s suite
-  needs Node 24 and several minutes, and it was still running when this was
-  written; the nightly job that calls it is where it gets its first real
-  execution, and this PR's own CI is what says whether it works.
+- `scripts/check-upstream-test-count.sh` **[ran]** — against `ai-base`'s real
+  suite output, on both branches: 3,768, matching both READMEs, and the red-suite
+  branch reporting `tests 3768 / pass 3634 / fail 3`. Only the `npm test`
+  invocation itself is exercised for the first time by the nightly.
+
+  **Writing it found a latent bug in the check beside it.** `node --test` prints
+  `ℹ tests 3768`, and `check-test-count.sh` matched that with `^. tests` — which
+  works only where the shell's locale is UTF-8, because in the C locale `.`
+  matches one *byte* and the glyph is three. GitHub's runners set a UTF-8 locale,
+  so it passed there and returned nothing at all in a plain container: the count
+  came back empty, bash read it as zero, and every claim failed against a total
+  of 0. It fails closed, which is the only reason this was cheap. Both scripts
+  now anchor on the end of the line instead of on a glyph.
 - `check-test-count.sh` now scans every document rather than two, verified
   against a deliberately drifted doc 18 **[ran]**.
 - `projects/hemo-verified/eval/reproduce.py` and `make reproduce` **[ran]** —

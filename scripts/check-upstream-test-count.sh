@@ -29,9 +29,36 @@ cd "$(dirname "$0")/.."
 # check is how doc 18 kept saying 605.
 pattern='[0-9,\.]+ (`ai-base` carries from upstream|que `ai-base` trae de upstream)'
 
-echo "running ai-base's suite unsharded; this is minutes, not seconds"
-actual=$( cd ai-base && npm test 2>&1 | grep -E '^. tests [0-9]+' | grep -oE '[0-9]+' )
+# ## The summary line, and the locale it was matched in
+#
+# `node --test` writes its totals as `\u2139 tests 3768`. Matching that with
+# `^. tests` -- which is what this repository did first -- works only where the
+# shell's locale is UTF-8, because in the C locale `.` matches one *byte* and the
+# information glyph is three. GitHub's runners set a UTF-8 locale, so the check
+# passed there and returned nothing at all in a plain container: the count came
+# back empty, bash arithmetic read the empty string as zero, and every claim
+# failed against a total of 0.
+#
+# It fails closed, which is the only reason this was cheap to find. The pattern
+# below anchors on the end of the line instead of on a glyph, so it does not care
+# what locale it is read in.
 
+# The suite's output is captured rather than piped, so a red suite is reported as
+# a red suite. Piping it into `grep` under `pipefail` makes the script die on the
+# npm exit code with the reason swallowed, which is a confusing way to learn that
+# somebody's tests are failing.
+log=$(mktemp)
+trap 'rm -f "$log"' EXIT
+
+echo "running ai-base's suite unsharded; this is minutes, not seconds"
+if ! ( cd ai-base && npm test ) > "$log" 2>&1; then
+  echo "FAIL  ai-base's suite did not pass, so the published count is not a count"
+  echo "      of a green suite. Totals it did report:"
+  grep -oE '(^|[^a-z])(tests|pass|fail) [0-9]+$' "$log" | sed 's/^[^a-z]*/      /' || true
+  exit 1
+fi
+
+actual=$( grep -oE '(^|[^a-z])tests [0-9]+$' "$log" | grep -oE '[0-9]+' )
 if [ -z "$actual" ]; then
   echo "FAIL  ai-base's suite reported no total; it did not run"
   exit 1

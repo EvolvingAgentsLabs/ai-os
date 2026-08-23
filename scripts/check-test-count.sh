@@ -27,8 +27,22 @@ if [ -z "${DATABASE_URL:-}" ]; then
   exit 0
 fi
 
+# ## The summary line, and the locale it was matched in
+#
+# `node --test` writes its totals as `\u2139 tests 3768`. Matching that with
+# `^. tests` -- which is what this repository did first -- works only where the
+# shell's locale is UTF-8, because in the C locale `.` matches one *byte* and the
+# information glyph is three. GitHub's runners set a UTF-8 locale, so the check
+# passed there and returned nothing at all in a plain container: the count came
+# back empty, bash arithmetic read the empty string as zero, and every claim
+# failed against a total of 0.
+#
+# It fails closed, which is the only reason this was cheap to find. The pattern
+# below anchors on the end of the line instead of on a glyph, so it does not care
+# what locale it is read in.
+
 total_of() {
-  ( cd "$1" && npm test 2>&1 | grep -E '^. tests [0-9]+' | grep -oE '[0-9]+' )
+  ( cd "$1" && npm test 2>&1 | grep -oE '(^|[^a-z])tests [0-9]+$' | grep -oE '[0-9]+' )
 }
 
 flows=$(total_of ai-flows)

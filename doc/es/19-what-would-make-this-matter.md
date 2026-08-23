@@ -580,10 +580,19 @@ decisión por número, no una política.
   dentro del patrón y llamaba discrepancia a toda afirmación con signo, y otra
   matcheaba un "N de N" pelado y reportaba un ADR que contaba nueve flows como un
   desacuerdo sobre 24 curvas.
-- `scripts/check-upstream-test-count.sh` — **no corrido acá**. El suite de
-  `ai-base` necesita Node 24 y varios minutos, y seguía corriendo cuando se
-  escribió esto; el job nightly que lo llama es donde se ejecuta por primera vez
-  de verdad, y el CI de este propio PR es el que dice si funciona.
+- `scripts/check-upstream-test-count.sh` **[ran]** — contra la salida real del
+  suite de `ai-base`, en las dos ramas: 3.768, coincidiendo con los dos READMEs, y
+  la rama de suite roja reportando `tests 3768 / pass 3634 / fail 3`. Lo único que
+  el nightly ejecuta por primera vez es la invocación de `npm test` en sí.
+
+  **Escribirlo encontró un bug latente en el check de al lado.** `node --test`
+  imprime `ℹ tests 3768`, y `check-test-count.sh` matcheaba eso con `^. tests` —
+  que funciona solo donde el locale del shell es UTF-8, porque en el locale C el
+  `.` matchea un *byte* y el glifo son tres. Los runners de GitHub ponen locale
+  UTF-8, así que ahí pasaba y en un contenedor pelado no devolvía nada: el conteo
+  volvía vacío, bash lo leía como cero, y toda afirmación fallaba contra un total
+  de 0. Falla cerrado, que es la única razón por la que esto salió barato. Los dos
+  scripts ahora anclan al final de la línea en vez de a un glifo.
 - `check-test-count.sh` ahora escanea todo documento en vez de dos, verificado
   contra un doc 18 derivado a propósito **[ran]**.
 - `projects/hemo-verified/eval/reproduce.py` y `make reproduce` **[ran]** —
