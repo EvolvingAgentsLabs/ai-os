@@ -401,15 +401,27 @@ artifact was regenerated in the middle of that change and never again, so the
 repository's attestation could not have come from the repository's code. It has
 a `make reproduce` now, and it fails on exactly this.
 
-**3 · One reported statistic is a property of the machine that computed it.**
-On a different BLAS the composite AUC, the Spearman coefficient, the
+**3 · One reported statistic is fragile in a way the others are not.** Against
+the committed artifact, the composite AUC, the Spearman coefficient, the
 ACCEPT/ESCALATE/REJECT counts and the false-accept rate all came back
 **bit-identical**, and `A4 alone` moved **0.706 → 0.652**. 66 of A4's 98
-measurements are exactly `0.0`, so one uncorrupted case sitting at `1.03e-13` on
-one machine and `0.0` on the other crosses into a 66-wide tie block and drags a
-rank statistic 0.054 with it. The headline result is untouched, because A4 is
-`HARD` and contributes a pass/fail against a threshold far above the noise
-floor, never its score. The README now says 0.652 **and says the row moves**.
+measurements are exactly `0.0`, so one uncorrupted case sitting at `1.03e-13` in
+one build and `0.0` in another crosses into a 66-wide tie block and drags a rank
+statistic 0.054 with it. The headline result is untouched, because A4 is `HARD`
+and contributes a pass/fail against a threshold far above the noise floor, never
+its score.
+
+**The first line of this finding was too strong, and CI is what corrected it.**
+"A property of the machine" was an inference from one comparison. The nightly
+then ran on a GitHub runner — a *third* environment, Python 3.12.3 against
+3.13.12 — and reported **1207 of 1207 fields bit-identical [ran]**. Same numpy,
+same scipy, same OpenBLAS; different machine, different Python, not one bit
+moved. So the numbers are reproducible across machines that share their
+numerical stack, and A4 is the one statistic thin enough to move when that stack
+changes. That is a *better* result than the one first written down, and it is
+also the sharper worry: a statistic whose value depends on a library version
+will move silently at the next upgrade. The README says 0.652 and says the row
+moves.
 
 **4 · The published oracle table had a second, ordinary error.** A5 and A6 were
 transposed against the artifact they were copied from. Nothing had ever compared
@@ -445,6 +457,44 @@ The attestation machinery this repository is proudest of did its job on hardware
 it had never seen; the project that did not have that machinery is the one that
 had the problem. That is the cleanest argument for §3's fourth differentiator
 anywhere in this repository, and a check produced it rather than a claim.
+
+## 8 · Every published number, and what checks it
+
+Four findings in one day, all the same shape, suggested a question worth
+answering exhaustively rather than one instance at a time: **which numbers does
+this repository publish, and which of them does anything verify?**
+
+| number | published in | producer | checked by |
+|---|---|---|---|
+| 626 tests of our own | 5 files | the suites | `check-test-count.sh` |
+| 28 gates / 135 checks | 13 sites, 7 files | `gates/reports/*.json` | `check-gate-count.py` |
+| H0: composite, table, decisions, false-accept | `hemo-verified/README.md` | `gates/reports/h0.json` | `check-h0-table.py` |
+| **coclea's headline results** — 11.6%, 24 of 24, −1.22 dB CI [−1.58, −0.87], Q 2.2–2.7, CF ≈ 1 kHz | doc 16, doc 18, PLAN, `coclea-sr/README.md`, both mirrors | `runs/<id>-<hash>/result.json`, hash-chained | **nothing** |
+| **3,768 upstream tests** | `README.md`, `README.es.md` | `ai-base`'s own suites, which CI already runs in five shards | **nothing** |
+| δ 0% / 21.1% | doc 08, 10, 12 | one dated measurement | nothing, and it is dated, which is the honest form |
+| lazy skills 95.8%, index 4,397 vs 105,423 chars | doc 17, doc index | a run nobody kept | nothing |
+| the knowledge index at 4,523 of 8,000 tokens | `README.md`, doc 05 | a run nobody kept | nothing |
+| memory bench 10.0 / 3.0 | doc 05, 08 | `bench:memory`, needs a key | nothing |
+
+Three of nine are guarded, and **the two worth building next are the two whose
+producers are already sitting in the repository**. The coclea headline results
+are the sharper of them: they are the numbers the whole project is quoted for,
+they live in content-addressed directories with a verified hash chain, and the
+distance between the artifact and the sentence in doc 18 is a human copying a
+number. That is the exact gap that produced *26 / 125* and A5/A6.
+
+**One trap to design around, and it is already recorded.** Two of the twenty run
+artifacts are *intact but not valid JSON* — FRICTION F8's bare `NaN` and
+`-Infinity`. Python's `json.load` **accepts both**, so a checker written the
+obvious way would read a malformed artifact and report agreement. It has to pass
+`parse_constant` and refuse, which is F8's own lesson turned into a constraint on
+the instrument that would enforce it.
+
+**And the rest of the table is the honest limit.** Four of these numbers came
+from runs nobody kept. No checker can be built for them, and the useful move is
+not to build one — it is to stop quoting them as present-tense measurements, or
+to re-run them into an artifact. Which of those is right is a decision per
+number, not a policy.
 
 ## What this document changed
 

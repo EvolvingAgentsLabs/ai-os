@@ -409,16 +409,27 @@ like it was"***. El artefacto se regeneró en medio de ese cambio y nunca más, 
 que la atestación del repositorio no pudo haber salido del código del
 repositorio. Ahora tiene `make reproduce`, y falla exactamente con esto.
 
-**3 · Un estadístico reportado es una propiedad de la máquina que lo calculó.**
-Sobre otro BLAS, el AUC compuesto, el coeficiente de Spearman, los conteos
+**3 · Un estadístico reportado es frágil de un modo que los otros no.** Contra el
+artefacto commiteado, el AUC compuesto, el coeficiente de Spearman, los conteos
 ACCEPT/ESCALATE/REJECT y la tasa de falso-aceptado volvieron **bit a bit
 idénticos**, y `A4 alone` se movió **0.706 → 0.652**. 66 de las 98 mediciones de
 A4 son exactamente `0.0`, así que un caso sin corromper que estaba en `1.03e-13`
-en una máquina y en `0.0` en la otra cruza a un bloque de 66 empates y arrastra
-0.054 al estadístico de rangos. El resultado de titular no se toca, porque A4 es
-`HARD` y aporta un pasa/no-pasa contra un umbral muy por encima del piso de
-ruido, nunca su score. El README ahora dice 0.652 **y dice que esa fila se
-mueve**.
+en un build y en `0.0` en otro cruza a un bloque de 66 empates y arrastra 0.054
+al estadístico de rangos. El resultado de titular no se toca, porque A4 es `HARD`
+y aporta un pasa/no-pasa contra un umbral muy por encima del piso de ruido, nunca
+su score.
+
+**La primera línea de este hallazgo era demasiado fuerte, y lo corrigió CI.**
+"Una propiedad de la máquina" era una inferencia sacada de una sola comparación.
+Después el nightly corrió en un runner de GitHub — un *tercer* entorno, Python
+3.12.3 contra 3.13.12 — y reportó **1207 de 1207 campos bit a bit idénticos
+[ran]**. Mismo numpy, mismo scipy, mismo OpenBLAS; otra máquina, otro Python, ni
+un bit se movió. Así que los números son reproducibles entre máquinas que
+comparten su stack numérico, y A4 es el único estadístico lo bastante fino como
+para moverse cuando ese stack cambia. Ese es un resultado *mejor* que el que se
+escribió primero, y también la preocupación más filosa: un estadístico cuyo valor
+depende de una versión de biblioteca se va a mover en silencio en el próximo
+upgrade. El README dice 0.652 y dice que esa fila se mueve.
 
 **4 · La tabla de oráculos publicada tenía un segundo error, ordinario.** A5 y A6
 estaban transpuestos contra el artefacto del que se copiaron. Nada los había
@@ -457,6 +468,44 @@ trabajo en hardware que nunca había visto; el proyecto que no la tenía es el q
 tuvo el problema. Ese es el argumento más limpio a favor del cuarto diferenciador
 de la §3 que hay en todo el repositorio, y lo produjo un check, no una
 afirmación.
+
+## 8 · Todo número publicado, y qué lo chequea
+
+Cuatro hallazgos en un día, todos con la misma forma, sugirieron una pregunta que
+convenía contestar exhaustivamente en vez de de a una instancia por vez: **qué
+números publica este repositorio, y cuáles verifica algo?**
+
+| número | publicado en | productor | chequeado por |
+|---|---|---|---|
+| 626 tests propios | 5 archivos | los suites | `check-test-count.sh` |
+| 28 gates / 135 chequeos | 13 lugares, 7 archivos | `gates/reports/*.json` | `check-gate-count.py` |
+| H0: compuesto, tabla, decisiones, falso-aceptado | `hemo-verified/README.md` | `gates/reports/h0.json` | `check-h0-table.py` |
+| **los resultados de titular de coclea** — 11.6%, 24 de 24, −1.22 dB CI [−1.58, −0.87], Q 2.2–2.7, CF ≈ 1 kHz | doc 16, doc 18, PLAN, `coclea-sr/README.md`, los dos espejos | `runs/<id>-<hash>/result.json`, encadenado por hash | **nada** |
+| **3.768 tests de upstream** | `README.md`, `README.es.md` | los suites de `ai-base`, que CI ya corre en cinco shards | **nada** |
+| δ 0% / 21.1% | doc 08, 10, 12 | una medición fechada | nada, y está fechada, que es la forma honesta |
+| skills perezosas 95.8%, índice 4.397 vs 105.423 chars | doc 17, índice de doc | una corrida que nadie guardó | nada |
+| el índice de conocimiento en 4.523 de 8.000 tokens | `README.md`, doc 05 | una corrida que nadie guardó | nada |
+| bench de memoria 10.0 / 3.0 | doc 05, 08 | `bench:memory`, necesita una clave | nada |
+
+Tres de nueve están guardados, y **los dos que conviene construir después son los
+dos cuyos productores ya están en el repositorio**. Los resultados de titular de
+coclea son el más filoso de los dos: son los números por los que se cita al
+proyecto entero, viven en directorios direccionados por contenido con una cadena
+de hashes verificada, y la distancia entre el artefacto y la frase del doc 18 es
+una persona copiando un número. Es exactamente el hueco que produjo *26 / 125* y
+la transposición de A5/A6.
+
+**Una trampa que hay que contemplar en el diseño, y ya está registrada.** Dos de
+los veinte artefactos de corrida son *íntegros y no son JSON válido* — el `NaN` y
+el `-Infinity` desnudos de FRICTION F8. El `json.load` de Python **acepta los
+dos**, así que un checker escrito de la manera obvia leería un artefacto
+malformado y reportaría acuerdo. Tiene que pasar `parse_constant` y negarse.
+
+**Y el resto de la tabla es el límite honesto.** Cuatro de estos números salieron
+de corridas que nadie guardó. No se les puede construir un checker, y el
+movimiento útil no es construirlo — es dejar de citarlos como mediciones en
+presente, o re-correrlos hacia un artefacto. Cuál de las dos corresponde es una
+decisión por número, no una política.
 
 ## Qué cambió este documento
 
