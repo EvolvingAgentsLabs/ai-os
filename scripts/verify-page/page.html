@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ai-os — check it yourself</title>
+<meta name="description" content="Nothing on this page is simulated. Every byte it checks is a real artifact, and the checking happens in your browser, with no network and no server.">
+<meta property="og:title" content="ai-os — check it yourself">
+<meta property="og:description" content="A hash chain, content-addressed runs, and six published claims — re-derived in your own browser from the real artifacts.">
+<!-- No webfont link, deliberately. The page says it makes no network request,
+     and a stylesheet from fonts.googleapis.com is a network request. Saving the
+     file and opening it on a plane has to work, or the sentence is decoration. -->
+<style>/*CSS*/</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="eyebrow">ai-os · evolving agents labs</p>
+<h1>Check it yourself.</h1>
+<p class="lede">Everyone can generate. Almost nobody can tell you, six months
+later, whether the number in their README is still the number their code
+produces — <b>and prove it to a stranger</b>. You are the stranger. This page is
+the proof.</p>
+
+<p><b>Nothing here is simulated.</b> Every byte checked below is a real artifact
+out of <code>projects/coclea-sr</code> and <code>projects/hemo-verified</code>,
+embedded in this file verbatim. The checking runs in your browser: no network, no
+server, no model. Save the page and it still works offline.</p>
+
+<p class="note">The code doing it is a second implementation, in a second
+language, of <code>projects/coclea-sr/verify_ledger.py</code> — a verifier that
+shares code with the thing it verifies is checking that the code is
+self-consistent, not that the record is true. Both agree on these bytes;
+<code>scripts/verify-page/test.mjs</code> is what says so.</p>
+
+<div class="controls">
+  <button id="run-all">Run every check</button>
+  <span id="all-status" class="verdict idle" style="border:0;padding:.4rem 0"></span>
+</div>
+
+<h2><span class="n">01</span>The chain</h2>
+<p>Each ledger entry names the SHA-256 of the line before it, so the record is
+only as editable as the reader is incurious. Three properties per entry, and they
+are not the same property: the <b>link</b> holds, the line is its own
+<b>canonical</b> encoding, and the <b>artifact</b> it names still hashes to what
+it recorded.</p>
+<div class="controls">
+  <button data-run="chain">Verify the chain</button>
+  <button data-run="tamper">Edit one entry</button>
+  <button data-run="rechain">Edit it and re-chain the tail</button>
+  <button data-run="chain">Reset</button>
+</div>
+<div id="chain-verdict" class="verdict idle">not run</div>
+<div class="scroll"><table id="chain-table"></table></div>
+<p class="note">Editing an entry and leaving the rest alone breaks exactly one
+link — the next one — and <b>does not move the head</b>, because the head is the
+hash of the last line. Re-chaining the tail hides every break and <b>does</b>
+move it. That is why a published head is worth having and why comparing heads
+alone is not a check.</p>
+
+<h2><span class="n">02</span>The directory name is the hash</h2>
+<p>A run lives in <code>runs/&lt;experiment&gt;-&lt;12 hex digits&gt;/</code>, and
+those twelve digits are the beginning of the SHA-256 of the file inside it.
+Nothing has to be trusted: hash the bytes, read the name.</p>
+<div class="controls"><button data-run="addr">Hash the artifacts</button></div>
+<div id="addr-verdict" class="verdict idle">not run</div>
+<div class="scroll"><table id="addr-table"></table></div>
+
+<h2><span class="n">03</span>Intact is not readable</h2>
+<p>A hash says the bytes are the ones recorded. It says nothing about whether
+anything can read them. Python's <code>json.dumps</code> emits bare
+<code>NaN</code> and <code>-Infinity</code>, which JSON does not have — so a run
+can be perfectly intact and parse in no language but the one that wrote it. Two
+attested artifacts are in that state, and one of them travels with this page.</p>
+<div class="controls"><button data-run="readable">Parse every artifact</button></div>
+<div id="readable-verdict" class="verdict idle">not run</div>
+<div class="scroll"><table id="readable-table"></table></div>
+<p class="note">Your browser refuses it for free. Python needed a deliberate
+<code>parse_constant</code> to refuse its own output, and until somebody wrote
+one, the check passed on exactly the files it existed to catch. That is
+FRICTION&nbsp;F8.</p>
+
+<h2><span class="n">04</span>The count on the front page</h2>
+<p>The gate count is not a number somebody types. It is
+<code>len(distinct gates)</code> and <code>len(reports)</code> over the report
+artifacts — which is how it was caught saying <b>26 / 125</b> for six days after
+it had become 28 / 135.</p>
+<div class="controls"><button data-run="count">Count the reports</button></div>
+<div id="count-verdict" class="verdict idle">not run</div>
+
+<h2><span class="n">05</span>Six published claims, resolved</h2>
+<p>Every sentence below is quoted from the repository or the site. Each one is
+resolved live out of the artifact that produced it, with the path it came from.
+This is what <code>scripts/check-coclea-results.py</code> does in CI; here you
+watch it happen.</p>
+<div class="controls"><button data-run="claims">Resolve the claims</button></div>
+<div id="claims-verdict" class="verdict idle">not run</div>
+<div class="scroll"><table id="claims-table"></table></div>
+
+<h2><span class="n">06</span>The one that moved</h2>
+<p>Reproducibility is a claim about two runs, so it needs two artifacts. On the
+left is the H0 report as it was committed; on the right, the same report
+regenerated from the code that was committed beside it. Every number is
+bit-identical except one.</p>
+<div class="controls"><button data-run="h0">Compare the two reports</button></div>
+<div id="h0-verdict" class="verdict idle">not run</div>
+<div class="scroll"><table id="h0-table"></table></div>
+<p class="note">66 of A4's 98 measurements are exactly <code>0.0</code>, so one
+uncorrupted case sitting at <code>1.03e-13</code> in one build and <code>0.0</code>
+in another crosses into a 66-wide tie block and drags a rank statistic by 0.054.
+The composite never moves, because A4 is a hard gate and contributes a pass/fail
+against a threshold far above the noise floor — never its score. A statistic that
+depends on a library version moves silently at the next upgrade, which is why the
+artifact now records the environment it was produced on.</p>
+
+<div class="foot">
+<p>Generated by <code>scripts/build-verify-page.py</code> from the artifacts
+themselves — a page maintained separately from its data stops being true within a
+week, quietly, while continuing to look right.</p>
+<p><a href="/">Evolving Agents Labs</a> ·
+<a href="/demo/">the desk, which is the other demo</a> ·
+<a href="https://github.com/EvolvingAgentsLabs/ai-os">the repository</a> ·
+<a href="https://github.com/EvolvingAgentsLabs/ai-os/blob/main/doc/19-what-would-make-this-matter.md">what would make this matter</a></p>
+<p id="budget" class="note"></p>
+</div>
+
+</div>
+<script id="payload" type="application/json">/*DATA*/</script>
+<script>
+/*APP*/
+
+/* ---- the page ----------------------------------------------------------- */
+const DATA = JSON.parse(document.getElementById("payload").textContent);
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const FILES = Object.fromEntries(
+  Object.entries(DATA.files).map(([k, v]) => [k, b64(v)]));
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+};
+function verdict(id, ok, text) {
+  const n = $(id);
+  n.className = "verdict " + (ok === null ? "idle" : ok ? "pass" : "fail");
+  n.textContent = text;
+  return ok;
+}
+function table(id, headers, rows, kind) {
+  const t = $(id);
+  if (kind) t.dataset.kind = kind;
+  t.textContent = "";
+  const hr = t.insertRow();
+  for (const h of headers) hr.appendChild(el("th", null, h));
+  for (const r of rows) {
+    const tr = t.insertRow();
+    if (r.rowClass) tr.className = r.rowClass;
+    for (const cell of r.cells) {
+      const td = el("td", cell.cls, cell.text);
+      tr.appendChild(td);
+    }
+  }
+}
+const short = (h) => (h ? h.slice(0, 12) + "…" : "—");
+
+/* --- 01 chain */
+let ledgerLines = DATA.ledger.split("\n").filter((l) => l.trim());
+function renderChain(lines, label) {
+  const res = verifyChain(lines.join("\n"), FILES);
+  const rows = res.rows.map((r, i) => ({
+    rowClass: r.linked && r.canonical && r.artifactStatus !== "CHANGED" ? "" : "broken",
+    cells: [
+      { text: String(i) },
+      { text: r.artifact ?? "—" },
+      { text: r.state ?? "—" },
+      { text: r.linked ? "linked" : "BROKEN", cls: r.linked ? "ok" : "bad" },
+      { text: r.canonical ? "canonical" : "NOT CANONICAL", cls: r.canonical ? "ok" : "bad" },
+      { text: r.artifactStatus,
+        cls: r.artifactStatus === "matches" ? "ok"
+           : r.artifactStatus === "CHANGED" ? "bad" : "skip" },
+    ],
+  }));
+  table("chain-table",
+    ["#", "artifact", "state", "link", "encoding", "bytes"], rows);
+  const broken = res.rows.filter((r) => !r.linked).length;
+  const nonCanon = res.rows.filter((r) => !r.canonical).length;
+  const changed = res.rows.filter((r) => r.artifactStatus === "CHANGED").length;
+  const embedded = res.rows.filter((r) => r.artifactStatus !== "not embedded").length;
+  const ok = broken === 0 && nonCanon === 0 && changed === 0;
+  verdict("chain-verdict", ok,
+    `${label}\n${res.entries} entries · ${broken} broken ${broken === 1 ? "link" : "links"} · ${nonCanon} non-canonical` +
+    ` · ${changed} changed artifacts · ${embedded} of ${res.rows.filter(r=>r.artifact).length}` +
+    ` artifact hashes re-derived here\nhead ${res.head}`);
+  return { ok, head: res.head };
+}
+const CHECKS = {
+  chain: () => renderChain(ledgerLines, "the ledger, as committed").ok,
+  tamper: () => {
+    const lines = ledgerLines.slice();
+    const e = JSON.parse(lines[3]);
+    e.gates_passed = [...(e.gates_passed || []), "A99"];
+    lines[3] = canonical(e);
+    const r = renderChain(lines, "entry 3 edited, nothing else touched — one link breaks");
+    return !r.ok;
+  },
+  rechain: () => {
+    const lines = ledgerLines.slice();
+    const e = JSON.parse(lines[3]);
+    e.gates_passed = [...(e.gates_passed || []), "A99"];
+    lines[3] = canonical(e);
+    let prev = hashText(lines[3]);
+    for (let i = 4; i < lines.length; i++) {
+      const x = JSON.parse(lines[i]);
+      x.prev_hash = prev;
+      lines[i] = canonical(x);
+      prev = hashText(lines[i]);
+    }
+    const r = renderChain(lines,
+      "entry 3 edited AND the tail re-chained — every link holds, and the head has moved");
+    return r.ok;
+  },
+
+  /* --- 02 addressing */
+  addr: () => {
+    const rows = verifyAddressing(FILES).map((a) => ({
+      rowClass: a.ok ? "" : "broken",
+      cells: [
+        { text: a.path },
+        { text: a.suffix },
+        { text: a.digest.slice(0, 12), cls: a.ok ? "ok" : "bad" },
+        { text: "…" + a.digest.slice(12, 40), cls: "skip" },
+      ],
+    }));
+    table("addr-table",
+      ["artifact", "directory says", "sha256 begins", "and continues"], rows);
+    const bad = rows.filter((r) => r.rowClass === "broken").length;
+    return verdict("addr-verdict", bad === 0,
+      `${rows.length} run artifacts hashed in this browser · ${bad} disagree with their own directory name`);
+  },
+
+  /* --- 03 readability */
+  readable: () => {
+    const res = verifyReadable(FILES);
+    const rows = res.map((r) => ({
+      rowClass: r.ok ? "" : "broken",
+      cells: [
+        { text: r.path },
+        { text: r.ok ? "parses" : "REFUSED", cls: r.ok ? "ok" : "bad" },
+        { text: r.ok ? "—" : `bare ${r.literal}`, cls: r.ok ? "skip" : "bad" },
+      ],
+    }));
+    table("readable-table", ["artifact", "JSON.parse", "why"], rows);
+    const bad = res.filter((r) => !r.ok).length;
+    return verdict("readable-verdict", bad > 0,
+      `${res.length} artifacts parsed · ${bad} intact, hash-correct and unreadable` +
+      `\nthis is the finding, so a green line here would be the surprising one`);
+  },
+
+  /* --- 04 the count */
+  count: () => {
+    const c = countGates(DATA.reports);
+    const ok = c.gates === 28 && c.checks === 135 && c.red === 0;
+    return verdict("count-verdict", ok,
+      `${c.gates} gates · ${c.checks} checks · ${c.red} red` +
+      `\nthe front page says 28 gates / 135 checks — ${ok ? "which is what the reports hold" : "which is NOT what the reports hold"}`);
+  },
+
+  /* --- 05 claims */
+  claims: () => {
+    const j = (p) => JSON.parse(new TextDecoder().decode(FILES[p]));
+    const e3 = j("runs/e3-sr-curve-6bcecf029e8e/result.json");
+    const b3 = j("runs/b3-interactions-305a314da5b8/result.json");
+    const e2 = j("runs/e2-tonotopy-6afa3cc8c386/result.json");
+    const e4 = j("runs/e4-physiological-14bf748f07be/result.json");
+    const qs = e2.q10db.filter((c) => c.bracketed).map((c) => c.q10db);
+    const claims = [
+      ["“the measured optimum sits at 11.6% of the parameter-free prediction”",
+       "e3-sr-curve · prediction_check.max_relative_error",
+       "11.6", (e3.prediction_check.max_relative_error * 100).toFixed(1)],
+      ["“24 of 24 curves show a significant interior maximum”",
+       "e3-sr-curve · gate_B2", "24 of 24",
+       `${e3.gate_B2.n_with_significant_interior_maximum} of ${e3.gate_B2.n_curves}`],
+      ["“sub-additive, −1.22 dB”",
+       "b3-interactions · gate_B3.effect_db",
+       "-1.22", b3.gate_B3.effect_db.toFixed(2)],
+      ["“CI [−1.58, −0.87]”",
+       "b3-interactions · gate_B3.ci",
+       "-1.58, -0.87", b3.gate_B3.ci.map((x) => x.toFixed(2)).join(", ")],
+      ["“the passive membrane's Q is 2.2–2.7”",
+       "e2-tonotopy · q10db[] where bracketed",
+       "2.2, 2.7",
+       `${Math.min(...qs).toFixed(1)}, ${Math.max(...qs).toFixed(1)}`],
+      ["“reachable only up to a characteristic frequency of about 1 kHz”",
+       "e4-physiological · verdict.crossover_cf_hz",
+       "1", String(e4.verdict.crossover_cf_hz / 1000)],
+    ];
+    const rows = claims.map(([sentence, where, published, actual]) => ({
+      rowClass: published === actual ? "" : "broken",
+      cells: [
+        { text: sentence },
+        { text: where, cls: "skip" },
+        { text: published },
+        { text: actual, cls: published === actual ? "ok" : "bad" },
+      ],
+    }));
+    table("claims-table",
+      ["what is published", "read out of", "says", "artifact holds"], rows, "claims");
+    const bad = rows.filter((r) => r.rowClass === "broken").length;
+    return verdict("claims-verdict", bad === 0,
+      `${rows.length} published claims resolved out of 4 run artifacts · ${bad} disagree`);
+  },
+
+  /* --- 06 the one that moved */
+  h0: () => {
+    const cur = DATA.h0.current, prev = DATA.h0.previous;
+    if (!prev) {
+      return verdict("h0-verdict", null,
+        "the earlier report was not available when this page was built");
+    }
+    const keys = [...new Set([...Object.keys(cur.per_oracle), ...Object.keys(prev.per_oracle)])].sort();
+    const rows = [{
+      rowClass: cur.auc.toFixed(6) === prev.auc.toFixed(6) ? "" : "broken",
+      cells: [
+        { text: "composite AUC" },
+        { text: prev.auc.toFixed(6) },
+        { text: cur.auc.toFixed(6) },
+        { text: cur.auc === prev.auc ? "identical" : "MOVED",
+          cls: cur.auc === prev.auc ? "ok" : "bad" },
+      ],
+    }];
+    for (const k of keys) {
+      const a = prev.per_oracle[k], b = cur.per_oracle[k];
+      const same = a === b;
+      rows.push({
+        rowClass: same ? "" : "broken",
+        cells: [
+          { text: k + " alone" },
+          { text: a === undefined ? "—" : a.toFixed(6) },
+          { text: b === undefined ? "—" : b.toFixed(6) },
+          { text: same ? "identical" : `MOVED ${(b - a).toFixed(4)}`,
+            cls: same ? "ok" : "bad" },
+        ],
+      });
+    }
+    table("h0-table", ["field", "as committed", "as regenerated", ""], rows);
+    const moved = rows.filter((r) => r.rowClass === "broken").length;
+    return verdict("h0-verdict", moved === 1,
+      `${rows.length} fields compared · ${moved} moved` +
+      `\nregenerated on: ${cur.environment ? Object.entries(cur.environment).map(([k, v]) => (Array.isArray(v) ? v.join("  ") : k + "=" + v)).join("  ") : "not recorded"}`);
+  },
+};
+
+document.querySelectorAll("[data-run]").forEach((b) => {
+  b.addEventListener("click", () => CHECKS[b.dataset.run]());
+});
+$("run-all").addEventListener("click", () => {
+  const order = ["chain", "addr", "readable", "count", "claims", "h0"];
+  const results = order.map((k) => CHECKS[k]());
+  const bad = results.filter((r) => r === false).length;
+  const s = $("all-status");
+  s.className = "verdict " + (bad === 0 ? "pass" : "fail");
+  s.textContent = bad === 0
+    ? "every check ran, and every one of them holds"
+    : `${bad} of ${order.length} did not hold`;
+});
+$("budget").textContent =
+  `${Object.keys(FILES).length} artifacts and ${DATA.reports.length} gate reports travel with this page.`;
+</script>
+</body>
+</html>

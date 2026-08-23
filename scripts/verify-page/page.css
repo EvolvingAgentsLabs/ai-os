@@ -1,0 +1,56 @@
+:root{
+  --paper:#fbfaf7; --ink:#16181a; --dim:#5f646b; --rule:#d9d5cd;
+  --green:#2f6b40; --red:#a8342c; --amber:#8a5a12; --teal:#3b6668;
+  /* System stacks only: the page makes no network request, and that includes
+     fonts. See the note in page.html. */
+  --sans:Georgia,"Iowan Old Style","Times New Roman",Times,serif;
+  --mono:"SFMono-Regular",Menlo,Consolas,"DejaVu Sans Mono",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#111314; --ink:#e8e6e1; --dim:#9aa0a6; --rule:#2a2e31;
+         --green:#7fbf8f; --red:#e08d85; --amber:#d5a75a; --teal:#7fb0b2; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:18px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:60rem;margin:0 auto;padding:2.5rem 1.25rem 6rem}
+h1{font-size:2.1rem;line-height:1.15;margin:0 0 .6rem;font-weight:400}
+h2{font-size:1.35rem;margin:3rem 0 .4rem;font-weight:400;
+   border-top:1px solid var(--rule);padding-top:1.4rem}
+h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--dim);margin-right:.6rem}
+p{margin:.7rem 0}
+.lede{font-size:1.15rem}
+.dim{color:var(--dim)}
+code,.mono{font-family:var(--mono);font-size:.82em}
+a{color:inherit;text-decoration-color:var(--dim);text-underline-offset:.15em}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);margin:0 0 .8rem}
+button{font:inherit;font-family:var(--mono);font-size:.8rem;cursor:pointer;
+  background:transparent;color:var(--ink);border:1px solid var(--ink);
+  padding:.4rem .8rem;border-radius:2px}
+button:hover{background:var(--ink);color:var(--paper)}
+button[disabled]{opacity:.4;cursor:default}
+.controls{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
+.verdict{font-family:var(--mono);font-size:.86rem;padding:.55rem .8rem;
+  border-left:3px solid var(--dim);margin:1rem 0;white-space:pre-wrap}
+.verdict.pass{border-color:var(--green);color:var(--green)}
+.verdict.fail{border-color:var(--red);color:var(--red)}
+.verdict.idle{color:var(--dim)}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:.74rem}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+th,td{text-align:left;padding:.3rem .5rem;border-bottom:1px solid var(--rule);
+  white-space:nowrap}
+th{color:var(--dim);font-weight:400;text-transform:uppercase;letter-spacing:.06em;
+   font-size:.66rem}
+td.ok{color:var(--green)} td.bad{color:var(--red)} td.skip{color:var(--dim)}
+tr.broken td{background:color-mix(in srgb,var(--red) 12%,transparent)}
+.hash{color:var(--dim)}
+.note{font-size:.92rem;color:var(--dim)}
+.foot{margin-top:4rem;border-top:1px solid var(--rule);padding-top:1.2rem;
+  font-size:.85rem;color:var(--dim)}
+ul{padding-left:1.1rem} li{margin:.35rem 0}
+
+/* The quoted sentences are long and the numbers beside them are the point, so
+   the sentence wraps and the values stay on screen rather than scrolling off. */
+table[data-kind="claims"] td:first-child{white-space:normal;min-width:16rem}
+table[data-kind="claims"] td:nth-child(2){white-space:normal}

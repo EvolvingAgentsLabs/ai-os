@@ -338,7 +338,42 @@ fixes. Then this is a private research instrument that publishes its findings,
 which is a legitimate and much smaller thing to be — and the READMEs should say
 so instead of saying "operating system".
 
-### P5 · Say it once, narrowly
+### P5 · Say it once, narrowly — **half of it is built, and it is not the writing**
+
+The artifact this item asked for was a write-up. What got built instead is
+[`/verify/`](https://evolvingagentslabs.github.io/verify/): real artifacts out of
+`projects/`, embedded in one page, checked in the reader's own browser with no
+network and no server. The hash chain re-derived entry by entry; run directories
+shown to be the first twelve digits of their own contents' hash; six published
+sentences resolved out of the runs that produced them; and the statistic that
+moved between library versions sitting red among seven that did not. Edit a
+ledger entry from the page and exactly one link breaks; re-chain the tail and the
+break vanishes while the head moves.
+
+**Why that rather than the essay.** This document's §4 says the claim worth making
+is that *a judge hands you no ledger, no freeze and no reproduction command*. An
+essay asserting that is an essay. A page where a stranger presses a button and
+watches the ledger verify is the claim in the only form that cannot be argued
+with — and it took the same afternoon.
+
+It is also the answer to a fair question about the desk demo. That demo is the
+real client with a simulated backend, generated from source so it cannot drift,
+and it is worth keeping. But it shows the pillar whose falsification has never
+been run, and **every number on it is invented**. On a front page that says every
+number is tied to the artifact that produced it, a simulation is an odd first
+handshake. Both demos now exist and the site says which is which.
+
+The page's logic is a second implementation, in a second language, of
+`verify_ledger.py`, and `scripts/verify-page/test.mjs` runs it against node's own
+crypto and against the Python verifier's verdict **[ran]** — twelve assertions,
+including that editing an entry breaks one link without moving the head, and that
+re-chaining hides every break and moves it.
+
+**What is still not done:** the writing. The narrow claims of §4 are on the site's
+front page now, but nothing has been sent anywhere, and P5's original warning
+stands — it should not draw attention before P1 is run.
+
+### P5 · Say it once, narrowly — the original item
 
 One artifact aimed at §2's audience (b)+(c): the `truth/`-cannot-import-`src/`
 rule, the JSON gate seam, the attestation chain, and — prominently, not in a

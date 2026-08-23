@@ -149,6 +149,26 @@ jobs:
         # is what was produced.
         run: python3 scripts/check-coclea-results.py
 
+  verify-page:
+    name: The verification page's logic
+    runs-on: ubuntu-latest
+    # The page at /verify/ reimplements sha256 and Python's canonical JSON form
+    # in the language a browser speaks. Both are the kind of thing that is nearly
+    # right for a long time, so this runs them against node's own crypto over
+    # every artifact and against the verdict `verify_ledger.py` gives for the
+    # same files. A second implementation that quietly stops agreeing is worse
+    # than no second implementation.
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: ai-base/.node-version
+      - name: sha256, the canonical form, and the chain agree with Python
+        run: node scripts/verify-page/test.mjs
+
   upstream-test-count:
     name: The upstream test count
     runs-on: ubuntu-latest
@@ -183,6 +203,7 @@ jobs:
       - hemo-verified
       - published-numbers
       - upstream-test-count
+      - verify-page
     steps:
       - name: Checks passed
         run: echo "coclea-sr's gates, hemo-verified's H0, and every published number passed."

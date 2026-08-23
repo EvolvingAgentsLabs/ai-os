@@ -74,8 +74,18 @@ Both scan `.html` as well as `.md`. The site carried <!-- gate-count: superseded
 two pages after the repository had been corrected, which is the whole argument
 for the flag.
 
-Regenerate the site demo after any desk change:
-`cd ai-ui && node scripts/build-demo.ts --out ../../evolvingagentslabs.github.io/demo/index.html`
+Regenerate the two demos when what they show changes:
+
+```bash
+# the desk — the real client with a simulated backend
+cd ai-ui && node scripts/build-demo.ts --out ../../evolvingagentslabs.github.io/demo/index.html
+
+# /verify/ — real artifacts, checked in the reader's browser. Test first: the
+# page reimplements sha256 and Python's canonical form, and both are the kind of
+# thing that is nearly right for a long time.
+node scripts/verify-page/test.mjs
+python3 scripts/build-verify-page.py --out ../evolvingagentslabs.github.io/verify/index.html
+```
 
 ---
 
