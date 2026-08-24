@@ -122,37 +122,96 @@ def read_decisions() -> list[dict]:
 
 
 CSS = """
-:root{--bg:#0f1115;--fg:#e6e8ee;--dim:#9aa3b2;--ok:#3fb950;--bad:#f85149;--card:#171a21;--line:#242833}
+/* The ai-os surface. Same nine system colours, same two stacks, same radii as
+   the demo, the website and /verify/ -- this page is a surface of the same
+   operating system, and until now it was the third palette in the project.
+   The old names (--fg, --card, --line, --ok, --bad) are kept as aliases because
+   a handful of inline styles further down this file still reach for them. */
+:root{
+  color-scheme:dark;
+  --blue:#0A84FF; --green:#30D158; --orange:#FF9F0A; --red:#FF453A;
+  --teal:#64D2FF; --yellow:#FFD60A;
+  --bg:#000; --bg-2:#1C1C1E; --bg-3:#2C2C2E; --sep:#38383A;
+  --ink:#F2F2F7; --dim:#98989F; --faint:#636366;
+  --sans:ui-sans-serif,-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Monaco,"Roboto Mono",monospace;
+  --fg:var(--ink); --card:var(--bg-2); --line:var(--sep);
+  --ok:var(--green); --bad:var(--red);
+  --r-s:6px; --r-m:9px; --r-l:12px;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-.wrap{max-width:960px;margin:0 auto;padding:32px 20px 80px}
-h1{font-size:26px;margin:0 0 4px} h2{font-size:17px;margin:34px 0 12px;color:var(--dim);
-  text-transform:uppercase;letter-spacing:.08em;font-weight:600}
-.sub{color:var(--dim);margin:0 0 22px}
-.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
-.badge.ok{background:rgba(63,185,80,.15);color:var(--ok);border:1px solid rgba(63,185,80,.4)}
-.badge.bad{background:rgba(248,81,73,.15);color:var(--bad);border:1px solid rgba(248,81,73,.4)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-.card .k{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
-.card .v{font-size:22px;font-weight:650;margin-top:4px}
-.card .n{color:var(--dim);font-size:12px;margin-top:2px}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.6 var(--sans);letter-spacing:-.003em;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:var(--r-s)}
+a{color:var(--blue);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--teal)}
+
+/* The same bar the website and the demo carry. Absolute links, because this
+   file is meant to open from disk as readily as from a server. */
+.masthead{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.72);
+  backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--sep)}
+.masthead-in{max-width:960px;margin:0 auto;padding:14px 20px 13px;
+  display:flex;align-items:center;gap:16px}
+.wordmark{display:inline-flex;align-items:center;gap:8px;flex:none;white-space:nowrap;
+  font-size:15px;font-weight:600;letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
+.wordmark svg{display:block;width:16px;height:16px;flex:none}
+.navlinks{display:flex;gap:18px;margin-left:auto;font-size:13px;min-width:0;overflow-x:auto;
+  scrollbar-width:none}
+.navlinks::-webkit-scrollbar{display:none}
+.navlinks a{color:var(--dim);text-decoration:none;white-space:nowrap}
+.navlinks a:hover{color:var(--ink)}
+
+.wrap{max-width:960px;margin:0 auto;padding:36px 20px 80px}
+h1{font-size:clamp(26px,4vw,34px);line-height:1.1;letter-spacing:-.032em;
+  font-weight:600;margin:0 0 10px}
+h2{font:600 10.5px/1.4 var(--sans);margin:44px 0 14px;color:var(--faint);
+  text-transform:uppercase;letter-spacing:.09em}
+.sub{color:var(--dim);margin:0 0 26px;max-width:64ch;font-size:15px}
+
+/* A verdict, in the demo inspector's vocabulary. */
+.badge{display:inline-block;padding:3px 11px;border-radius:999px;
+  font:600 11px/1.5 var(--sans);letter-spacing:.04em;vertical-align:.18em}
+.badge.ok{background:rgba(48,209,88,.12);color:var(--green);border:1px solid rgba(48,209,88,.35)}
+.badge.bad{background:rgba(255,69,58,.12);color:var(--red);border:1px solid rgba(255,69,58,.4)}
+
+/* One hairline grid, the way the pillars are set on the website. */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1px;background:var(--sep);border:1px solid var(--sep);
+  border-radius:var(--r-l);overflow:hidden}
+.card{background:var(--bg);padding:15px 17px 16px}
+.card .k{color:var(--faint);font:600 10px/1.4 var(--sans);
+  text-transform:uppercase;letter-spacing:.07em}
+.card .v{font:500 24px/1.15 var(--mono);letter-spacing:-.03em;margin-top:8px;
+  font-variant-numeric:tabular-nums}
+.card .n{color:var(--dim);font-size:12.5px;margin-top:4px}
+
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--fg);
-  border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;font-family:ui-monospace,monospace}
-.chip.ok{border-color:rgba(63,185,80,.45)} .chip.ok::before{content:"● ";color:var(--ok)}
-.chip.bad{border-color:rgba(248,81,73,.5)} .chip.bad::before{content:"● ";color:var(--bad)}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
-code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
-pre{background:#0b0d11;border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;
-  max-height:340px;font-size:12px}
-button.verify{background:#1f6feb;color:#fff;border:0;border-radius:8px;padding:10px 16px;
-  font-size:14px;font-weight:600;cursor:pointer}
-button.verify:hover{background:#2f81f7}
-#vout{margin-top:12px;white-space:pre-wrap}
-.scroll{overflow-x:auto}
+.chip{cursor:pointer;border:1px solid var(--sep);background:var(--bg-2);color:var(--ink);
+  border-radius:var(--r-m);padding:7px 12px;font:400 12.5px/1 var(--mono);
+  transition:background .15s,border-color .15s}
+.chip:hover{background:var(--bg-3);border-color:#48484A}
+.chip.ok::before{content:"● ";color:var(--green)}
+.chip.bad{border-color:rgba(255,69,58,.45)} .chip.bad::before{content:"● ";color:var(--red)}
+
+.scroll{overflow-x:auto;border:1px solid var(--sep);border-radius:var(--r-l)}
+table{width:100%;border-collapse:collapse;font:400 12.5px/1.5 var(--mono);
+  font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--sep);
+  vertical-align:top;color:var(--dim)}
+tr:last-child td{border-bottom:0}
+th{color:var(--faint);font:600 10px/1.4 var(--sans);
+  text-transform:uppercase;letter-spacing:.06em}
+code,.mono{font-family:var(--mono);font-size:12.5px}
+pre{background:var(--bg-2);border:1px solid var(--sep);border-radius:var(--r-l);
+  padding:13px 15px;overflow:auto;max-height:340px;
+  font:400 12px/1.6 var(--mono);color:var(--dim)}
+
+/* The one thing the page wants you to press. Same pill as the demo's Play. */
+button.verify{background:var(--ink);color:#000;border:0;border-radius:999px;
+  padding:10px 20px;font:600 13.5px/1 var(--sans);cursor:pointer}
+button.verify:hover{background:#fff}
+#vout{margin-top:14px;white-space:pre-wrap;font:400 13px/1.6 var(--mono);color:var(--dim)}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
 """
 
 JS = r"""
@@ -259,7 +318,7 @@ def render(out_path: Path) -> Path:
     doc = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>COCLEA-SR — evidence</title><style>{CSS}</style></head><body><div class="wrap">
+<title>COCLEA-SR — evidence</title>\n<meta name="theme-color" content="#000000"><meta name="color-scheme" content="dark">\n<style>{CSS}</style></head><body>\n<header class="masthead"><div class="masthead-in">\n  <a class="wordmark" href="https://evolvingagentslabs.github.io/"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="13" height="13" rx="4" fill="currentColor"/><rect x="17" y="2" width="13" height="13" rx="4" fill="currentColor"/><rect x="2" y="17" width="13" height="13" rx="4" fill="currentColor"/><rect x="18" y="18" width="11" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2" opacity=".42"/></svg>ai-os</a>\n  <nav class="navlinks">\n    <a href="https://evolvingagentslabs.github.io/demo/">Demo</a>\n    <a href="https://evolvingagentslabs.github.io/verify/">Verify</a>\n    <a href="https://evolvingagentslabs.github.io/coclea-sr/">COCLEA-SR</a>\n    <a href="https://github.com/EvolvingAgentsLabs/ai-os/tree/main/projects/coclea-sr">Repository</a>\n  </nav>\n</div></header>\n<div class="wrap">
 
 <h1>COCLEA-SR <span class="badge {'ok' if green else 'bad'}">
 {'attested · ' + str(len(gates)) + '/' + str(len(gates)) + ' gates' if green

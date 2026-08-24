@@ -122,11 +122,19 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 header{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;gap:12px;align-items:center;
   padding:14px 20px 24px;background:linear-gradient(180deg,#000 58%,transparent);flex-wrap:nowrap}
 header b{font-weight:600;letter-spacing:-.01em;white-space:nowrap}
+/* The way back. The website and this canvas are one product now — same ground,
+   same two stacks, same nine colours — so the wordmark is the same wordmark and
+   it is a door, not a label. Absolute, because this file is also meant to open
+   from disk with no server, where a site-root path resolves to nothing. */
+header .home{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink)}
+header .home .mark{display:block;width:15px;height:15px;flex:none}
+header .home:hover{opacity:.72}
 header .sk{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
   color:var(--orange);background:rgba(255,159,10,.12);border:1px solid rgba(255,159,10,.28);
   border-radius:999px;padding:3px 10px}
 header .build{font:10px var(--mono);color:var(--faint);background:var(--bg-2);
-  border:1px solid var(--sep);border-radius:6px;padding:3px 8px}
+  border:1px solid var(--sep);border-radius:6px;padding:3px 8px;
+  white-space:nowrap;flex:none}
 header select{appearance:none;background:var(--bg-2);color:var(--ink);border:1px solid var(--sep);
   border-radius:9px;padding:7px 30px 7px 12px;font:13px var(--sans);cursor:pointer;
   background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),
@@ -885,7 +893,8 @@ const html = `<!doctype html>
 <div class="wrap">
   <div class="stage" id="stage">
     <header>
-      <b>ai-os</b>
+      <a class="home" href="https://evolvingagentslabs.github.io/" title="ai-os — back to the site">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="13" height="13" rx="4" fill="currentColor"/><rect x="17" y="2" width="13" height="13" rx="4" fill="currentColor"/><rect x="2" y="17" width="13" height="13" rx="4" fill="currentColor"/><rect x="18" y="18" width="11" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2" opacity=".42"/></svg><b>ai-os</b></a>
       <span class="sk">simulated</span>
       <span class="build">build ${stamp()}</span>
       <select id="scene">

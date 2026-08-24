@@ -1,42 +1,113 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>COCLEA-SR — evidence</title><style>
-:root{--bg:#0f1115;--fg:#e6e8ee;--dim:#9aa3b2;--ok:#3fb950;--bad:#f85149;--card:#171a21;--line:#242833}
+<title>COCLEA-SR — evidence</title>
+<meta name="theme-color" content="#000000"><meta name="color-scheme" content="dark">
+<style>
+/* The ai-os surface. Same nine system colours, same two stacks, same radii as
+   the demo, the website and /verify/ -- this page is a surface of the same
+   operating system, and until now it was the third palette in the project.
+   The old names (--fg, --card, --line, --ok, --bad) are kept as aliases because
+   a handful of inline styles further down this file still reach for them. */
+:root{
+  color-scheme:dark;
+  --blue:#0A84FF; --green:#30D158; --orange:#FF9F0A; --red:#FF453A;
+  --teal:#64D2FF; --yellow:#FFD60A;
+  --bg:#000; --bg-2:#1C1C1E; --bg-3:#2C2C2E; --sep:#38383A;
+  --ink:#F2F2F7; --dim:#98989F; --faint:#636366;
+  --sans:ui-sans-serif,-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Monaco,"Roboto Mono",monospace;
+  --fg:var(--ink); --card:var(--bg-2); --line:var(--sep);
+  --ok:var(--green); --bad:var(--red);
+  --r-s:6px; --r-m:9px; --r-l:12px;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-.wrap{max-width:960px;margin:0 auto;padding:32px 20px 80px}
-h1{font-size:26px;margin:0 0 4px} h2{font-size:17px;margin:34px 0 12px;color:var(--dim);
-  text-transform:uppercase;letter-spacing:.08em;font-weight:600}
-.sub{color:var(--dim);margin:0 0 22px}
-.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
-.badge.ok{background:rgba(63,185,80,.15);color:var(--ok);border:1px solid rgba(63,185,80,.4)}
-.badge.bad{background:rgba(248,81,73,.15);color:var(--bad);border:1px solid rgba(248,81,73,.4)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-.card .k{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
-.card .v{font-size:22px;font-weight:650;margin-top:4px}
-.card .n{color:var(--dim);font-size:12px;margin-top:2px}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.6 var(--sans);letter-spacing:-.003em;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:var(--r-s)}
+a{color:var(--blue);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--teal)}
+
+/* The same bar the website and the demo carry. Absolute links, because this
+   file is meant to open from disk as readily as from a server. */
+.masthead{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.72);
+  backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--sep)}
+.masthead-in{max-width:960px;margin:0 auto;padding:14px 20px 13px;
+  display:flex;align-items:center;gap:16px}
+.wordmark{display:inline-flex;align-items:center;gap:8px;flex:none;white-space:nowrap;
+  font-size:15px;font-weight:600;letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
+.wordmark svg{display:block;width:16px;height:16px;flex:none}
+.navlinks{display:flex;gap:18px;margin-left:auto;font-size:13px;min-width:0;overflow-x:auto;
+  scrollbar-width:none}
+.navlinks::-webkit-scrollbar{display:none}
+.navlinks a{color:var(--dim);text-decoration:none;white-space:nowrap}
+.navlinks a:hover{color:var(--ink)}
+
+.wrap{max-width:960px;margin:0 auto;padding:36px 20px 80px}
+h1{font-size:clamp(26px,4vw,34px);line-height:1.1;letter-spacing:-.032em;
+  font-weight:600;margin:0 0 10px}
+h2{font:600 10.5px/1.4 var(--sans);margin:44px 0 14px;color:var(--faint);
+  text-transform:uppercase;letter-spacing:.09em}
+.sub{color:var(--dim);margin:0 0 26px;max-width:64ch;font-size:15px}
+
+/* A verdict, in the demo inspector's vocabulary. */
+.badge{display:inline-block;padding:3px 11px;border-radius:999px;
+  font:600 11px/1.5 var(--sans);letter-spacing:.04em;vertical-align:.18em}
+.badge.ok{background:rgba(48,209,88,.12);color:var(--green);border:1px solid rgba(48,209,88,.35)}
+.badge.bad{background:rgba(255,69,58,.12);color:var(--red);border:1px solid rgba(255,69,58,.4)}
+
+/* One hairline grid, the way the pillars are set on the website. */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1px;background:var(--sep);border:1px solid var(--sep);
+  border-radius:var(--r-l);overflow:hidden}
+.card{background:var(--bg);padding:15px 17px 16px}
+.card .k{color:var(--faint);font:600 10px/1.4 var(--sans);
+  text-transform:uppercase;letter-spacing:.07em}
+.card .v{font:500 24px/1.15 var(--mono);letter-spacing:-.03em;margin-top:8px;
+  font-variant-numeric:tabular-nums}
+.card .n{color:var(--dim);font-size:12.5px;margin-top:4px}
+
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--fg);
-  border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;font-family:ui-monospace,monospace}
-.chip.ok{border-color:rgba(63,185,80,.45)} .chip.ok::before{content:"● ";color:var(--ok)}
-.chip.bad{border-color:rgba(248,81,73,.5)} .chip.bad::before{content:"● ";color:var(--bad)}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
-code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
-pre{background:#0b0d11;border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;
-  max-height:340px;font-size:12px}
-button.verify{background:#1f6feb;color:#fff;border:0;border-radius:8px;padding:10px 16px;
-  font-size:14px;font-weight:600;cursor:pointer}
-button.verify:hover{background:#2f81f7}
-#vout{margin-top:12px;white-space:pre-wrap}
-.scroll{overflow-x:auto}
-</style></head><body><div class="wrap">
+.chip{cursor:pointer;border:1px solid var(--sep);background:var(--bg-2);color:var(--ink);
+  border-radius:var(--r-m);padding:7px 12px;font:400 12.5px/1 var(--mono);
+  transition:background .15s,border-color .15s}
+.chip:hover{background:var(--bg-3);border-color:#48484A}
+.chip.ok::before{content:"● ";color:var(--green)}
+.chip.bad{border-color:rgba(255,69,58,.45)} .chip.bad::before{content:"● ";color:var(--red)}
+
+.scroll{overflow-x:auto;border:1px solid var(--sep);border-radius:var(--r-l)}
+table{width:100%;border-collapse:collapse;font:400 12.5px/1.5 var(--mono);
+  font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--sep);
+  vertical-align:top;color:var(--dim)}
+tr:last-child td{border-bottom:0}
+th{color:var(--faint);font:600 10px/1.4 var(--sans);
+  text-transform:uppercase;letter-spacing:.06em}
+code,.mono{font-family:var(--mono);font-size:12.5px}
+pre{background:var(--bg-2);border:1px solid var(--sep);border-radius:var(--r-l);
+  padding:13px 15px;overflow:auto;max-height:340px;
+  font:400 12px/1.6 var(--mono);color:var(--dim)}
+
+/* The one thing the page wants you to press. Same pill as the demo's Play. */
+button.verify{background:var(--ink);color:#000;border:0;border-radius:999px;
+  padding:10px 20px;font:600 13.5px/1 var(--sans);cursor:pointer}
+button.verify:hover{background:#fff}
+#vout{margin-top:14px;white-space:pre-wrap;font:400 13px/1.6 var(--mono);color:var(--dim)}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style></head><body>
+<header class="masthead"><div class="masthead-in">
+  <a class="wordmark" href="https://evolvingagentslabs.github.io/"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="13" height="13" rx="4" fill="currentColor"/><rect x="17" y="2" width="13" height="13" rx="4" fill="currentColor"/><rect x="2" y="17" width="13" height="13" rx="4" fill="currentColor"/><rect x="18" y="18" width="11" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2" opacity=".42"/></svg>ai-os</a>
+  <nav class="navlinks">
+    <a href="https://evolvingagentslabs.github.io/demo/">Demo</a>
+    <a href="https://evolvingagentslabs.github.io/verify/">Verify</a>
+    <a href="https://evolvingagentslabs.github.io/coclea-sr/">COCLEA-SR</a>
+    <a href="https://github.com/EvolvingAgentsLabs/ai-os/tree/main/projects/coclea-sr">Repository</a>
+  </nav>
+</div></header>
+<div class="wrap">
 
 <h1>COCLEA-SR <span class="badge ok">
-attested · 23/23 gates</span></h1>
+attested · 28/28 gates</span></h1>
 <p class="sub">Physiological noise as a functional mechanism: stochastic resonance
 lets subthreshold basilar-membrane displacements cross the spiral-ganglion firing
 threshold. Hypothesis formulated ~1995; this page is generated from the run
@@ -45,11 +116,11 @@ ledger, not written.</p>
 <div class="grid">
   <div class="card"><div class="k">Ledger</div><div class="v">28</div>
     <div class="n">hash-chained entries</div></div>
-  <div class="card"><div class="k">Gates</div><div class="v">23</div>
-    <div class="n">113 checks, 0 red</div></div>
+  <div class="card"><div class="k">Gates</div><div class="v">28</div>
+    <div class="n">135 checks, 0 red</div></div>
   <div class="card"><div class="k">GATE-B2 peak SNR</div><div class="v">10.54 dB</div>
     <div class="n">significant interior maximum</div></div>
-  <div class="card"><div class="k">Attested runs</div><div class="v">13</div>
+  <div class="card"><div class="k">Attested runs</div><div class="v">19</div>
     <div class="n">manifest + seed + commit</div></div>
 </div>
 
@@ -63,7 +134,7 @@ below. You are not asked to trust the badge above.</p>
 <p class="sub">Click a gate for the measurements it recorded. Every check writes its
 report whether it passed or failed — the run somebody needs to read is the one
 that went red.</p>
-<div class="chips"><button class="chip ok" onclick="showGate('A01')">A01 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('A02')">A02 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('A03')">A03 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A04')">A04 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('A05')">A05 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A06')">A06 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A07')">A07 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A08')">A08 <span style="color:var(--dim);font-weight:400">8</span></button><button class="chip ok" onclick="showGate('A09')">A09 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A10')">A10 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A11')">A11 <span style="color:var(--dim);font-weight:400">14</span></button><button class="chip ok" onclick="showGate('A12')">A12 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A13')">A13 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A14')">A14 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('B02')">B02 <span style="color:var(--dim);font-weight:400">2</span></button><button class="chip ok" onclick="showGate('C01')">C01 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('C02')">C02 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('C03')">C03 <span style="color:var(--dim);font-weight:400">9</span></button><button class="chip ok" onclick="showGate('C04')">C04 <span style="color:var(--dim);font-weight:400">8</span></button><button class="chip ok" onclick="showGate('H1')">H1 <span style="color:var(--dim);font-weight:400">1</span></button><button class="chip ok" onclick="showGate('H2')">H2 <span style="color:var(--dim);font-weight:400">1</span></button><button class="chip ok" onclick="showGate('H3')">H3 <span style="color:var(--dim);font-weight:400">2</span></button><button class="chip ok" onclick="showGate('H4')">H4 <span style="color:var(--dim);font-weight:400">7</span></button></div>
+<div class="chips"><button class="chip ok" onclick="showGate('A01')">A01 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('A02')">A02 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('A03')">A03 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A04')">A04 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('A05')">A05 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A06')">A06 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A07')">A07 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A08')">A08 <span style="color:var(--dim);font-weight:400">8</span></button><button class="chip ok" onclick="showGate('A09')">A09 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A10')">A10 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A11')">A11 <span style="color:var(--dim);font-weight:400">14</span></button><button class="chip ok" onclick="showGate('A12')">A12 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('A13')">A13 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('A14')">A14 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('B01')">B01 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('B02')">B02 <span style="color:var(--dim);font-weight:400">2</span></button><button class="chip ok" onclick="showGate('B03')">B03 <span style="color:var(--dim);font-weight:400">4</span></button><button class="chip ok" onclick="showGate('C01')">C01 <span style="color:var(--dim);font-weight:400">6</span></button><button class="chip ok" onclick="showGate('C02')">C02 <span style="color:var(--dim);font-weight:400">3</span></button><button class="chip ok" onclick="showGate('C03')">C03 <span style="color:var(--dim);font-weight:400">9</span></button><button class="chip ok" onclick="showGate('C04')">C04 <span style="color:var(--dim);font-weight:400">8</span></button><button class="chip ok" onclick="showGate('D01')">D01 <span style="color:var(--dim);font-weight:400">5</span></button><button class="chip ok" onclick="showGate('D02')">D02 <span style="color:var(--dim);font-weight:400">5</span></button><button class="chip ok" onclick="showGate('D03')">D03 <span style="color:var(--dim);font-weight:400">5</span></button><button class="chip ok" onclick="showGate('H1')">H1 <span style="color:var(--dim);font-weight:400">1</span></button><button class="chip ok" onclick="showGate('H2')">H2 <span style="color:var(--dim);font-weight:400">1</span></button><button class="chip ok" onclick="showGate('H3')">H3 <span style="color:var(--dim);font-weight:400">2</span></button><button class="chip ok" onclick="showGate('H4')">H4 <span style="color:var(--dim);font-weight:400">7</span></button></div>
 <div class="gate-detail" id="g-A01" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A01 — 3 check(s)</h3><pre>[
   {
     &quot;N&quot;: 2000,
@@ -109,6 +180,7 @@ that went red.</p>
       7.4278883090379635e-06,
       9.278430164112816e-06
     ],
+    &quot;slack&quot;: 10.77768525830811,
     &quot;spec&quot;: &quot;2.2 / 2.4&quot;,
     &quot;test&quot;: &quot;test_eigenvalues_match_the_closed_form&quot;,
     &quot;tolerance&quot;: 0.0001
@@ -188,6 +260,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A02&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;no unambiguous observed quantity; pass slack_basis=&quot;,
     &quot;spec&quot;: &quot;2.3 property 2&quot;,
     &quot;structural&quot;: true,
     &quot;structural_gram_offdiagonal&quot;: 2.220446049250313e-15,
@@ -354,6 +427,7 @@ that went red.</p>
       &quot;localised&quot;: 3.989198748980532e-07,
       &quot;smoothstep&quot;: 3.549024715175176e-07
     },
+    &quot;slack_note&quot;: &quot;no unambiguous observed quantity; pass slack_basis=&quot;,
     &quot;spec&quot;: &quot;2.3 property 4 / 2.6&quot;,
     &quot;test&quot;: &quot;test_projection_and_reconstruction_round_trip&quot;,
     &quot;tolerance&quot;: 1e-06,
@@ -385,6 +459,7 @@ that went red.</p>
     &quot;passed&quot;: true,
     &quot;predicted_bound&quot;: 5e-07,
     &quot;relative_drift&quot;: 4.946503771370518e-07,
+    &quot;slack&quot;: 2.0216299152298673,
     &quot;spec&quot;: &quot;2.4 / 5.3&quot;,
     &quot;test&quot;: &quot;test_a_varying_profile_conserves_too&quot;,
     &quot;tolerance&quot;: 1e-06
@@ -417,6 +492,7 @@ that went red.</p>
     &quot;passed&quot;: true,
     &quot;predicted_bound&quot;: 5.000000000000002e-07,
     &quot;relative_drift&quot;: 4.999745601418935e-07,
+    &quot;slack&quot;: 2.0001017646101804,
     &quot;spec&quot;: &quot;2.4 / 5.3&quot;,
     &quot;test&quot;: &quot;test_the_energy_stays_bounded_over_a_hundred_periods&quot;,
     &quot;tolerance&quot;: 1e-06
@@ -455,6 +531,7 @@ that went red.</p>
     &quot;n_periods&quot;: 20,
     &quot;passed&quot;: true,
     &quot;relative_residual&quot;: 5.350748551934227e-07,
+    &quot;slack&quot;: 186.88973893914576,
     &quot;spec&quot;: &quot;2.4&quot;,
     &quot;test&quot;: &quot;test_the_energy_balance_closes_0.01&quot;,
     &quot;tolerance&quot;: 0.0001,
@@ -471,6 +548,7 @@ that went red.</p>
     &quot;n_periods&quot;: 20,
     &quot;passed&quot;: true,
     &quot;relative_residual&quot;: 5.338278772892737e-07,
+    &quot;slack&quot;: 187.32629795916677,
     &quot;spec&quot;: &quot;2.4&quot;,
     &quot;test&quot;: &quot;test_the_energy_balance_closes_0.05&quot;,
     &quot;tolerance&quot;: 0.0001,
@@ -487,6 +565,7 @@ that went red.</p>
     &quot;n_periods&quot;: 20,
     &quot;passed&quot;: true,
     &quot;relative_residual&quot;: 5.30700032372862e-07,
+    &quot;slack&quot;: 188.43036348213653,
     &quot;spec&quot;: &quot;2.4&quot;,
     &quot;test&quot;: &quot;test_the_energy_balance_closes_0.2&quot;,
     &quot;tolerance&quot;: 0.0001,
@@ -811,17 +890,18 @@ that went red.</p>
       2.305989239402424e-06
     ],
     &quot;root_residuals&quot;: [
-      7.498594147675962e-31,
-      2.041170040943385e-30,
-      3.4261359559436573e-31,
-      3.418876270830682e-30,
-      6.056263394873987e-30,
-      5.77698327637022e-30,
-      2.9342162060914792e-30,
-      1.260149791027512e-29,
-      7.85284851364548e-30,
-      1.6686366703949455e-29
+      7.498594148381116e-31,
+      2.0411700410581458e-30,
+      3.426135948651361e-31,
+      3.418876272760231e-30,
+      6.056263396362689e-30,
+      5.776983279720382e-30,
+      2.934216201905552e-30,
+      1.2601497902671537e-29,
+      7.85284851342182e-30,
+      1.668636670024563e-29
     ],
+    &quot;slack&quot;: 1.0841340486539945,
     &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
     &quot;test&quot;: &quot;test_eigenvalues_match_the_transcendental_roots&quot;,
     &quot;tolerance&quot;: 1e-05
@@ -833,6 +913,7 @@ that went red.</p>
     &quot;gate&quot;: &quot;A08&quot;,
     &quot;max_relative_error&quot;: 2.3181505128896075e-06,
     &quot;passed&quot;: true,
+    &quot;slack&quot;: 4.313783744583029,
     &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
     &quot;test&quot;: &quot;test_it_holds_across_the_profile_family_0.5&quot;,
     &quot;tolerance&quot;: 1e-05
@@ -844,6 +925,7 @@ that went red.</p>
     &quot;gate&quot;: &quot;A08&quot;,
     &quot;max_relative_error&quot;: 2.3163604268458223e-06,
     &quot;passed&quot;: true,
+    &quot;slack&quot;: 4.3171174417001055,
     &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
     &quot;test&quot;: &quot;test_it_holds_across_the_profile_family_1.0&quot;,
     &quot;tolerance&quot;: 1e-05
@@ -855,6 +937,7 @@ that went red.</p>
     &quot;gate&quot;: &quot;A08&quot;,
     &quot;max_relative_error&quot;: 2.305989239402424e-06,
     &quot;passed&quot;: true,
+    &quot;slack&quot;: 4.3365336789652185,
     &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
     &quot;test&quot;: &quot;test_it_holds_across_the_profile_family_3.0&quot;,
     &quot;tolerance&quot;: 1e-05
@@ -866,6 +949,7 @@ that went red.</p>
     &quot;gate&quot;: &quot;A08&quot;,
     &quot;max_relative_error&quot;: 2.280882655895735e-06,
     &quot;passed&quot;: true,
+    &quot;slack&quot;: 4.384267631722096,
     &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
     &quot;test&quot;: &quot;test_it_holds_across_the_profile_family_6.0&quot;,
     &quot;tolerance&quot;: 1e-05
@@ -885,20 +969,20 @@ that went red.</p>
     &quot;gate&quot;: &quot;A08&quot;,
     &quot;passed&quot;: true,
     &quot;residuals&quot;: [
-      7.498594147675962e-31,
-      2.041170040943385e-30,
-      3.4261359559436573e-31,
-      3.418876270830682e-30,
-      6.056263394873987e-30,
-      5.77698327637022e-30,
-      2.9342162060914792e-30,
-      1.260149791027512e-29,
-      7.85284851364548e-30,
-      1.6686366703949455e-29
+      7.498594148381116e-31,
+      2.0411700410581458e-30,
+      3.426135948651361e-31,
+      3.418876272760231e-30,
+      6.056263396362689e-30,
+      5.776983279720382e-30,
+      2.934216201905552e-30,
+      1.2601497902671537e-29,
+      7.85284851342182e-30,
+      1.668636670024563e-29
     ],
     &quot;spec&quot;: &quot;2.6 / 2.11&quot;,
     &quot;test&quot;: &quot;test_the_roots_actually_solve_the_relation&quot;,
-    &quot;worst&quot;: 1.6686366703949455e-29
+    &quot;worst&quot;: 1.668636670024563e-29
   }
 ]</pre></div><div class="gate-detail" id="g-A09" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-A09 — 6 check(s)</h3><pre>[
   {
@@ -935,6 +1019,7 @@ that went red.</p>
     &quot;predicted_variance&quot;: 0.05072461050145403,
     &quot;relative_error&quot;: 0.00048809811683099894,
     &quot;sampled_variance&quot;: 0.05069985191459128,
+    &quot;slack&quot;: 224.4313316271446,
     &quot;spec&quot;: &quot;4.1&quot;,
     &quot;test&quot;: &quot;test_the_membrane_reduces_to_modes_with_the_expected_variance&quot;,
     &quot;tolerance&quot;: 0.1095445103250827
@@ -963,6 +1048,7 @@ that went red.</p>
     &quot;n_paths&quot;: 8,
     &quot;omega&quot;: 0.5,
     &quot;passed&quot;: true,
+    &quot;slack&quot;: 59.83638285968176,
     &quot;spec&quot;: &quot;4.1&quot;,
     &quot;test&quot;: &quot;test_the_sampled_variance_matches_the_closed_form_0.5-0.01-0.001&quot;,
     &quot;tolerance&quot;: 0.0670820393249937,
@@ -984,6 +1070,7 @@ that went red.</p>
     &quot;n_paths&quot;: 8,
     &quot;omega&quot;: 1.0,
     &quot;passed&quot;: true,
+    &quot;slack&quot;: 18.611236762795205,
     &quot;spec&quot;: &quot;4.1&quot;,
     &quot;test&quot;: &quot;test_the_sampled_variance_matches_the_closed_form_1.0-0.05-0.02&quot;,
     &quot;tolerance&quot;: 0.0670820393249937,
@@ -1005,6 +1092,7 @@ that went red.</p>
     &quot;n_paths&quot;: 8,
     &quot;omega&quot;: 3.0,
     &quot;passed&quot;: true,
+    &quot;slack&quot;: 184.6915856148552,
     &quot;spec&quot;: &quot;4.1&quot;,
     &quot;test&quot;: &quot;test_the_sampled_variance_matches_the_closed_form_3.0-0.2-0.5&quot;,
     &quot;tolerance&quot;: 0.0670820393249937,
@@ -1131,6 +1219,7 @@ that went red.</p>
     ],
     &quot;sigma_opt_measured&quot;: 0.5473731587078151,
     &quot;sigma_opt_predicted&quot;: 0.5,
+    &quot;slack&quot;: 1.5831749886592914,
     &quot;snr_ci&quot;: [
       [
         null,
@@ -1278,6 +1367,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A11&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;observed quantity is exactly zero; slack is undefined&quot;,
     &quot;spec&quot;: &quot;5.1&quot;,
     &quot;symmetry_defect&quot;: 0.0,
     &quot;test&quot;: &quot;test_stiffness_is_symmetric_2000-exponential-3-profile1&quot;,
@@ -1289,6 +1379,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A11&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;observed quantity is exactly zero; slack is undefined&quot;,
     &quot;spec&quot;: &quot;5.1&quot;,
     &quot;symmetry_defect&quot;: 0.0,
     &quot;test&quot;: &quot;test_stiffness_is_symmetric_2000-reference-no-ground-profile3&quot;,
@@ -1300,6 +1391,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A11&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;observed quantity is exactly zero; slack is undefined&quot;,
     &quot;spec&quot;: &quot;5.1&quot;,
     &quot;symmetry_defect&quot;: 0.0,
     &quot;test&quot;: &quot;test_stiffness_is_symmetric_2000-reference-profile2&quot;,
@@ -1311,6 +1403,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A11&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;observed quantity is exactly zero; slack is undefined&quot;,
     &quot;spec&quot;: &quot;5.1&quot;,
     &quot;symmetry_defect&quot;: 0.0,
     &quot;test&quot;: &quot;test_stiffness_is_symmetric_2000-steep-profile4&quot;,
@@ -1322,6 +1415,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A11&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;observed quantity is exactly zero; slack is undefined&quot;,
     &quot;spec&quot;: &quot;5.1&quot;,
     &quot;symmetry_defect&quot;: 0.0,
     &quot;test&quot;: &quot;test_stiffness_is_symmetric_2000-uniform-profile0&quot;,
@@ -1333,6 +1427,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A11&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;observed quantity is exactly zero; slack is undefined&quot;,
     &quot;spec&quot;: &quot;5.1&quot;,
     &quot;symmetry_defect&quot;: 0.0,
     &quot;test&quot;: &quot;test_stiffness_is_symmetric_250-exponential-3-profile1&quot;,
@@ -1344,6 +1439,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A11&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;observed quantity is exactly zero; slack is undefined&quot;,
     &quot;spec&quot;: &quot;5.1&quot;,
     &quot;symmetry_defect&quot;: 0.0,
     &quot;test&quot;: &quot;test_stiffness_is_symmetric_250-reference-no-ground-profile3&quot;,
@@ -1355,6 +1451,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A11&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;observed quantity is exactly zero; slack is undefined&quot;,
     &quot;spec&quot;: &quot;5.1&quot;,
     &quot;symmetry_defect&quot;: 0.0,
     &quot;test&quot;: &quot;test_stiffness_is_symmetric_250-reference-profile2&quot;,
@@ -1366,6 +1463,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A11&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;observed quantity is exactly zero; slack is undefined&quot;,
     &quot;spec&quot;: &quot;5.1&quot;,
     &quot;symmetry_defect&quot;: 0.0,
     &quot;test&quot;: &quot;test_stiffness_is_symmetric_250-steep-profile4&quot;,
@@ -1377,6 +1475,7 @@ that went red.</p>
     &quot;failure&quot;: null,
     &quot;gate&quot;: &quot;A11&quot;,
     &quot;passed&quot;: true,
+    &quot;slack_note&quot;: &quot;observed quantity is exactly zero; slack is undefined&quot;,
     &quot;spec&quot;: &quot;5.1&quot;,
     &quot;symmetry_defect&quot;: 0.0,
     &quot;test&quot;: &quot;test_stiffness_is_symmetric_250-uniform-profile0&quot;,
@@ -1767,6 +1866,42 @@ that went red.</p>
     &quot;spec&quot;: &quot;5.5&quot;,
     &quot;test&quot;: &quot;test_the_truncation_criteria_are_met_and_reported&quot;
   }
+]</pre></div><div class="gate-detail" id="g-B01" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-B01 — 3 check(s)</h3><pre>[
+  {
+    &quot;control_log_linearity_r2&quot;: 0.0,
+    &quot;control_monotone_fraction&quot;: 0.0,
+    &quot;control_span&quot;: 0.0,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;B01&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;2.7&quot;,
+    &quot;test&quot;: &quot;test_b01_a_uniform_membrane_has_none_of_it&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;B01&quot;,
+    &quot;note&quot;: &quot;passive tuning; physiological Q is far higher&quot;,
+    &quot;passed&quot;: true,
+    &quot;peak_to_median_response&quot;: 9.781385331177178,
+    &quot;spec&quot;: &quot;2.7&quot;,
+    &quot;test&quot;: &quot;test_b01_the_gap_in_q_is_reported_rather_than_hidden&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;B01&quot;,
+    &quot;hz_range&quot;: [
+      200.0,
+      12000.0
+    ],
+    &quot;log_linearity_r2&quot;: 0.9999969116744286,
+    &quot;monotone_fraction&quot;: 1.0,
+    &quot;passed&quot;: true,
+    &quot;span&quot;: 0.58875,
+    &quot;spec&quot;: &quot;2.7&quot;,
+    &quot;test&quot;: &quot;test_b01_the_graded_membrane_has_a_place_map&quot;,
+    &quot;x_cf_first&quot;: 0.6675,
+    &quot;x_cf_last&quot;: 0.07875
+  }
 ]</pre></div><div class="gate-detail" id="g-B02" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-B02 — 2 check(s)</h3><pre>[
   {
     &quot;argmax_index&quot;: 4,
@@ -1833,6 +1968,64 @@ that went red.</p>
     &quot;spec&quot;: &quot;4.3.4 / 11-R2&quot;,
     &quot;test&quot;: &quot;test_b02_a_suprathreshold_tone_does_not&quot;
   }
+]</pre></div><div class="gate-detail" id="g-B03" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-B03 — 4 check(s)</h3><pre>[
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;B03&quot;,
+    &quot;interaction_p_values&quot;: {
+      &quot;detector_input:noise_scaling&quot;: 0.5747571029361955,
+      &quot;eta:detector_input&quot;: 0.42942715183092095,
+      &quot;eta:noise_scaling&quot;: 0.5357350477806659,
+      &quot;eta:xi&quot;: 0.8537447697964007,
+      &quot;xi:detector_input&quot;: 0.8296933785408271,
+      &quot;xi:noise_scaling&quot;: 0.758307530064747
+    },
+    &quot;passed&quot;: true,
+    &quot;reported_after_holm&quot;: [],
+    &quot;spec&quot;: &quot;7.2 / 7.3&quot;,
+    &quot;test&quot;: &quot;test_b03_a_design_with_no_interaction_reports_none&quot;
+  },
+  {
+    &quot;ci&quot;: [
+      -1.3604541473734018,
+      -0.8733690591824151
+    ],
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;B03&quot;,
+    &quot;injected_eta_xi&quot;: -1.2,
+    &quot;p_value&quot;: 7.727085172337667e-05,
+    &quot;passed&quot;: true,
+    &quot;recovered_effect&quot;: -1.1169116032779085,
+    &quot;residual_sd&quot;: 0.25,
+    &quot;spec&quot;: &quot;7.2 / 7.3&quot;,
+    &quot;test&quot;: &quot;test_b03_an_injected_interaction_is_recovered&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;B03&quot;,
+    &quot;kept&quot;: [],
+    &quot;p_values&quot;: {
+      &quot;f0&quot;: 0.011,
+      &quot;f1&quot;: 0.02,
+      &quot;f2&quot;: 0.03,
+      &quot;f3&quot;: 0.04,
+      &quot;f4&quot;: 0.045,
+      &quot;f5&quot;: 0.049
+    },
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;7.2 / 7.3&quot;,
+    &quot;test&quot;: &quot;test_b03_holm_actually_removes_something&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;B03&quot;,
+    &quot;n_for_0p5db&quot;: 63,
+    &quot;n_for_1db&quot;: 16,
+    &quot;passed&quot;: true,
+    &quot;ratio&quot;: 3.9375,
+    &quot;spec&quot;: &quot;7.2 / 7.3&quot;,
+    &quot;test&quot;: &quot;test_b03_the_power_analysis_moves_with_the_effect_it_must_detect&quot;
+  }
 ]</pre></div><div class="gate-detail" id="g-C01" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-C01 — 6 check(s)</h3><pre>[
   {
     &quot;failure&quot;: null,
@@ -1889,6 +2082,7 @@ that went red.</p>
     &quot;max_relative_error&quot;: 6.113660809613365e-08,
     &quot;omega&quot;: 0.3,
     &quot;passed&quot;: true,
+    &quot;slack&quot;: 163.56811919096984,
     &quot;spec&quot;: &quot;ADR-0002&quot;,
     &quot;test&quot;: &quot;test_the_solver_matches_the_closed_form_0.3&quot;,
     &quot;tolerance&quot;: 1e-05,
@@ -1909,6 +2103,7 @@ that went red.</p>
     &quot;max_relative_error&quot;: 7.261620993343489e-07,
     &quot;omega&quot;: 0.7,
     &quot;passed&quot;: true,
+    &quot;slack&quot;: 13.771029924539855,
     &quot;spec&quot;: &quot;ADR-0002&quot;,
     &quot;test&quot;: &quot;test_the_solver_matches_the_closed_form_0.7&quot;,
     &quot;tolerance&quot;: 1e-05,
@@ -1929,6 +2124,7 @@ that went red.</p>
     &quot;max_relative_error&quot;: 1.245501569921947e-07,
     &quot;omega&quot;: 1.4,
     &quot;passed&quot;: true,
+    &quot;slack&quot;: 80.2889393437431,
     &quot;spec&quot;: &quot;ADR-0002&quot;,
     &quot;test&quot;: &quot;test_the_solver_matches_the_closed_form_1.4&quot;,
     &quot;tolerance&quot;: 1e-05,
@@ -2106,6 +2302,7 @@ that went red.</p>
     &quot;power_dissipated&quot;: 4.580159693438364,
     &quot;power_in&quot;: 4.580188163118958,
     &quot;relative_residual&quot;: 6.215832096938821e-06,
+    &quot;slack&quot;: 160.8795064610064,
     &quot;spec&quot;: &quot;ADR-0002&quot;,
     &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_2000-12000.0&quot;,
     &quot;tolerance&quot;: 0.001
@@ -2121,6 +2318,7 @@ that went red.</p>
     &quot;power_dissipated&quot;: 1.354653972894207,
     &quot;power_in&quot;: 1.3546542478135257,
     &quot;relative_residual&quot;: 2.0294427089958416e-07,
+    &quot;slack&quot;: 4927.461098395801,
     &quot;spec&quot;: &quot;ADR-0002&quot;,
     &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_2000-3000.0&quot;,
     &quot;tolerance&quot;: 0.001
@@ -2136,6 +2334,7 @@ that went red.</p>
     &quot;power_dissipated&quot;: 0.31837584245152384,
     &quot;power_in&quot;: 0.31837584412856945,
     &quot;relative_residual&quot;: 5.267502684071254e-09,
+    &quot;slack&quot;: 189843.28247690608,
     &quot;spec&quot;: &quot;ADR-0002&quot;,
     &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_2000-500.0&quot;,
     &quot;tolerance&quot;: 0.001
@@ -2151,6 +2350,7 @@ that went red.</p>
     &quot;power_dissipated&quot;: 4.580165157717935,
     &quot;power_in&quot;: 4.580172250495646,
     &quot;relative_residual&quot;: 1.5485831805059246e-06,
+    &quot;slack&quot;: 645.7515570285985,
     &quot;spec&quot;: &quot;ADR-0002&quot;,
     &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_4000-12000.0&quot;,
     &quot;tolerance&quot;: 0.001
@@ -2166,6 +2366,7 @@ that went red.</p>
     &quot;power_dissipated&quot;: 1.3546541027011425,
     &quot;power_in&quot;: 1.354654171291302,
     &quot;relative_residual&quot;: 5.0632966705215104e-08,
+    &quot;slack&quot;: 19749.978424570603,
     &quot;spec&quot;: &quot;ADR-0002&quot;,
     &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_4000-3000.0&quot;,
     &quot;tolerance&quot;: 0.001
@@ -2181,6 +2382,7 @@ that went red.</p>
     &quot;power_dissipated&quot;: 0.3183758505870938,
     &quot;power_in&quot;: 0.31837585100547167,
     &quot;relative_residual&quot;: 1.3141005719133065e-09,
+    &quot;slack&quot;: 760976.7634025288,
     &quot;spec&quot;: &quot;ADR-0002&quot;,
     &quot;test&quot;: &quot;test_power_in_equals_power_dissipated_4000-500.0&quot;,
     &quot;tolerance&quot;: 0.001
@@ -2367,6 +2569,515 @@ that went red.</p>
     &quot;test&quot;: &quot;test_the_synthesised_variance_matches_the_spectrum_9000.0&quot;,
     &quot;x_cf&quot;: 0.11950000000000001
   }
+]</pre></div><div class="gate-detail" id="g-D01" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-D01 — 5 check(s)</h3><pre>[
+  {
+    &quot;deltas&quot;: {
+      &quot;cf_ratio&quot;: 0.0,
+      &quot;compression_exponent&quot;: 0.0,
+      &quot;d_opt&quot;: 0.0,
+      &quot;knee_drive&quot;: 0.0,
+      &quot;q_ratio&quot;: 0.0,
+      &quot;sensitivity_db&quot;: 0.0
+    },
+    &quot;failure&quot;: null,
+    &quot;fingerprint&quot;: [
+      &quot;0&quot;,
+      &quot;0&quot;,
+      &quot;0&quot;,
+      &quot;0&quot;,
+      &quot;0&quot;,
+      &quot;0&quot;,
+      false
+    ],
+    &quot;gate&quot;: &quot;D01&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d01_a_lesion_that_changes_nothing_changes_nothing&quot;
+  },
+  {
+    &quot;collisions&quot;: {
+      &quot;ohc-loss/prestin-block&quot;: [
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;+&quot;,
+        &quot;+&quot;,
+        &quot;0&quot;,
+        false
+      ]
+    },
+    &quot;distinct&quot;: 6,
+    &quot;failure&quot;: null,
+    &quot;fingerprints&quot;: {
+      &quot;conductive&quot;: [
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;-&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        false
+      ],
+      &quot;healthy&quot;: [
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        false
+      ],
+      &quot;hydrops&quot;: [
+        &quot;+&quot;,
+        &quot;+&quot;,
+        &quot;-&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        false
+      ],
+      &quot;ohc-loss&quot;: [
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;+&quot;,
+        &quot;+&quot;,
+        &quot;0&quot;,
+        false
+      ],
+      &quot;overdriven&quot;: [
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;undefined&quot;,
+        &quot;undefined&quot;,
+        &quot;0&quot;,
+        true
+      ],
+      &quot;prestin-block&quot;: [
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;+&quot;,
+        &quot;+&quot;,
+        &quot;0&quot;,
+        false
+      ],
+      &quot;synaptopathy&quot;: [
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;0&quot;,
+        &quot;+&quot;,
+        false
+      ]
+    },
+    &quot;gate&quot;: &quot;D01&quot;,
+    &quot;of&quot;: 7,
+    &quot;passed&quot;: true,
+    &quot;signatures&quot;: {
+      &quot;conductive&quot;: {
+        &quot;cf_ratio&quot;: 1.0,
+        &quot;compression_exponent&quot;: 0.36526481903442903,
+        &quot;d_opt&quot;: 0.5,
+        &quot;knee_drive&quot;: 0.00282842712474619,
+        &quot;q_ratio&quot;: 1.000000000000005,
+        &quot;self_oscillating&quot;: false,
+        &quot;sensitivity_db&quot;: -19.999999999999986
+      },
+      &quot;healthy&quot;: {
+        &quot;cf_ratio&quot;: 1.0,
+        &quot;compression_exponent&quot;: 0.36526481903442903,
+        &quot;d_opt&quot;: 0.5,
+        &quot;knee_drive&quot;: 0.00282842712474619,
+        &quot;q_ratio&quot;: 1.0,
+        &quot;self_oscillating&quot;: false,
+        &quot;sensitivity_db&quot;: 0.0
+      },
+      &quot;hydrops&quot;: {
+        &quot;cf_ratio&quot;: 1.116687673155871,
+        &quot;compression_exponent&quot;: 0.36526481903442903,
+        &quot;d_opt&quot;: 0.5,
+        &quot;knee_drive&quot;: 0.00282842712474619,
+        &quot;q_ratio&quot;: 1.0558695979999704,
+        &quot;self_oscillating&quot;: false,
+        &quot;sensitivity_db&quot;: -3.9091631666465174
+      },
+      &quot;ohc-loss&quot;: {
+        &quot;cf_ratio&quot;: 1.0,
+        &quot;compression_exponent&quot;: 0.8105334264973415,
+        &quot;d_opt&quot;: 0.5,
+        &quot;knee_drive&quot;: 0.3535533905932738,
+        &quot;q_ratio&quot;: 1.0,
+        &quot;self_oscillating&quot;: false,
+        &quot;sensitivity_db&quot;: 0.0
+      },
+      &quot;overdriven&quot;: {
+        &quot;cf_ratio&quot;: 1.0,
+        &quot;compression_exponent&quot;: null,
+        &quot;d_opt&quot;: 0.5,
+        &quot;knee_drive&quot;: null,
+        &quot;q_ratio&quot;: 1.0,
+        &quot;self_oscillating&quot;: true,
+        &quot;sensitivity_db&quot;: 0.0
+      },
+      &quot;prestin-block&quot;: {
+        &quot;cf_ratio&quot;: 1.0,
+        &quot;compression_exponent&quot;: 0.6381911549456322,
+        &quot;d_opt&quot;: 0.5,
+        &quot;knee_drive&quot;: 0.0894427190999916,
+        &quot;q_ratio&quot;: 1.0,
+        &quot;self_oscillating&quot;: false,
+        &quot;sensitivity_db&quot;: 0.0
+      },
+      &quot;synaptopathy&quot;: {
+        &quot;cf_ratio&quot;: 1.0,
+        &quot;compression_exponent&quot;: 0.36526481903442903,
+        &quot;d_opt&quot;: 0.9,
+        &quot;knee_drive&quot;: 0.00282842712474619,
+        &quot;q_ratio&quot;: 1.0,
+        &quot;self_oscillating&quot;: false,
+        &quot;sensitivity_db&quot;: 0.0
+      }
+    },
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d01_lesions_on_different_parameters_are_distinguishable&quot;
+  },
+  {
+    &quot;catalogue_size&quot;: 7,
+    &quot;distinct_values_per_observable&quot;: {
+      &quot;cf&quot;: 2,
+      &quot;compression&quot;: 3,
+      &quot;d_opt&quot;: 2,
+      &quot;knee&quot;: 3,
+      &quot;oscillating&quot;: 2,
+      &quot;q&quot;: 2,
+      &quot;sensitivity&quot;: 2
+    },
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D01&quot;,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d01_no_single_observable_separates_the_catalogue&quot;
+  },
+  {
+    &quot;d_opt_healthy&quot;: 0.5,
+    &quot;d_opt_ratio&quot;: 1.8,
+    &quot;d_opt_synaptopathy&quot;: 0.9,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D01&quot;,
+    &quot;mechanical_components_that_moved&quot;: [],
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d01_the_detector_lesion_moves_the_useful_noise_level&quot;,
+    &quot;theta_factor&quot;: 1.8
+  },
+  {
+    &quot;exponent_healthy&quot;: 0.36526481903442903,
+    &quot;exponent_ohc_loss&quot;: 0.8105334264973415,
+    &quot;exponent_prestin_block&quot;: 0.6381911549456322,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D01&quot;,
+    &quot;knee_healthy&quot;: 0.00282842712474619,
+    &quot;knee_ohc_loss&quot;: 0.3535533905932738,
+    &quot;knee_prestin_block&quot;: 0.0894427190999916,
+    &quot;passed&quot;: true,
+    &quot;reversible&quot;: {
+      &quot;conductive&quot;: false,
+      &quot;healthy&quot;: false,
+      &quot;hydrops&quot;: true,
+      &quot;ohc-loss&quot;: false,
+      &quot;overdriven&quot;: false,
+      &quot;prestin-block&quot;: true,
+      &quot;synaptopathy&quot;: false
+    },
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d01_the_two_amplifier_lesions_are_ordered_by_depth&quot;
+  }
+]</pre></div><div class="gate-detail" id="g-D02" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-D02 — 5 check(s)</h3><pre>[
+  {
+    &quot;cf_range&quot;: [
+      0.001358677175015672,
+      0.7064987261550145
+    ],
+    &quot;depth&quot;: 0.4,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D02&quot;,
+    &quot;loss_db_at_apex&quot;: 6.0205999132796295,
+    &quot;loss_db_at_base&quot;: 26.020599913279625,
+    &quot;monotone_in_position&quot;: true,
+    &quot;mu_at_apex&quot;: -0.04000000000000002,
+    &quot;mu_at_base&quot;: -0.4,
+    &quot;passed&quot;: true,
+    &quot;slope_db_per_decade&quot;: 6.414734984202474,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d02_a_basal_first_lesion_slopes_toward_high_frequencies&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D02&quot;,
+    &quot;loss_spread_db&quot;: 0.0,
+    &quot;mu&quot;: -0.5,
+    &quot;passed&quot;: true,
+    &quot;slope_db_per_decade&quot;: 0.0,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d02_an_ungraded_lesion_produces_a_flat_audiogram&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D02&quot;,
+    &quot;passed&quot;: true,
+    &quot;slope_apex_first&quot;: -6.414734984202475,
+    &quot;slope_basal_first&quot;: 6.414734984202474,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;sum&quot;: -8.881784197001252e-16,
+    &quot;test&quot;: &quot;test_d02_reversing_the_lesion_reverses_the_audiogram&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D02&quot;,
+    &quot;hz_first&quot;: 14608.326661387437,
+    &quot;mu_first&quot;: -0.4,
+    &quot;mu_last&quot;: -0.04000000000000002,
+    &quot;n_sites&quot;: 24,
+    &quot;omega_first&quot;: 0.7064987261550145,
+    &quot;omega_last&quot;: 0.001358677175015672,
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d02_the_hopf_chain_accepts_the_graded_lesion&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D02&quot;,
+    &quot;knee_slope_db_per_decade&quot;: 9.622102476303716,
+    &quot;passed&quot;: true,
+    &quot;predicted_ratio&quot;: 1.5,
+    &quot;ratio&quot;: 1.5000000000000007,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d02_the_knee_slopes_harder_than_the_threshold&quot;,
+    &quot;threshold_slope_db_per_decade&quot;: 6.414734984202474
+  }
+]</pre></div><div class="gate-detail" id="g-D03" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-D03 — 5 check(s)</h3><pre>[
+  {
+    &quot;detection_ratio&quot;: {
+      &quot;amplification&quot;: {
+        &quot;conductive&quot;: null,
+        &quot;hydrops&quot;: 166126054156.04688,
+        &quot;ohc-loss&quot;: null,
+        &quot;synaptopathy&quot;: 2588434930435478.5
+      },
+      &quot;amplifier-agent&quot;: {
+        &quot;conductive&quot;: null,
+        &quot;hydrops&quot;: 166126054156.04675,
+        &quot;ohc-loss&quot;: null,
+        &quot;synaptopathy&quot;: 2588434930435477.0
+      },
+      &quot;calibrated-noise&quot;: {
+        &quot;conductive&quot;: null,
+        &quot;hydrops&quot;: 12935877469.263947,
+        &quot;ohc-loss&quot;: null,
+        &quot;synaptopathy&quot;: 128081822370796.7
+      },
+      &quot;fluid-agent&quot;: {
+        &quot;conductive&quot;: null,
+        &quot;hydrops&quot;: 2076821.581743307,
+        &quot;ohc-loss&quot;: 0.0,
+        &quot;synaptopathy&quot;: 970617545.3785639
+      },
+      &quot;implant&quot;: {
+        &quot;conductive&quot;: null,
+        &quot;hydrops&quot;: 34227894.4903018,
+        &quot;ohc-loss&quot;: null,
+        &quot;synaptopathy&quot;: 1.0
+      }
+    },
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D03&quot;,
+    &quot;known_gap&quot;: &quot;ADR-0008: theta-up is a sensitivity loss, not synaptopathy; no fibre-count axis exists, so nothing here is a lesion that gain cannot repair&quot;,
+    &quot;non_finite_fields&quot;: [
+      &quot;detection_ratio.amplification.conductive&quot;,
+      &quot;detection_ratio.amplification.ohc-loss&quot;,
+      &quot;detection_ratio.amplifier-agent.conductive&quot;,
+      &quot;detection_ratio.amplifier-agent.ohc-loss&quot;,
+      &quot;detection_ratio.calibrated-noise.conductive&quot;,
+      &quot;detection_ratio.calibrated-noise.ohc-loss&quot;,
+      &quot;detection_ratio.fluid-agent.conductive&quot;,
+      &quot;detection_ratio.implant.conductive&quot;,
+      &quot;detection_ratio.implant.ohc-loss&quot;
+    ],
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d03_amplification_helps_every_threshold_lesion_and_that_is_the_known_gap&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D03&quot;,
+    &quot;implant_detection_ratio&quot;: {
+      &quot;conductive&quot;: null,
+      &quot;hydrops&quot;: 34227894.4903018,
+      &quot;ohc-loss&quot;: null,
+      &quot;synaptopathy&quot;: 1.0
+    },
+    &quot;non_finite_fields&quot;: [
+      &quot;implant_detection_ratio.conductive&quot;,
+      &quot;implant_detection_ratio.ohc-loss&quot;
+    ],
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;synaptopathy_theta&quot;: 1.8,
+    &quot;test&quot;: &quot;test_d03_the_implant_is_limited_by_the_detector_and_not_by_the_mechanics&quot;
+  },
+  {
+    &quot;distinct_unions&quot;: 4,
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D03&quot;,
+    &quot;moved_by_treatment_and_lesion&quot;: {
+      &quot;amplification&quot;: {
+        &quot;conductive&quot;: [
+          &quot;peak&quot;,
+          &quot;detection&quot;
+        ],
+        &quot;hydrops&quot;: [
+          &quot;peak&quot;,
+          &quot;detection&quot;
+        ],
+        &quot;ohc-loss&quot;: [
+          &quot;peak&quot;,
+          &quot;detection&quot;
+        ],
+        &quot;synaptopathy&quot;: [
+          &quot;peak&quot;,
+          &quot;detection&quot;
+        ]
+      },
+      &quot;amplifier-agent&quot;: {
+        &quot;conductive&quot;: [
+          &quot;compression&quot;,
+          &quot;knee&quot;,
+          &quot;detection&quot;
+        ],
+        &quot;hydrops&quot;: [
+          &quot;compression&quot;,
+          &quot;knee&quot;,
+          &quot;detection&quot;
+        ],
+        &quot;ohc-loss&quot;: [
+          &quot;compression&quot;,
+          &quot;knee&quot;,
+          &quot;detection&quot;
+        ],
+        &quot;synaptopathy&quot;: [
+          &quot;compression&quot;,
+          &quot;knee&quot;,
+          &quot;detection&quot;
+        ]
+      },
+      &quot;calibrated-noise&quot;: {
+        &quot;conductive&quot;: [
+          &quot;detection&quot;
+        ],
+        &quot;hydrops&quot;: [
+          &quot;detection&quot;
+        ],
+        &quot;ohc-loss&quot;: [
+          &quot;detection&quot;
+        ],
+        &quot;synaptopathy&quot;: [
+          &quot;detection&quot;
+        ]
+      },
+      &quot;fluid-agent&quot;: {
+        &quot;conductive&quot;: [
+          &quot;cf&quot;,
+          &quot;q&quot;,
+          &quot;peak&quot;,
+          &quot;detection&quot;
+        ],
+        &quot;hydrops&quot;: [
+          &quot;cf&quot;,
+          &quot;q&quot;,
+          &quot;peak&quot;,
+          &quot;detection&quot;
+        ],
+        &quot;ohc-loss&quot;: [
+          &quot;cf&quot;,
+          &quot;q&quot;,
+          &quot;peak&quot;
+        ],
+        &quot;synaptopathy&quot;: [
+          &quot;cf&quot;,
+          &quot;q&quot;,
+          &quot;peak&quot;,
+          &quot;detection&quot;
+        ]
+      },
+      &quot;implant&quot;: {
+        &quot;conductive&quot;: [
+          &quot;detection&quot;
+        ],
+        &quot;hydrops&quot;: [
+          &quot;detection&quot;
+        ],
+        &quot;ohc-loss&quot;: [
+          &quot;detection&quot;
+        ],
+        &quot;synaptopathy&quot;: []
+      }
+    },
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d03_the_modalities_move_different_observables&quot;,
+    &quot;treatments&quot;: 5,
+    &quot;union_per_treatment&quot;: {
+      &quot;amplification&quot;: [
+        &quot;detection&quot;,
+        &quot;peak&quot;
+      ],
+      &quot;amplifier-agent&quot;: [
+        &quot;compression&quot;,
+        &quot;detection&quot;,
+        &quot;knee&quot;
+      ],
+      &quot;calibrated-noise&quot;: [
+        &quot;detection&quot;
+      ],
+      &quot;fluid-agent&quot;: [
+        &quot;cf&quot;,
+        &quot;detection&quot;,
+        &quot;peak&quot;,
+        &quot;q&quot;
+      ],
+      &quot;implant&quot;: [
+        &quot;detection&quot;
+      ]
+    }
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D03&quot;,
+    &quot;moved_under_null_treatment&quot;: {
+      &quot;conductive&quot;: [],
+      &quot;hydrops&quot;: [],
+      &quot;ohc-loss&quot;: [],
+      &quot;synaptopathy&quot;: []
+    },
+    &quot;passed&quot;: true,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;test&quot;: &quot;test_d03_the_null_treatment_changes_nothing&quot;
+  },
+  {
+    &quot;failure&quot;: null,
+    &quot;gate&quot;: &quot;D03&quot;,
+    &quot;healthy_optimum&quot;: 0.5,
+    &quot;passed&quot;: true,
+    &quot;resting_sigma&quot;: 0.2,
+    &quot;spec&quot;: &quot;13&quot;,
+    &quot;subthreshold&quot;: true,
+    &quot;test&quot;: &quot;test_d03_the_tone_is_subthreshold_or_nothing_here_is_about_anything&quot;,
+    &quot;theta&quot;: 1.0,
+    &quot;tone&quot;: 0.5
+  }
 ]</pre></div><div class="gate-detail" id="g-H1" style="display:none"><h3 style='font-size:14px;margin:16px 0 6px'>GATE-H1 — 1 check(s)</h3><pre>[
   {
     &quot;drives&quot;: [
@@ -2502,11 +3213,11 @@ that went red.</p>
 
 <h2>Attested runs</h2>
 <div class="scroll"><table><tr><th>run</th><th>result sha256</th><th>commit</th>
-<th>at</th><th>OMP threads</th></tr><tr><td class='mono'>e5-tl-resonance</td><td class='mono'>b7d9a2f3a069…</td><td class='mono'>1503c49f</td><td>2026-08-15 15:46 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e5-tl-resonance</td><td class='mono'>8c7dac608ad9…</td><td class='mono'>1503c49f</td><td>2026-08-15 15:42 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e5-tl-resonance</td><td class='mono'>6683ee4c49c9…</td><td class='mono'>1503c49f</td><td>2026-08-15 15:21 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e4-physiological</td><td class='mono'>14bf748f07be…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:29 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>e3-sr-curve</td><td class='mono'>6bcecf029e8e…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:29 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>e2-tonotopy</td><td class='mono'>6afa3cc8c386…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:13 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>b3-interactions</td><td class='mono'>305a314da5b8…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:11 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>b3-interactions</td><td class='mono'>ff6e7c9ea92d…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:10 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>b3-interactions</td><td class='mono'>56fb59acbeb1…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:09 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e4-physiological</td><td class='mono'>8b7443500160…</td><td class='mono'>917db2af</td><td>2026-08-14 18:33 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e3-sr-curve</td><td class='mono'>10e43434587d…</td><td class='mono'>5e972d12</td><td>2026-08-14 17:07 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e2-tonotopy</td><td class='mono'>51dd5c3e79dd…</td><td class='mono'>5e972d12</td><td>2026-08-14 16:47 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e2-tonotopy</td><td class='mono'>f7d2d205da0e…</td><td class='mono'>0b7aba8e</td><td>2026-08-14 13:53 UTC</td><td class='mono'>(unset)</td></tr></table></div>
+<th>at</th><th>OMP threads</th></tr><tr><td class='mono'>r0-routing-headroom</td><td class='mono'>4f6d09150bb6…</td><td class='mono'>1247596d</td><td>2026-08-17 21:42 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e10-sr-near-criticality</td><td class='mono'>4312aaa975b9…</td><td class='mono'>1247596d</td><td>2026-08-17 21:09 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>e8-synaptopathy</td><td class='mono'>eee027882cf3…</td><td class='mono'>bfcd42e0</td><td>2026-08-17 17:21 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>e9-cost-attribution</td><td class='mono'>a47d98518b01…</td><td class='mono'>bfcd42e0</td><td>2026-08-17 17:19 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e7-ratio</td><td class='mono'>0d94334574ea…</td><td class='mono'>3acd7570</td><td>2026-08-17 14:59 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e7-ratio</td><td class='mono'>7350c1fe4b31…</td><td class='mono'>06f07c5b</td><td>2026-08-16 20:21 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e5-tl-resonance</td><td class='mono'>b7d9a2f3a069…</td><td class='mono'>1503c49f</td><td>2026-08-15 15:46 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e5-tl-resonance</td><td class='mono'>8c7dac608ad9…</td><td class='mono'>1503c49f</td><td>2026-08-15 15:42 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e5-tl-resonance</td><td class='mono'>6683ee4c49c9…</td><td class='mono'>1503c49f</td><td>2026-08-15 15:21 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e4-physiological</td><td class='mono'>14bf748f07be…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:29 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>e3-sr-curve</td><td class='mono'>6bcecf029e8e…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:29 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>e2-tonotopy</td><td class='mono'>6afa3cc8c386…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:13 UTC</td><td class='mono'>1</td></tr><tr><td class='mono'>b3-interactions</td><td class='mono'>305a314da5b8…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:11 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>b3-interactions</td><td class='mono'>ff6e7c9ea92d…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:10 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>b3-interactions</td><td class='mono'>56fb59acbeb1…</td><td class='mono'>b3154ee1</td><td>2026-08-14 19:09 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e4-physiological</td><td class='mono'>8b7443500160…</td><td class='mono'>917db2af</td><td>2026-08-14 18:33 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e3-sr-curve</td><td class='mono'>10e43434587d…</td><td class='mono'>5e972d12</td><td>2026-08-14 17:07 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e2-tonotopy</td><td class='mono'>51dd5c3e79dd…</td><td class='mono'>5e972d12</td><td>2026-08-14 16:47 UTC</td><td class='mono'>(unset)</td></tr><tr><td class='mono'>e2-tonotopy</td><td class='mono'>f7d2d205da0e…</td><td class='mono'>0b7aba8e</td><td>2026-08-14 13:53 UTC</td><td class='mono'>(unset)</td></tr></table></div>
 
 <h2>What was tried and killed</h2>
 <div class="scroll"><table><tr><th>ADR</th><th>decision</th><th>status</th></tr>
-<tr><td class='mono'>0001-the</td><td>ADR-0001 — The place code needs a term the spec absorbs</td><td style='color:var(--dim)'>**falsified by its own experiment, 2026-08-14** — superseded by [ADR-0002](0002-the-place-code-needs-fluid-cou</td></tr><tr><td class='mono'>0002-the</td><td>ADR-0002 — The place code needs fluid coupling, not a ground spring</td><td style='color:var(--dim)'>**built and accepted, 2026-08-14** — its pre-registered condition was met</td></tr><tr><td class='mono'>0003-the</td><td>ADR-0003 — The noise and the place code sit on different operators</td><td style='color:var(--dim)'>**resolved, 2026-08-15** — the unification is built and accepted</td></tr><tr><td class='mono'>0004-the</td><td>ADR-0004 — The narrowed model: a free-end string with variable mass, Fourier, and SR</td><td style='color:var(--dim)'>built and measured. The narrowing holds for everything except §R2 —</td></tr><tr><td class='mono'>0005-the</td><td>ADR-0005 — The calibration engine, and the prediction that falls out of it</td><td style='color:var(--dim)'>built, gated, and measured. The prediction is **not yet tested**</td></tr></table></div>
+<tr><td class='mono'>0001-the</td><td>ADR-0001 — The place code needs a term the spec absorbs</td><td style='color:var(--dim)'>**falsified by its own experiment, 2026-08-14** — superseded by [ADR-0002](0002-the-place-code-needs-fluid-cou</td></tr><tr><td class='mono'>0002-the</td><td>ADR-0002 — The place code needs fluid coupling, not a ground spring</td><td style='color:var(--dim)'>**built and accepted, 2026-08-14** — its pre-registered condition was met</td></tr><tr><td class='mono'>0003-the</td><td>ADR-0003 — The noise and the place code sit on different operators</td><td style='color:var(--dim)'>**resolved, 2026-08-15** — the unification is built and accepted</td></tr><tr><td class='mono'>0004-the</td><td>ADR-0004 — The narrowed model: a free-end string with variable mass, Fourier, and SR</td><td style='color:var(--dim)'>built and measured. The narrowing holds for everything except §R2 —</td></tr><tr><td class='mono'>0005-the</td><td>ADR-0005 — The calibration engine, and the prediction that falls out of it</td><td style='color:var(--dim)'>built, gated, and measured. The prediction is **not yet tested**</td></tr><tr><td class='mono'>0006-pat</td><td>ADR-0006 — Pathology is a parameter transform, and the healthy operating point is a posit</td><td style='color:var(--dim)'>accepted, 2026-08-17</td></tr><tr><td class='mono'>0007-the</td><td>ADR-0007 — The active layer is feedback, not a stage in series</td><td style='color:var(--dim)'>accepted, 2026-08-17</td></tr><tr><td class='mono'>0008-a-r</td><td>ADR-0008 — A raised threshold is not synaptopathy</td><td style='color:var(--dim)'>accepted, 2026-08-17</td></tr></table></div>
 
 <h2>The ledger</h2>
 <pre id="ledger-raw">{&quot;actor&quot;:&quot;EXPLORADOR&quot;,&quot;artifact&quot;:&quot;runs/e2-tonotopy-f7d2d205da0e/result.json&quot;,&quot;gates_passed&quot;:[&quot;A01&quot;,&quot;A02&quot;,&quot;A03&quot;,&quot;A04&quot;,&quot;A07&quot;,&quot;A08&quot;,&quot;A11&quot;,&quot;A12&quot;],&quot;prev_hash&quot;:null,&quot;sha256&quot;:&quot;f7d2d205da0e771ed5d788a7c285146d02998f887bad65145bd49277cf3253c5&quot;,&quot;state&quot;:&quot;recorded&quot;,&quot;ts&quot;:1786715591.8555892}

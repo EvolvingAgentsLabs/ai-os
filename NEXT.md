@@ -76,18 +76,29 @@ Both scan `.html` as well as `.md`. The site carried <!-- gate-count: superseded
 two pages after the repository had been corrected, which is the whole argument
 for the flag.
 
-Regenerate the two demos when what they show changes:
+Regenerate the published surfaces when what they show changes. All three are
+generated, and all three now carry the same design system — black ground, the
+system stacks, Apple's nine system colours, the demo's radii — so a change to one
+of them is a change to the look of the site:
 
 ```bash
-# the desk — the real client with a simulated backend
-cd ai-ui && node scripts/build-demo.ts --out ../../evolvingagentslabs.github.io/demo/index.html
+# /demo/ — the activity canvas, generated from the tested geometry
+cd ai-ui && node scripts/build-grid.ts --out ../../evolvingagentslabs.github.io/demo/index.html
 
 # /verify/ — real artifacts, checked in the reader's browser. Test first: the
 # page reimplements sha256 and Python's canonical form, and both are the kind of
 # thing that is nearly right for a long time.
 node scripts/verify-page/test.mjs
 python3 scripts/build-verify-page.py --out ../evolvingagentslabs.github.io/verify/index.html
+
+# the project's own evidence viewer, from the ledger
+cd projects/coclea-sr && python3 render_evidence.py
 ```
+
+The website's stylesheet is [`assets/site.css`](https://github.com/EvolvingAgentsLabs/evolvingagentslabs.github.io/blob/main/assets/site.css)
+in the other repository, and it opens with the argument for what is in it. The
+three files above carry their own copies of the same tokens because each has to
+be self-contained; they are the places to check after changing it.
 
 ---
 

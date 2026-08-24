@@ -1,56 +1,136 @@
+/* The verification page, on the ai-os surface.
+ *
+ * Same nine system colours, same two stacks, same radii as the demo and the
+ * website — see `assets/site.css` in the website repository for the argument.
+ * The one rule this file adds is the one it always had: **no webfont**. The page
+ * claims it makes no network request, and a stylesheet from fonts.googleapis.com
+ * is a network request. The stacks below are already on the machine, which is
+ * why the whole site now uses them.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 :root{
-  --paper:#fbfaf7; --ink:#16181a; --dim:#5f646b; --rule:#d9d5cd;
-  --green:#2f6b40; --red:#a8342c; --amber:#8a5a12; --teal:#3b6668;
-  /* System stacks only: the page makes no network request, and that includes
-     fonts. See the note in page.html. */
-  --sans:Georgia,"Iowan Old Style","Times New Roman",Times,serif;
-  --mono:"SFMono-Regular",Menlo,Consolas,"DejaVu Sans Mono",monospace;
-}
-@media (prefers-color-scheme: dark){
-  :root{ --paper:#111314; --ink:#e8e6e1; --dim:#9aa0a6; --rule:#2a2e31;
-         --green:#7fbf8f; --red:#e08d85; --amber:#d5a75a; --teal:#7fb0b2; }
+  color-scheme:dark;
+  --blue:#0A84FF; --green:#30D158; --orange:#FF9F0A; --red:#FF453A;
+  --teal:#64D2FF; --yellow:#FFD60A;
+  --bg:#000; --bg-2:#1C1C1E; --bg-3:#2C2C2E; --sep:#38383A;
+  --ink:#F2F2F7; --dim:#98989F; --faint:#636366;
+  --sans:ui-sans-serif,-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Monaco,"Roboto Mono",monospace;
+  --r-s:6px; --r-m:9px; --r-l:12px;
+  --pad:clamp(1.25rem,5vw,3rem);
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
-  font-size:18px;line-height:1.55;-webkit-text-size-adjust:100%}
-.wrap{max-width:60rem;margin:0 auto;padding:2.5rem 1.25rem 6rem}
-h1{font-size:2.1rem;line-height:1.15;margin:0 0 .6rem;font-weight:400}
-h2{font-size:1.35rem;margin:3rem 0 .4rem;font-weight:400;
-   border-top:1px solid var(--rule);padding-top:1.4rem}
-h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--dim);margin-right:.6rem}
-p{margin:.7rem 0}
-.lede{font-size:1.15rem}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:17px;line-height:1.62;letter-spacing:-.003em;
+  -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:var(--r-s)}
+::selection{background:rgba(10,132,255,.32)}
+
+/* The same bar as every other page, so arriving here from the demo or the home
+   page changes the view rather than the product. */
+.masthead{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.72);
+  backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--sep)}
+.masthead-in{max-width:min(64rem,100%);margin:0 auto;padding:.85rem var(--pad) .8rem;
+  display:flex;align-items:center;gap:1rem 1.25rem;flex-wrap:nowrap}
+.wordmark{display:inline-flex;align-items:center;gap:.55em;flex:none;white-space:nowrap;
+  font-size:.9375rem;font-weight:600;letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
+.wordmark .mark{display:block;width:1.05em;height:1.05em;flex:none}
+.wordmark .org{font-family:var(--mono);font-size:.6875rem;font-weight:400;color:var(--faint);
+  border-left:1px solid var(--sep);padding-left:.7em}
+.navlinks{display:flex;gap:1.15rem;margin-left:auto;min-width:0;overflow-x:auto;
+  scrollbar-width:none;font-size:.8125rem}
+.navlinks::-webkit-scrollbar{display:none}
+.navlinks a{color:var(--dim);text-decoration:none;white-space:nowrap}
+.navlinks a:hover{color:var(--ink)}
+.navlinks a[aria-current]{color:var(--ink)}
+.chip{flex:none;font:400 10px/1.4 var(--mono);color:var(--dim);background:var(--bg-2);
+  border:1px solid var(--sep);border-radius:var(--r-s);padding:4px 9px;white-space:nowrap}
+@media(max-width:62rem){.masthead .chip{display:none}}
+@media(max-width:46rem){.wordmark .org{display:none}}
+@media(max-width:34rem){
+  .masthead-in{flex-wrap:wrap;gap:.65rem 1rem}
+  .navlinks{margin-left:0;width:100%}
+}
+
+.wrap{max-width:min(60rem,100%);margin:0 auto;padding:2.5rem var(--pad) 6rem}
+.eyebrow{font:600 10.5px/1.4 var(--sans);letter-spacing:.09em;text-transform:uppercase;
+  color:var(--faint);margin:0 0 1rem}
+h1{font-weight:600;font-size:clamp(2rem,5vw,3rem);line-height:1.06;
+  letter-spacing:-.035em;margin:0 0 1rem;text-wrap:balance}
+h2{font-weight:600;font-size:clamp(1.3125rem,2.5vw,1.625rem);line-height:1.22;
+  letter-spacing:-.028em;margin:3.25rem 0 .6rem;padding-top:1.5rem;
+  border-top:1px solid var(--sep)}
+/* The section number is a label, not a heading. It sits in the margin where it
+   can be scanned and ignored. */
+h2 .n{font:400 .72rem/1 var(--mono);color:var(--faint);margin-right:.75rem;
+  letter-spacing:0;vertical-align:.22em}
+p{margin:.85rem 0}
+.lede{font-size:clamp(1.125rem,2.2vw,1.3125rem);line-height:1.45;letter-spacing:-.018em}
 .dim{color:var(--dim)}
-code,.mono{font-family:var(--mono);font-size:.82em}
-a{color:inherit;text-decoration-color:var(--dim);text-underline-offset:.15em}
-.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.09em;
-  text-transform:uppercase;color:var(--dim);margin:0 0 .8rem}
-button{font:inherit;font-family:var(--mono);font-size:.8rem;cursor:pointer;
-  background:transparent;color:var(--ink);border:1px solid var(--ink);
-  padding:.4rem .8rem;border-radius:2px}
-button:hover{background:var(--ink);color:var(--paper)}
+b,strong{font-weight:600;color:var(--ink)}
+code,.mono{font-family:var(--mono);font-size:.86em;font-variant-numeric:tabular-nums}
+p code,li code{background:var(--bg-2);border:1px solid var(--sep);
+  border-radius:var(--r-s);padding:.1em .38em;color:var(--ink)}
+a{color:var(--blue);text-decoration-thickness:1px;text-underline-offset:3px;
+  text-decoration-color:rgba(10,132,255,.4)}
+a:hover{color:var(--teal);text-decoration-color:currentColor}
+ul{padding-left:1.3rem} li{margin:.4rem 0}
+
+/* Controls. The demo has exactly one shape for a thing you press, and this page
+   presses a lot of them. */
+button{
+  font:400 .8125rem/1 var(--sans);letter-spacing:-.01em;cursor:pointer;
+  background:var(--bg-2);color:var(--ink);border:1px solid var(--sep);
+  padding:.6rem .95rem;border-radius:var(--r-m);
+  transition:background .15s,border-color .15s;
+}
+button:hover{background:var(--bg-3);border-color:#48484A}
 button[disabled]{opacity:.4;cursor:default}
-.controls{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0}
-.verdict{font-family:var(--mono);font-size:.86rem;padding:.55rem .8rem;
-  border-left:3px solid var(--dim);margin:1rem 0;white-space:pre-wrap}
-.verdict.pass{border-color:var(--green);color:var(--green)}
-.verdict.fail{border-color:var(--red);color:var(--red)}
-.verdict.idle{color:var(--dim)}
-table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:.74rem}
-.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-th,td{text-align:left;padding:.3rem .5rem;border-bottom:1px solid var(--rule);
-  white-space:nowrap}
-th{color:var(--dim);font-weight:400;text-transform:uppercase;letter-spacing:.06em;
-   font-size:.66rem}
-td.ok{color:var(--green)} td.bad{color:var(--red)} td.skip{color:var(--dim)}
-tr.broken td{background:color-mix(in srgb,var(--red) 12%,transparent)}
-.hash{color:var(--dim)}
-.note{font-size:.92rem;color:var(--dim)}
-.foot{margin-top:4rem;border-top:1px solid var(--rule);padding-top:1.2rem;
-  font-size:.85rem;color:var(--dim)}
-ul{padding-left:1.1rem} li{margin:.35rem 0}
+button[disabled]:hover{background:var(--bg-2);border-color:var(--sep)}
+/* The one thing the page wants you to press first. */
+#run-all{background:var(--ink);color:#000;border-color:var(--ink);
+  border-radius:999px;font-weight:600;padding:.6rem 1.15rem}
+#run-all:hover{background:#fff;border-color:#fff}
+.controls{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin:1.25rem 0}
+
+/* A verdict, in the inspector's vocabulary: green pass, red fail, and a grey
+   that says "not run" — which on this page, as in the kernel, is a third state
+   and not a quiet pass. */
+.verdict{
+  font:400 .8125rem/1.55 var(--mono);white-space:pre-wrap;
+  border:1px solid var(--sep);border-left-width:2px;border-radius:var(--r-l);
+  background:var(--bg-2);padding:.7rem .9rem;margin:1.1rem 0;color:var(--dim);
+}
+.verdict.pass{border-left-color:var(--green);color:var(--green)}
+.verdict.fail{border-left-color:var(--red);color:var(--red)}
+.verdict.idle{border-left-color:var(--faint);color:var(--faint)}
+
+table{border-collapse:collapse;width:100%;font:400 .78rem/1.5 var(--mono);
+  font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;
+  border:1px solid var(--sep);border-radius:var(--r-l);margin:1.1rem 0}
+th,td{text-align:left;padding:.45rem .7rem;border-bottom:1px solid var(--sep);
+  white-space:nowrap;color:var(--dim)}
+tr:last-child td{border-bottom:0}
+th{font:600 10px/1.4 var(--sans);letter-spacing:.06em;text-transform:uppercase;
+  color:var(--faint)}
+td.ok{color:var(--green)} td.bad{color:var(--red)} td.skip{color:var(--faint)}
+tr.broken td{background:rgba(255,69,58,.12)}
+.hash{color:var(--faint)}
+.note{font-size:.9375rem;line-height:1.6;color:var(--dim)}
+
+.foot{margin-top:4rem;border-top:1px solid var(--sep);padding-top:1.5rem;
+  font-size:.8125rem;color:var(--faint)}
+.foot a{color:var(--dim);text-decoration:none}
+.foot a:hover{color:var(--ink)}
 
 /* The quoted sentences are long and the numbers beside them are the point, so
    the sentence wraps and the values stay on screen rather than scrolling off. */
-table[data-kind="claims"] td:first-child{white-space:normal;min-width:16rem}
+table[data-kind="claims"] td:first-child{white-space:normal;min-width:16rem;color:var(--ink)}
 table[data-kind="claims"] td:nth-child(2){white-space:normal}
+
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+
+/* The bar is sticky, so anything jumped to by id keeps clear of it. */
+:target,h2{scroll-margin-top:5rem}
