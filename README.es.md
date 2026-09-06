@@ -95,7 +95,7 @@ cd ai-ui    && node scripts/serve.ts                         # escritorio  :8098
 
 ## Estado
 
-Los cuatro pilares ya corren — **828 tests propios**, arriba de los 3.768 que
+Los cuatro pilares ya corren — **832 tests propios**, arriba de los 3.768 que
 `ai-base` trae de upstream. `ai-storage` está construido alrededor de un modelo
 **local** limitado a 8.192 tokens a propósito: notas con procedencia verificada,
 un índice navegable que se niega a renderizar un nodo por encima de su

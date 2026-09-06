@@ -9,7 +9,7 @@
 
 ## Where things stand
 
-All four pillars run — **828 tests of our own**, checked against the suites by CI
+All four pillars run — **832 tests of our own**, checked against the suites by CI
 so the number cannot drift again. `ai-memory` runs the six memory agents as a
 tree. **`ai-storage` exists as of 2026-08-24**, built around a local model held
 to 8,192 tokens on purpose — and its first benchmark went against the design, so
@@ -229,7 +229,16 @@ that component.
 The old open question is still open and still worth answering on paper against
 two real flows: *when two notes say the same thing, which survives?* The
 Reconciler has an answer in code — `same` keeps the older, `conflict` keeps
-both — and no fixture has tested it.
+both — and **as of 2026-09-06 a fixture tests it end to end**:
+`ai-storage/test/reconciliation.test.ts` asserts what the *store* becomes after
+each verdict, not what the agent returns. The branch that mattered is
+`conflict`: both notes stay `active`, neither is superseded, and the
+explanation is kept. Verified by mutation — making `recordConflict` demote one
+side turns that test red and leaves the other three green.
+
+What the fixture does **not** answer is the judgement: whether a model calls
+two notes `same` when they are. That is `bench/`, and it still has not been run
+against weights.
 
 ## Smaller, if a session ends early
 

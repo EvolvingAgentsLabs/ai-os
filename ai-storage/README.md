@@ -6,8 +6,8 @@ Memory at four levels: system, user, project, flow — for a **local model with
 > **Status: phases 1–8 built, 2026-08-24.** The model boundary, the local-only
 > guarantee, the context invariant, the note schema, the provenance pipeline,
 > derived progress, the token-bounded index, the store on disk, lexical search,
-> all five specialists, scopes and ACLs, promotion and history, and the
-> navigation benchmark — 119 tests in this package. The benchmark has been run **at the ceiling
+> all five specialists, scopes and ACLs, promotion and history, the
+> navigation benchmark, and the end-to-end reconciliation fixture — 123 tests in this package. The benchmark has been run **at the ceiling
 > only**: no weights, no server, no model result.
 > Design: [`../doc/22-ai-storage-qwen.md`](../doc/22-ai-storage-qwen.md).
 > Earlier design: [`../doc/05-ai-storage.md`](../doc/05-ai-storage.md);
@@ -98,7 +98,7 @@ weights.
 
 ```bash
 npm install
-npm test          # 119 tests in this package, no server needed
+npm test          # 123 tests in this package, no server needed
 node bench/navigation.ts --oracle   # the ceiling, no weights required
 npm run typecheck
 npm run verify-model            # asks a local server what it is serving
