@@ -276,6 +276,16 @@ const SCOPES = [
  * H0's argument is a table, and a table is the second thing you show somebody.
  */
 const html = renderDeskHtml({
+  // The demo's own hole, and it is the true one: there is no conformation
+  // behind this page. A published demo that showed an empty holes panel would
+  // be asserting "nothing unanswered" about a backend that answers nothing —
+  // the exact silence `conformation.ts` says is worse than no view at all.
+  holes: [
+    {
+      question: "Which scopes exist, and who is in them?",
+      why: "This page runs a simulated backend. No store is behind it, so every answer here is arranged rather than read.",
+    },
+  ],
   scopeId: coc.scopeId,
   scopeLabel: SCOPES[0]!.label,
   harness: "simulated",
