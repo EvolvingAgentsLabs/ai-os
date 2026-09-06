@@ -9,7 +9,7 @@
 
 ## Where things stand
 
-All four pillars run — **832 tests of our own**, checked against the suites by CI
+All four pillars run — **848 tests of our own**, checked against the suites by CI
 so the number cannot drift again. `ai-memory` runs the six memory agents as a
 tree. **`ai-storage` exists as of 2026-08-24**, built around a local model held
 to 8,192 tokens on purpose — and its first benchmark went against the design, so
@@ -157,6 +157,13 @@ or carries one that survives a numpy upgrade.
 
 ## 3. Seed the flow for M5's stopwatch, today
 
+> **Blocked, 2026-09-06.** `seed-cochlea.ts` created the project scope and then
+> failed on its first turn: `core 500` on `/v1/turns`, and `.run/logs/core.log`
+> names the cause — `401: {"message":"User not found."}` from the model
+> provider. The key in `ai-base/.env` is dead. The seed is idempotent and will
+> reuse the scope, so replacing the key and re-running is the whole fix. **The
+> clock has not started.**
+
 **It has to be three days old**, so seeding it is what makes the measurement
 possible later in the week. Everything else on this page can wait; this cannot,
 because waiting is its input.
@@ -170,6 +177,23 @@ blocked, what did it produce?* — desk against the `web-ui` transcript.
 answers as fast as the desk, the canvas is decoration and M5 should be re-argued
 rather than polished. Two subjects is a signal about whether the instrument
 works, not evidence; say which.
+
+## 3b. Track C's corrector is built; the run needs a working key
+
+`ai-flows/src/corrector.ts` + `test/corrector.test.ts`, 16 tests. Three rules,
+each a miniature of one this repository enforces in CI, and the sharpest is the
+one whose correct behaviour is **inaction**. Both cheat-guards are code and both
+caught real defects on their first run — see
+[doc/05 § The corrector exists](doc/05-ai-storage.md).
+
+**Not run.** Two things stand in the way, and only the second is work:
+
+1. **The OpenRouter key in `ai-base/.env` is dead** — `401 User not found`. It is
+   what stopped the M5 seed below, and it stops this too. Replacing it is the
+   whole unblock.
+2. **The feedback-without-persistence control is not built.** Corrected every
+   time, remembering nothing. Without that arm a gap is not evidence for
+   distillation at rest, and doc/05 named it before the instrument existed.
 
 ## 4. coclea §7.5, route B — the precondition
 

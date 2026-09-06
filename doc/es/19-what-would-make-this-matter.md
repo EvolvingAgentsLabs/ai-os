@@ -543,7 +543,7 @@ números publica este repositorio, y cuáles verifica algo?**
 
 | número | publicado en | productor | chequeado por |
 |---|---|---|---|
-| 832 tests propios, y 409 / 300 / 123 por paquete | 5 archivos, más 3 READMEs de paquete | los suites | `check-test-count.sh` |
+| 848 tests propios, y 425 / 300 / 123 por paquete | 5 archivos, más 3 READMEs de paquete | los suites | `check-test-count.sh` |
 | 28 gates / 135 chequeos | 13 lugares, 7 archivos | `gates/reports/*.json` | `check-gate-count.py` |
 | H0: compuesto, tabla, decisiones, falso-aceptado | `hemo-verified/README.md` | `gates/reports/h0.json` | `check-h0-table.py` |
 | los resultados de titular de coclea — 11.6%, 24 de 24, −1.22 dB CI [−1.58, −0.87], Q 2.2–2.7, CF ≈ 1 kHz | doc 16, doc 18, PLAN, `coclea-sr/README.md`, los dos espejos, NEXT | `runs/<id>-<hash>/result.json`, encadenado por hash | `check-coclea-results.py` |

@@ -845,3 +845,50 @@ Dos más, que vale la pena anotar mientras la respuesta se desconoce:
 feedback-sin-persistencia, sobre instancias retenidas de la misma regla. Ésa es
 toda la afirmación de la destilación-en-reposo, y a diferencia de la condición del
 Experimento 1, ésta sí puede dispararse.
+
+## El corrector existe — 2026-09-06 **[ran]**
+
+El Experimento 3 de arriba sigue **sin correr**. Lo que cambió es que su
+instrumento está construido y testeado: `ai-flows/src/corrector.ts`, con
+`test/corrector.test.ts`.
+
+Tres reglas, cada una miniatura de una que este repositorio ya enforcea en CI:
+
+| regla | la real que espeja |
+|---|---|
+| un cambio bajo `vendored/` tiene que quedar registrado en `PATCHES.md` | `ci.yml` — `ai-base/AI-OS-PATCHES.md` |
+| el archivo del arm de control tiene que quedarse inerte | `ai-flows/test/view.test.ts` — `src/view.ts` |
+| el número publicado sigue a la suite | `scripts/check-test-count.sh` |
+
+Miniaturas y no este repositorio mismo, para que una corrida dure segundos y sea
+repetible. Las **reglas** son reales, que es lo que importa: la convención
+organizacional arbitraria es la información no derivable más limpia que hay, que
+es todo el punto de §"el diagnóstico que suman los cuatro nulos".
+
+La segunda regla es la más filosa de las tres, porque **su conducta correcta es
+la inacción**. A un agente al que le pidan mejorar un explorador le va a agregar
+interacción — es el movimiento obvio, y la competencia general lo produce. Sólo
+sabiendo que el archivo es un arm de control no hacer nada es lo correcto. No hay
+crédito parcial con el que tropezar.
+
+**Dos guardias son código en vez de cuidado autoral, y las dos cazaron defectos
+reales en su primera corrida:**
+
+- `correctionLeaks` compara una corrección contra el vocabulario de sus propias
+  instancias y falla si nombra una ruta o un valor. Rechazó dos de las tres
+  correcciones tal como estaban escritas — una corrección que filtra hace que el
+  experimento *salga bien*, que es exactamente cuando nadie mira.
+- `instancesAreDistinct` falla si las dos instancias de una regla comparten
+  archivos, porque entonces la puntuada es un reintento con otro nombre.
+
+La API no tiene ninguna función que puntúe la primera instancia. Puntuar un
+reintento mide seguimiento de instrucciones a corto plazo, y lo que lo impide es
+la forma del módulo y no una nota pidiéndole a alguien que se acuerde.
+
+`naiveAttempt` construye el workspace que dejaría un agente que hizo sólo la
+mitad derivable, y un test exige que toda regla lo **falle**. Ése es el chequeo
+de headroom, corrido antes de que exista el tratamiento y no después.
+
+**Sigue sin construirse, y es el arm que decide qué significa el resultado:** el
+control con feedback-sin-persistencia nombrado arriba. Corregido cada vez, sin
+recordar nada. Sin él, una brecha no es evidencia de destilación en reposo.

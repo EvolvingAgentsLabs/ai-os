@@ -93,7 +93,7 @@ Español: [Correr ai-os](doc/es/manual.md).
 
 ## State
 
-All four pillars now run — **832 tests of our own**, on top of the 3,768
+All four pillars now run — **848 tests of our own**, on top of the 3,768
 `ai-base` carries from upstream. `ai-storage` is built around a **local** model
 held to 8,192 tokens on purpose: notes with verified provenance, a navigable
 index that refuses to render a node over budget, five specialists, scopes,

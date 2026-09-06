@@ -813,3 +813,49 @@ Two more, worth writing down while the answer is unknown:
 **Falsified by:** no gap between the treatment arm and the feedback-without-persistence
 control, on held-out instances of the same rule. That is the whole claim of
 distillation-at-rest, and unlike Experiment 1's condition, this one can fire.
+
+## The corrector exists — 2026-09-06 **[ran]**
+
+Experiment 3 above is still **not run**. What changed is that its instrument is
+built and tested: `ai-flows/src/corrector.ts`, with `test/corrector.test.ts`.
+
+Three rules, each a miniature of one this repository already enforces in CI:
+
+| rule | the real one it mirrors |
+|---|---|
+| a change under `vendored/` must be recorded in `PATCHES.md` | `ci.yml` — `ai-base/AI-OS-PATCHES.md` |
+| the control-arm file must stay inert | `ai-flows/test/view.test.ts` — `src/view.ts` |
+| the published count follows the suite | `scripts/check-test-count.sh` |
+
+Miniatures rather than this repository itself, so a run is seconds and
+repeatable. The **rules** are real, and that is what matters: arbitrary
+organisational convention is the cleanest non-derivable information available,
+which is the whole point of §"the diagnosis the four null results add up to".
+
+The second rule is the sharpest of the three, because **its correct behaviour is
+inaction**. An agent asked to improve an explorer will add interaction — that is
+the obvious move, and general competence produces it. Only knowing that the file
+is a control arm makes doing nothing right. There is no partial credit to
+stumble into.
+
+**Two guards are code rather than authorial care, and both caught real defects
+on their first run:**
+
+- `correctionLeaks` compares a correction against the vocabulary of its own
+  instances and fails if it names a path or a value. It rejected two of the three
+  corrections as first written — a leaking correction makes the experiment
+  *succeed*, which is exactly when nobody looks.
+- `instancesAreDistinct` fails if a rule's two instances share files, because
+  then the scored one is a retry wearing another name.
+
+The API has no function that scores the first instance. Scoring a retry measures
+short-term instruction-following, and the shape of the module is what prevents
+it rather than a note asking someone to remember.
+
+`naiveAttempt` builds the workspace an agent that did only the derivable half
+would leave behind, and a test asserts every rule **fails** it. That is the
+headroom check, run before the treatment exists rather than after.
+
+**Still not built, and it is the arm that decides what the result means:** the
+feedback-without-persistence control named above. Corrected every time,
+remembering nothing. Without it, a gap is not evidence for distillation at rest.

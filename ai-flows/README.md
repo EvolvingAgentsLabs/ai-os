@@ -3,7 +3,7 @@
 Declarative, resumable, inspectable units of work above the turn — and the
 instruments that say whether any of it helped.
 
-> **Status: built and proven live (2026-08-06) — 409 tests in this package with
+> **Status: built and proven live (2026-08-06) — 425 tests in this package with
 > a database, 388 without.** One
 > shape (`open`), persisted, resumable, executing against the real core over the
 > signed seam. The design is [`../doc/03-ai-flows.md`](../doc/03-ai-flows.md);

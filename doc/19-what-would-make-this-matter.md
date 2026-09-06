@@ -528,7 +528,7 @@ this repository publish, and which of them does anything verify?**
 
 | number | published in | producer | checked by |
 |---|---|---|---|
-| 832 tests of our own, and 409 / 300 / 123 per package | 5 files, plus 3 package READMEs | the suites | `check-test-count.sh` |
+| 848 tests of our own, and 425 / 300 / 123 per package | 5 files, plus 3 package READMEs | the suites | `check-test-count.sh` |
 | 28 gates / 135 checks | 13 sites, 7 files | `gates/reports/*.json` | `check-gate-count.py` |
 | H0: composite, table, decisions, false-accept | `hemo-verified/README.md` | `gates/reports/h0.json` | `check-h0-table.py` |
 | coclea's headline results — 11.6%, 24 of 24, −1.22 dB CI [−1.58, −0.87], Q 2.2–2.7, CF ≈ 1 kHz | doc 16, doc 18, PLAN, `coclea-sr/README.md`, both mirrors, NEXT | `runs/<id>-<hash>/result.json`, hash-chained | `check-coclea-results.py` |
