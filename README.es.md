@@ -1,3 +1,16 @@
+> **MUDADO — 2026-09-06.** `ai-os` ahora vive dentro de
+> **[evolving-agents](https://github.com/EvolvingAgentsLabs/evolving-agents)**,
+> en [`ai-os/`](https://github.com/EvolvingAgentsLabs/evolving-agents/tree/main/ai-os),
+> con la historia completa de este repositorio trasladada como subtree.
+>
+> Ese repositorio quedó congelado en agosto apuntando acá; el puntero y el
+> destino vuelven a ser un solo repositorio. `agentvcs` y el paquete de memoria
+> ya estaban ahí, así que esto termina una consolidación en vez de empezarla.
+>
+> **Este repositorio queda de sólo lectura.** Se conserva porque su historia de
+> commits está citada en los documentos, no porque vaya a aterrizar algo más.
+> Los issues y pull requests van a `evolving-agents`.
+
 <img src="doc/assets/icon.png" alt="" width="76" align="left" hspace="14">
 
 # ai-os
