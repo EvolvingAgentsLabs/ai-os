@@ -265,10 +265,18 @@ reparó contra una condición pre-registrada
 ([18](18-from-a-hypothesis-to-a-therapeutic-surface.md)). Eso es un mal encuadre, no
 un error de aritmética.
 
-**El detector más cercano disponible** es `contribution.ts`, que ya marca los pasos
-de un flow que no transportaron nada. Un corpus de flows bien formados que no
-transportaron nada es lo más parecido a un conjunto de fallas estructurales que
-este repositorio tiene.
+**Acá no hay detector para eso, y un borrador anterior de este documento decía
+que sí.** Nombraba a `contribution.ts`, que marca los pasos de un flow que no
+transportaron nada. Ésa es la mitad equivocada: `contribution.ts` **tiene razón
+sobre traspasos y está equivocado sobre cobertura** ([05](05-ai-storage.md)
+§"Dos fallas de instrumento"), y un mal encuadre tiene forma de cobertura — las
+palabras sobreviven, la afirmación no. Se construyó sin ninguna noción de
+respuesta correcta y se falsificó el mismo día.
+
+Lo que un caso acá necesita de verdad es lo que `projects/coclea-sr/` tiene y los
+workloads de prosa no: **una métrica declarada antes de que el paso corriera, por
+alguien que no es el paso.** Hasta que exista un segundo workload así, esta etapa
+no tiene instrumento, y decirlo es el hallazgo.
 
 **Cuando el caso se escriba, su condición de falsación queda fijada de antemano:**
 si una sección `## Escena` obligatoria no le gana al mismo archivo de agente sin

@@ -254,10 +254,18 @@ model**, and repaired against a pre-registered condition
 ([18](18-from-a-hypothesis-to-a-therapeutic-surface.md)). That is a mis-framing,
 not an arithmetic error.
 
-**The nearest available detector** is `contribution.ts`, which already flags the
-steps of a flow that carried nothing forward. A corpus of flows that were
-well-formed and carried nothing is the closest thing to a structural-failure set
-this repository owns.
+**There is no detector for it here, and an earlier draft of this document said
+there was.** It named `contribution.ts`, which flags the steps of a flow that
+carried nothing forward. That is the wrong half: `contribution.ts` is right about
+**handoffs** and wrong about **coverage** ([05](05-ai-storage.md) §"Two failures
+of instrument"), and a mis-framing is coverage-shaped — the words survive, the
+claim does not. It was built with no notion of a right answer and falsified the
+same day.
+
+What a case here actually needs is what `projects/coclea-sr/` has and prose
+workloads do not: **a metric declared before the step ran, by somebody other than
+the step.** Until a second such workload exists, this stage has no instrument,
+and saying so is the finding.
 
 **When the case is written, its falsification condition is fixed in advance:** if
 a mandatory `## Scene` section does not beat the same agent file without it, the

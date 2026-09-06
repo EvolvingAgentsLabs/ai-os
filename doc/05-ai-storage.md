@@ -40,10 +40,23 @@ What the drawing commits this document to:
   survive; the ones `contribution.ts` flagged as carrying nothing are dropped.
 
 That last one is the cheap insight, and it is why this is not a port of
-[evolving-memory](https://github.com/EvolvingAgentsLabs/evolving-memory). The
-hard part of consolidating a trace — *which steps mattered* — is the question
-`contribution.ts` already answers on every flow. That project calls the same job
-`TraceCurator`.
+[evolving-memory](https://github.com/EvolvingAgentsLabs/evolving-memory). That
+project calls the same job `TraceCurator`.
+
+**Corrected 2026-09-06, against this document's own §"Two failures of
+instrument".** An earlier version of this paragraph said the hard part of
+consolidating a trace — *which steps mattered* — is a question `contribution.ts`
+already answers on every flow. It is not, and this document contradicts itself
+270 lines later: **`contribution.ts` is right about handoffs and wrong about
+coverage.** Word overlap answers *did the next step use what this one produced*;
+it cannot answer *is the claim still made*. `evaluation.ts` and `gates.ts` put it
+harder still — it was built to detect a step that contributed nothing **with no
+notion of a right answer**, and was falsified the same day, because with no
+ground truth there is nothing to be right or wrong about.
+
+So the consolidation rule above stands only in its handoff shape, and anything
+built on it must say which of the two questions it is asking. A trace curator
+that needs the coverage question does not have an instrument here yet.
 
 **What the sketch does not answer, and this document must:** when two notes say
 the same thing, which survives? Consolidation cannot be a loop over finished

@@ -38,10 +38,25 @@ A qué compromete el dibujo a este documento:
   descartan.
 
 Esa última es la idea barata, y es la razón de que esto no sea un port de
-[evolving-memory](https://github.com/EvolvingAgentsLabs/evolving-memory). La
-parte difícil de consolidar una traza — *qué pasos importaron* — es la pregunta
-que `contribution.ts` ya responde en cada flow. Ese proyecto llama al mismo
-trabajo `TraceCurator`.
+[evolving-memory](https://github.com/EvolvingAgentsLabs/evolving-memory). Ese
+proyecto llama al mismo trabajo `TraceCurator`.
+
+**Corregido el 2026-09-06, contra la propia §"Dos fallas de instrumento" de este
+documento.** Una versión anterior de este párrafo decía que la parte difícil de
+consolidar una traza — *qué pasos importaron* — es una pregunta que
+`contribution.ts` ya responde en cada flow. No lo es, y este documento se
+contradice a sí mismo 270 líneas después: **`contribution.ts` tiene razón sobre
+traspasos y está equivocado sobre cobertura.** El solapamiento de palabras
+contesta *¿el paso siguiente usó lo que éste produjo?*; no puede contestar *¿la
+afirmación sigue estando hecha?*. `evaluation.ts` y `gates.ts` lo dicen más
+fuerte todavía — se construyó para detectar un paso que no aportó nada **sin
+ninguna noción de respuesta correcta**, y se falsificó el mismo día, porque sin
+ground truth no hay nada sobre lo cual estar bien o mal.
+
+Así que la regla de consolidación de arriba vale sólo en su forma de traspaso, y
+lo que se construya encima tiene que decir cuál de las dos preguntas está
+haciendo. Un curador de trazas que necesite la pregunta de cobertura todavía no
+tiene instrumento acá.
 
 **Lo que el boceto no responde, y este documento tiene que responder:** cuando dos
 notas dicen lo mismo, ¿cuál sobrevive? Consolidar no puede ser un loop sobre los
