@@ -157,12 +157,12 @@ or carries one that survives a numpy upgrade.
 
 ## 3. Seed the flow for M5's stopwatch, today
 
-> **Blocked, 2026-09-06.** `seed-cochlea.ts` created the project scope and then
-> failed on its first turn: `core 500` on `/v1/turns`, and `.run/logs/core.log`
-> names the cause — `401: {"message":"User not found."}` from the model
-> provider. The key in `ai-base/.env` is dead. The seed is idempotent and will
-> reuse the scope, so replacing the key and re-running is the whole fix. **The
-> clock has not started.**
+> **Seeded, 2026-09-06 — the clock has started.** `seed-cochlea.ts` completed:
+> all eight agent files, `data/gate-summary.json`, and flow
+> `808f5f3b-23b6-46eb-8897-965193ab8abd` in scope
+> `group:cochlea-lab-4a695bec-…`, state `waiting` with three steps run.
+> **M5 is measurable from 2026-09-09.** Getting there took three failed runs and
+> the cause was not what it looked like — see 3b.
 
 **It has to be three days old**, so seeding it is what makes the measurement
 possible later in the week. Everything else on this page can wait; this cannot,
@@ -186,14 +186,51 @@ one whose correct behaviour is **inaction**. Both cheat-guards are code and both
 caught real defects on their first run — see
 [doc/05 § The corrector exists](doc/05-ai-storage.md).
 
-**Not run.** Two things stand in the way, and only the second is work:
+**Not run.** One thing stands in the way and it is work: **the
+feedback-without-persistence control is not built.** Corrected every time,
+remembering nothing. Without that arm a gap is not evidence for distillation at
+rest, and doc/05 named it before the instrument existed.
 
-1. **The OpenRouter key in `ai-base/.env` is dead** — `401 User not found`. It is
-   what stopped the M5 seed below, and it stops this too. Replacing it is the
-   whole unblock.
-2. **The feedback-without-persistence control is not built.** Corrected every
-   time, remembering nothing. Without that arm a gap is not evidence for
-   distillation at rest, and doc/05 named it before the instrument existed.
+### The configured model was never the one that ran — 2026-09-06 **[ran]**
+
+Found while unblocking the seed above, and it is worth more than the seed.
+
+`MODEL.json` declares `qwen3.8-27b` as the platform's default "so that no
+component decides it on its own". **No component can use it.**
+`resolveConfiguredModelId` (`ai-base/src/harness/pi-harness.ts`) looks the id up
+in `MODEL_REGISTRY`, and on a miss calls `swallow(...)` and returns
+`DEFAULT_AGENT_MODEL_ID` — `claude-opus-5`. The registry holds **11 ids**, of
+which exactly one is an OpenRouter id: `openrouter/auto`. Every third-party id,
+with or without an `openrouter/` prefix, misses.
+
+So any model chosen in `.env` is discarded, and the only trace is one
+`[swallowed]` line in `core.log`:
+
+```
+[swallowed] pi: configured model id not in registry, falling back to default: qwen/qwen3.7-flash
+```
+
+**What it cost here, concretely.** `seed-cochlea.ts` asks the model to reproduce
+`data/gate-summary.json` — **22,435 bytes, 840 lines** — verbatim through a turn,
+and verifies by reading it back. It failed three runs in a row, silently: the
+turn succeeded, no error was raised anywhere, and the file simply never appeared.
+Two of those runs were an attempt to compare two different cheap models, **and
+that comparison was void — neither model was ever used.** Setting
+`PI_MODEL=openrouter/auto` fixed it on the next run.
+
+A configuration that is ignored in silence is worse than one that is refused: it
+produces measurements that look like they are about the thing named in the file.
+
+**Two follow-ups, neither done:**
+
+- The fallback should be loud, or refuse. `swallow` is the wrong verb for
+  discarding the operator's explicit choice.
+- `openrouter/auto` carries `maxTokens: 4096`, which bounds any single write a
+  turn can make to roughly 16 KB. The 22 KB payload fitted anyway, so this is not
+  the cause of anything measured — but it is a ceiling nobody chose, and the
+  registry is the only place it is written down. Both changes are inside
+  `ai-base/`, so both need an `AI-OS-PATCHES.md` entry and should be offered
+  upstream.
 
 ## 4. coclea §7.5, route B — the precondition
 
