@@ -8,7 +8,7 @@
 > [`projects/coclea-sr/`](../projects/coclea-sr/) holds **28 gates / 135 checks,
 > all green [ran]**, one hypothesis falsified by its own control arm **[ran]**,
 > and a pathology section whose discrimination claim is itself gated **[ran]**.
-> `ai-base`, `ai-flows` and `ai-ui` run 848 tests of their own **[ran]**.
+> `ai-base`, `ai-flows` and `ai-ui` run 851 tests of their own **[ran]**.
 >
 > This chapter is the one that answers *"what is a multi-agent OS actually for"*
 > with a worked example rather than an argument. It is also the chapter with the

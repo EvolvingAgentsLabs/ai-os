@@ -60,6 +60,8 @@ export interface FlowsClient {
       }>;
       members: string[];
     }>;
+    /** Questions the projection could not answer. See `DeskView.holes`. */
+    holes: Array<{ question: string; why: string; scopeId?: string }>;
   }>;
   /**
    * Create a flow. Required by the desk's `New document` gesture.
@@ -279,6 +281,7 @@ export function createDeskServer(opts: DeskServerOptions): Server {
         docs: [],
         agents: [],
         people: [],
+        holes: c.holes ?? [],
         layout: { scopeId: "", docs: {}, cubes: {} },
         notes: [],
         memoryLevels: MEMORY_LEVELS,
@@ -406,6 +409,12 @@ export function createDeskServer(opts: DeskServerOptions): Server {
       agents,
       people: chosen.members,
       layout,
+      // A hole with no scope belongs to the whole projection and is shown on
+      // every desk; a scoped one is shown only where it applies. Filtering by
+      // scope and dropping the unscoped ones would hide exactly the questions
+      // that are nobody's scope in particular, which are the ones no scope's
+      // desk would ever show.
+      holes: (c.holes ?? []).filter((h) => !h.scopeId || h.scopeId === chosen.scopeId),
       notes,
       memoryLevels: MEMORY_LEVELS,
       scopes: usable.map((s) => ({ scopeId: s.scopeId, label: s.scopeId })),
@@ -443,6 +452,7 @@ export function createDeskServer(opts: DeskServerOptions): Server {
           agents: v.agents,
           layout: v.layout,
           notes: v.notes,
+          holes: v.holes,
           busy,
         });
       }

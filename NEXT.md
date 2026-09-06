@@ -9,7 +9,7 @@
 
 ## Where things stand
 
-All four pillars run — **848 tests of our own**, checked against the suites by CI
+All four pillars run — **851 tests of our own**, checked against the suites by CI
 so the number cannot drift again. `ai-memory` runs the six memory agents as a
 tree. **`ai-storage` exists as of 2026-08-24**, built around a local model held
 to 8,192 tokens on purpose — and its first benchmark went against the design, so

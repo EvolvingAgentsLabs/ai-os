@@ -36,6 +36,8 @@ export interface SimulatedWorld {
   docs: unknown[];
   agents: unknown[];
   notes: unknown[];
+  /** Questions this world cannot answer. Empty is a claim, so the demo makes one. */
+  holes?: unknown[];
 }
 
 /**
@@ -66,6 +68,7 @@ export const SIMULATION_JS = String.raw`
     const w = worlds[wanted];
     S.scopeId = wanted;
     S.docs = w.docs; S.agents = w.agents; S.layout = w.layout; S.notes = w.notes || [];
+    S.holes = w.holes || [];
     // The living documents belong to the scope too. Without this every scope
     // listed the first one's -- a panel about a project you are not looking at,
     // asserting "read-only" about it with total confidence. Found by switching
@@ -86,6 +89,13 @@ export const SIMULATION_JS = String.raw`
     agents: JSON.parse(JSON.stringify(S.agents)),
     notes: JSON.parse(JSON.stringify(S.notes || [])),
     layout: JSON.parse(JSON.stringify(S.layout)),
+    // The simulated world has no conformation behind it, and a demo that
+    // showed an empty holes panel would be asserting "nothing unanswered"
+    // about a backend that answers nothing. So it states its own hole.
+    holes: (S.holes && S.holes.length ? JSON.parse(JSON.stringify(S.holes)) : [{
+      question: 'Which scopes exist, and who is in them?',
+      why: 'This page runs a simulated backend. No store is behind it, so every answer here is arranged rather than read.'
+    }]),
   };
 
   const agentOf = (intent) => {
@@ -253,7 +263,7 @@ export const SIMULATION_JS = String.raw`
       ...d,
       steps: d.steps.map((s) => ({ ...s, agent: s.agent || agentOf(s.intent) })),
     }));
-    return { at: Date.now(), docs: docs, agents: world.agents, layout: world.layout, notes: world.notes, busy };
+    return { at: Date.now(), docs: docs, agents: world.agents, layout: world.layout, notes: world.notes, holes: world.holes, busy };
   };
 
   const findDoc = (id) => world.docs.find((d) => d.id === id);
@@ -306,7 +316,7 @@ export const SIMULATION_JS = String.raw`
       var slug = pname.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'project';
       var pid = 'p' + (Object.keys(worlds).length + 1);
       var newScope = 'group:' + slug + '-' + pid;
-      worlds[newScope] = { docs: [], agents: [], layout: { scopeId: newScope, docs: {}, cubes: {} }, notes: [] };
+      worlds[newScope] = { docs: [], agents: [], layout: { scopeId: newScope, docs: {}, cubes: {} }, notes: [], holes: [] };
       const sel = document.getElementById('scope');
       if (sel) {
         const opt = document.createElement('option');

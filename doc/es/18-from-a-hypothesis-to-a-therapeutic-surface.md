@@ -9,7 +9,7 @@
 > chequeos, todos verdes [ran]**, una hipótesis falsada por su propio brazo de
 > control **[ran]**, y una sección de patologías cuya afirmación de
 > discriminación está ella misma gateada **[ran]**. `ai-base`, `ai-flows` y
-> `ai-ui` corren 848 tests propios **[ran]**.
+> `ai-ui` corren 851 tests propios **[ran]**.
 >
 > Este capítulo es el que responde *"¿para qué sirve realmente un OS
 > multi-agente?"* con un ejemplo trabajado en vez de con un argumento. También es

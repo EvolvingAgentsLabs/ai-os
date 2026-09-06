@@ -74,7 +74,8 @@ describe("the page says it is not built", () => {
       agents: [],
       people: [],
       notes: [],
-      memoryLevels: MEMORY_LEVELS,
+        holes: [],
+    memoryLevels: MEMORY_LEVELS,
       scopes: [],
       layout: propose({ scopeId: "group:p", flows: [], agents: [] }, null),
     });
@@ -91,7 +92,8 @@ describe("the page says it is not built", () => {
       agents: [],
       people: [],
       notes: [],
-      memoryLevels: MEMORY_LEVELS,
+        holes: [],
+    memoryLevels: MEMORY_LEVELS,
       scopes: [],
       layout: propose({ scopeId: "group:p", flows: [], agents: [] }, null),
     });

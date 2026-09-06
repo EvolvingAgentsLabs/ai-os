@@ -126,6 +126,7 @@ const view = (over: Partial<DeskView> = {}): DeskView => {
     docs,
     agents,
     people: ["matias"],
+    holes: [],
     notes: [],
     memoryLevels: [],
     scopes: [{ scopeId: "group:web-project-1", label: "group:web-project-1" }],
@@ -930,5 +931,42 @@ describe("a gated flow on the simulated desk", () => {
       }),
     });
     assert.equal(r.status, 400);
+  });
+});
+
+/**
+ * The holes, which the desk used to receive and drop.
+ *
+ * `conformation.ts` states the rule these tests keep: **holes are output** —
+ * "the failure mode of any projection is silence: a view that renders cleanly
+ * because it did not ask is worse than no view". The desk was that view, and
+ * nothing failed while it was, which is why these assertions exist at all.
+ */
+describe("what the projection could not answer", () => {
+  it("ships the holes into the page state, rather than dropping them", () => {
+    const html = renderDeskHtml(
+      view({ holes: [{ question: "Which scopes exist?", why: "no store answers this directly" }] }),
+    );
+    assert.match(html, /Which scopes exist\?/);
+    assert.match(html, /no store answers this directly/);
+  });
+
+  it("carries a hole's scope through, so a reader can tell whose question it is", () => {
+    const html = renderDeskHtml(
+      view({ holes: [{ question: "Who is in this scope?", why: "no roster port answered", scopeId: "group:team" }] }),
+    );
+    assert.match(html, /group:team/);
+  });
+
+  it("ships the chip hidden when there are none, because an empty list is a claim", () => {
+    // Not "renders an empty panel". A panel headed "what this view could not
+    // answer" with nothing under it reads as reassurance, and the desk has no
+    // standing to reassure — it only knows what the conformation handed it.
+    //
+    // The renderer's own heading is in the page either way, because the client
+    // script always ships; what must be absent is a hole and a visible chip.
+    const html = renderDeskHtml(view({ holes: [] }));
+    assert.match(html, /id="holes-open"[^>]*hidden/);
+    assert.match(html, /"holes":\[\]/);
   });
 });

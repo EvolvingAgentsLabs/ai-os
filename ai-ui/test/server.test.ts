@@ -32,6 +32,12 @@ function fakeFlows(over: Partial<FlowsClient> = {}) {
     async conformation() {
       return {
         harness: "pi",
+        // Two: one that belongs to a scope and one that belongs to the whole
+        // projection. The desk has to show the second on every scope's desk.
+        holes: [
+          { question: "Who is in this scope?", why: "no roster port answered", scopeId: "group:team" },
+          { question: "Which scopes exist?", why: "no store answers this directly" },
+        ],
         scopes: [
           {
             scopeId: "org:acme",

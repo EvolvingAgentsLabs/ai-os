@@ -87,9 +87,11 @@ export function createFlowsHttpClient(opts: FlowsHttpOptions) {
             ok: boolean;
           }>;
         }>;
+        holes?: Array<{ question: string; why: string; scopeId?: string }>;
       }>("GET", "/conformation");
       return {
         harness: c.harness,
+        holes: c.holes ?? [],
         scopes: c.scopes.map((s) => ({
           scopeId: s.scopeId,
           role: s.role,

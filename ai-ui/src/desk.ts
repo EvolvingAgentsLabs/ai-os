@@ -121,6 +121,17 @@ export interface DeskView {
   layout: unknown;
   /** Scopes this desk can switch to. */
   scopes: Array<{ scopeId: string; label: string }>;
+  /**
+   * What the conformation asked and could not answer.
+   *
+   * `conformation.ts` states the rule this field exists to keep: **holes are
+   * output** — "the failure mode of any projection is silence: a view that
+   * renders cleanly because it did not ask is worse than no view". The desk was
+   * that view. It received the holes on every poll and dropped them at the type
+   * boundary, so the one surface a person actually looks at rendered clean over
+   * every question the projection could not answer.
+   */
+  holes: Array<{ question: string; why: string; scopeId?: string }>;
   /** SKETCH. ai-storage does not exist; these are recomputed on every read. */
   notes: import("./memory.ts").MemoryNote[];
   memoryLevels: ReadonlyArray<{ level: string; color: string; note: string }>;
@@ -441,6 +452,19 @@ button[disabled]{opacity:.45;cursor:default}
    been built should not out-shout the things that have.
    Now a strip. The hatch stays, at a fraction of its old contrast, because the
    *reason* it was hatched is still true. */
+.holes-chip{font:inherit;font-size:11px;padding:3px 9px;border:1px solid #E4E3DF;border-radius:999px;
+  background:#FDF8EF;color:#8A5A0A;cursor:pointer}
+.holes-chip:hover{border-color:#CFCEC9}
+/* Amber, not red: an unanswered question is not a failure. And it is the one
+   warm signal on a bar where nothing else is coloured. */
+.holes{position:fixed;left:0;bottom:124px;right:318px;max-height:206px;overflow:auto;
+  background:#fff;border-top:1px solid #E4E3DF;box-shadow:0 -4px 10px rgba(16,24,40,.07);
+  padding:12px 15px;z-index:6}
+.holes h3{margin:0 0 9px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#646B73}
+.holes .hole{padding:9px 11px;border:1px solid #E4E3DF;border-radius:5px;margin-bottom:7px;background:#FDF8EF}
+.holes .q{font-size:12.5px;font-weight:600;margin-bottom:3px}
+.holes .w{font-size:11.5px;color:#646B73;line-height:1.5}
+.holes .sc{font-size:11px;color:#949BA3;margin-top:4px}
 .drawer{position:fixed;left:0;bottom:0;right:318px;height:124px;
   border-top:1px solid var(--line-2);background:#EFEEEA;
   background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.022) 0 6px,transparent 6px 12px);
@@ -1725,6 +1749,7 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + BUS_JS + INSPECTOR_JS + String.raw
     noticeSettled();
     painted = true;
     renderDrawer();
+    renderHoles();
     renderLive();
     // After the cubes, never before: the wires are measured off the live DOM,
     // and measuring them against last frame's positions draws every hop one
@@ -1951,6 +1976,35 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + BUS_JS + INSPECTOR_JS + String.raw
   }
 
   /**
+   * What the projection could not answer.
+   *
+   * Hidden when there are none — and that is a claim, not a default: an empty
+   * list here says every question the conformation asked came back answered.
+   */
+  function renderHoles() {
+    const chip = document.getElementById('holes-open');
+    const box = document.getElementById('holes');
+    if (!chip || !box) return;
+    const holes = S.holes || [];
+    if (!holes.length) {
+      chip.hidden = true;
+      box.hidden = true;
+      return;
+    }
+    chip.hidden = false;
+    chip.textContent = holes.length === 1
+      ? '1 question unanswered'
+      : holes.length + ' questions unanswered';
+    box.innerHTML =
+      '<h3>What this view could not answer</h3>' +
+      holes.map((h) =>
+        '<div class="hole"><div class="q">' + escape_(h.question) + '</div>' +
+        '<div class="w">' + escape_(h.why) + '</div>' +
+        (h.scopeId ? '<div class="sc">' + escape_(h.scopeId) + '</div>' : '') +
+        '</div>').join('');
+  }
+
+  /**
    * The living documents.
    *
    * Four kinds, and the two marks that matter: whether something is writing to it
@@ -1990,6 +2044,7 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + BUS_JS + INSPECTOR_JS + String.raw
     if (!r.ok) return;
     const next = await r.json();
     S.docs = next.docs; S.agents = next.agents; S.busy = next.busy; S.notes = next.notes;
+    if (next.holes) S.holes = next.holes;
     layout = next.layout;
     // The optimistic halves are only good until the truth arrives.
     pending = null; releasing = null;
@@ -2001,6 +2056,16 @@ const DESK_JS = "(() => {\n" + CREATURES_JS + BUS_JS + INSPECTOR_JS + String.raw
     location.search = '?scope=' + encodeURIComponent(e.target.value);
   });
   document.getElementById('reload').addEventListener('click', () => refresh());
+
+  // The chip opens the list; nothing else on the page moves. Closed is the
+  // resting state, but the chip itself never hides while a hole exists —
+  // dismissing the list must not dismiss the fact.
+  document.getElementById('holes-open').addEventListener('click', function () {
+    const box = document.getElementById('holes');
+    const open = box.hidden;
+    box.hidden = !open;
+    this.setAttribute('aria-expanded', String(open));
+  });
 
   // Create a document. The gesture the desk was missing: every other action
   // here operates on work that already exists, so starting a project meant
@@ -2236,6 +2301,7 @@ export function renderDeskHtml(view: DeskView): string {
     docs: view.docs,
     agents: view.agents,
     layout: view.layout,
+    holes: view.holes,
     notes: view.notes,
     memoryLevels: view.memoryLevels,
     busy,
@@ -2259,6 +2325,20 @@ export function renderDeskHtml(view: DeskView): string {
     )
     .join("")}</select></label>
   <span id="counts">${esc(view.docs.length)} document(s) · ${esc(view.agents.length)} agent(s)</span>
+  <!--
+    The holes, in the chrome rather than in the rail.
+
+    They belong to the whole projection, not to a selection, so a panel that
+    changes with what you clicked would hide them exactly when somebody is
+    looking at something. And the rail is deliberately one panel. So the count
+    sits on the bar, always, and the list opens under it.
+
+    conformation.ts is the reason this exists at all: "the failure mode of any
+    projection is silence: a view that renders cleanly because it did not ask is
+    worse than no view". The desk was receiving these on every poll and dropping
+    them at the type boundary.
+  -->
+  <button id="holes-open" class="holes-chip" hidden aria-expanded="false"></button>
   <!--
     Five buttons became one.
 
@@ -2329,6 +2409,7 @@ export function renderDeskHtml(view: DeskView): string {
     <svg class="wires" id="wires" aria-hidden="true"></svg>
   </div>
   <div class="drawer" id="drawer"></div>
+  <div class="holes" id="holes" hidden></div>
 </div>
 <div class="rail">
   <!--
