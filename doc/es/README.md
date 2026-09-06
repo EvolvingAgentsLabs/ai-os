@@ -81,6 +81,9 @@ Documentos sobre el trabajo, no sobre el sistema.
 | [20 · Todo es un agente](20-everything-is-an-agent.md) | El rediseño del escritorio, del demo y del tour: los agentes como los objetos, los traspasos como cables que se pueden abrir, un Inspector con una segunda posición que le entrega el objeto a un agente — y la regla de que cada hallazgo cita el artefacto que leyó. **Incluye los tres defectos que encontró dibujar los flujos** |
 | [21 · Hilos de pensamiento](21-threads-of-thought.md) | La superficie como tiempo: cuerdas, después una trenza, después una grilla de cuadrados — tres superficies publicadas en tres días, y por qué cada una reemplazó a la anterior. **§9 son los cuatro errores que impedían que la trenza se leyera como un objeto; §10 es por qué la grilla la reemplazó: en la trenza nada tenía una dirección que se pudiera señalar** |
 | [22 · ai-storage sobre un modelo local](22-ai-storage-qwen.md) | La capa de conocimiento para un modelo **local** limitado a 8.192 tokens a propósito. **§0 es que el modelo no fue verificado como existente desde acá; §59 es el primer benchmark, y salió en contra del diseño — la búsqueda exacta le gana a la jerarquía y el archivo plano no entra** |
+| [**El plan de plataforma**](PLAN-PLATFORM.md) | Una tormenta de ideas de producto mapeada sobre este repositorio tal como está en disco: cuatro de sus cinco fases ya tienen predecesor, dos tienen resultados que la contradicen, y cada etapa está condicionada a una medición |
+| [**Los casos de validación**](PLAN-PLATFORM-CASES.md) | Sobre qué se valida cada etapa del plan de plataforma — trabajo real, no demos, y tres de ellos corren contra **las propias reglas de casa de este repositorio, ya enforced** |
+
 
 <a id="house-rules"></a>
 
