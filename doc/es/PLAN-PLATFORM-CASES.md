@@ -132,36 +132,55 @@ que transportó la información, y el resultado le pertenece al prompt.
 
 ---
 
-## Caso B1 — tres hechos cuyo nivel correcto ya conocemos
+## Caso B1 — el fixture del Reconciler que no existe
 
 **Etapa:** Track B, una vez que C devolvió un número. **Tipo:** hechos reales de
 la historia de esta organización, con la respuesta conocida por otra vía.
 
-La escalera sólo es interesante si pone un hecho en el nivel **correcto**. Así que
-el fixture son hechos de los que ya sabemos el nivel — incluido uno que **no**
-debe promoverse, que es el caso que caza la promoción silenciosa.
+**Corregido el 2026-09-06.** `ai-storage` está construido — store, promoción,
+procedencia, historia, ACLs, 119 tests — así que este caso ya no es "¿funciona la
+escalera?". Apunta a lo único del componente que **tiene código y no tiene
+fixture**:
+
+> *Cuando dos notas dicen lo mismo, ¿cuál sobrevive?* El Reconciler contesta en
+> código — `same` conserva la más vieja, `conflict` conserva las dos — y **ningún
+> fixture lo probó.** **[read]**
+
+Una rama sin fixture es una rama que nadie vio fallar. Eso la vuelve el ítem
+incumplido más barato del componente y el lugar correcto para este caso.
+
+### El material
+
+Hechos reales de este workspace cuyo nivel correcto ya conocemos por otra vía —
+incluido uno que **no** debe promoverse, que es el caso que caza la promoción
+silenciosa.
 
 | hecho | nivel correcto | por qué |
 |---|---|---|
-| la semilla y los parámetros de una corrida | **flow** — muere con ella | Nada posterior la necesita. Una escalera que promueve esto es una escalera que promueve todo. |
-| *"el place code está falsificado — no re-derivarlo"* ([ADR-0002](adr/0002-flow-as-first-class-object.md), COCLEA-SR) | **project**, y no más arriba | Es cierto de ese proyecto. Promovido a sistema se vuelve una creencia sobre trabajo que no describe. |
+| la semilla y los parámetros de una corrida | **flow** — muere con ella | Nada posterior la necesita. Una escalera que promueve esto promueve todo. |
+| *"el place code está falsificado — no re-derivarlo"* (COCLEA-SR) | **project**, y no más arriba | Es cierto de ese proyecto. Promovido a sistema se vuelve una creencia sobre trabajo que no describe. |
 | *"Gemma 4 en ollama escribe su cadena en un campo `reasoning` aparte y devuelve `content` vacío por debajo de ~800 max tokens — presupuestar ≥ 900 y tratar el content vacío como error, nunca como default"* | **system** | Aprendido dentro de un proyecto, cierto para cada llamada a modelo de este despliegue. |
+
+### Los dos casos de reconciliación, que son el punto
+
+- **`same`** — el mismo hecho llega dos veces, redactado distinto, desde dos
+  flows. Sobrevive el más viejo; la procedencia del nuevo se fusiona en él en vez
+  de perderse.
+- **`conflict`** — una nota posterior contradice a una anterior. **Sobreviven las
+  dos**, y la contradicción se expone en vez de fusionarse. Ésta es la rama sin
+  test, y es la que importa: un store que elige ganador en silencio es cómo una
+  corrección y lo que corrigió se vuelven indistinguibles.
 
 **Pasa si:** cada hecho aterriza en su nivel; el del medio **se queda** en nivel
 proyecto a través de un pase de promoción; cada promoción lleva nivel de origen,
-id de origen, actor, momento y razón; y una degradación restaura el estado previo
-en cada nivel tocado.
+id de origen, actor, momento y razón; una degradación restaura el estado previo
+en cada nivel tocado; y las dos ramas de reconciliación hacen lo que dice el
+código.
 
-**Falla si:** el hecho del medio llega a sistema. Ésa es la falla que todo el
-diseño de promoción existe para prevenir — *la promoción silenciosa es cómo un
-parche de una sola vez se vuelve una creencia organizacional* — y vale más
-atención que los dos que salen bien.
-
-**Nota de alcance.** `project → user` ya está en producción
-(`ccTargetFor` / `ccCaptureToPersonal`), así que este caso ejercita las dos
-flechas que no lo están: `flow → project` y `project → system`. **[read]**
-
----
+**Falla si:** el hecho del medio llega a sistema, o si `conflict` conserva una
+sola nota. Cualquiera de las dos vale más atención que todos los casos que pasan
+— *la promoción silenciosa es cómo un parche de una sola vez se vuelve una
+creencia organizacional.*
 
 ## Caso A2 — la promoción, apretada por alguien que no sabe git
 
@@ -264,7 +283,7 @@ la capacidad funciona está midiendo fraseo.
 |---|---|---|
 | A1 | flow de COCLEA-SR, cronómetro | el escritorio vale la pena |
 | C1 | las reglas de casa de este repo | la información no derivable sobrevive un pase de memoria |
-| B1 | tres hechos con nivel conocido | la escalera pone los hechos donde van, reversiblemente |
+| B1 | las ramas sin test del Reconciler | la contradicción se expone, no se fusiona en silencio |
 | A2 | una persona apretando promover | el backbone es genuinamente invisible |
 | A3 | el corpus `doc/` de este repo | la vertical editorial sostiene un corpus real |
 | E1 | *(sin escribir)* | nada, hasta que el caso exista |

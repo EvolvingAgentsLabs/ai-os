@@ -39,7 +39,7 @@ them have *results that contradict the proposal*.
 
 | brainstorm phase | what already exists here | state |
 |---|---|---|
-| 1 · markdown schema + git backbone | agents and sub-agents are already markdown files with a scoped hierarchy; `agentvcs` versions code + skills + goals + models + traces together (212 tests, 0 runtime deps) | **[read]** built / archived |
+| 1 · markdown schema + git backbone | `ai-storage` ships the four-level store, promotion, provenance, history and ACLs (119 tests) — **and its first benchmark says the hierarchy loses to lexical search**; `agentvcs` versions code + skills + goals + models + traces together | **[read]** built, result negative |
 | 2 · harness + frontier bootstrap | `ai-base` (vendored QM subtree), `ai-flows`, `ai-ui` — 402 tests, CI, a running stack, a playable desk | **[ran]** built |
 | 3 · small models, QLoRA, speculative routing | `gemma4nanoloop` — and three of this phase's premises are **already falsified** (§4) | **[read]** frozen |
 | 4 · trajectory log + the dream | `contribution.ts` already answers *which steps mattered* on every flow; `nightshift` has capture + dream phase 1 | **[read]** partial |
@@ -54,9 +54,10 @@ imported from git repositories."* Scoped markdown skills, git-imported packs, an
 admin-gated promotion to the org. **[read]**
 
 So System/Organisation/Project-with-promotion is not a differentiator to build.
-It is the floor we already stand on. What `ai-storage` adds is the two rungs QM
-does *not* have — `flow` and `system` — and the reason it is worth adding is in
-§3, not in the brainstorm.
+It is the floor we already stand on. The two rungs QM does *not* have — `flow`
+and `system` — **have since been added and measured, and the measurement went
+against them**. See Track B: that is the single most important fact in this
+document, and it arrived after the first draft.
 
 **GBrain also ships the dream and per-person scoping**, so neither "organisational
 memory" nor "consolidation at rest" is a moat either. Its published numbers are
@@ -176,37 +177,65 @@ call; there is no build step until the stopwatch says the canvas wins.
 
 ---
 
-## Track B — the memory ladder (`ai-storage`)
+## Track B — the ladder is built, and its first result is negative
 
-This is the brainstorm's Phase 1, and it is a `MemoryStrategy`
-(`ai-base/src/memory/strategy.ts`), **not a new subsystem**.
+**Corrected 2026-09-06, and this is the largest correction in the document.**
+`ai-storage` is **not specification**. Phases 1–8 shipped 2026-08-24: the store,
+five specialists, scopes and ACLs, promotion, history, provenance, a
+token-bounded index and lexical search — **119 tests in the package, 828 in the
+repository**. `SCOPE_KINDS` already carries `flow` and `system`, recorded in
+`AI-OS-PATCHES.md`. Every item this track previously listed as work was already
+done. **[read]**
 
-**B0 · Widen the scope union.** QM's union is
-`personal | channel | team | org | group`; our levels need `flow` and `system`.
-ADR-0003 already decided this: a two-line widening inside `ai-base`, recorded in
-`AI-OS-PATCHES.md` and offered upstream — *never* a fake scope encoded in the
-`ref` string, because a fake scope silently bypasses every permission check that
-parses a `ScopeId`. **Do not touch `ai-base` without that line; CI enforces it.**
+**And its first benchmark went against the design.** At the ceiling — a perfect
+navigator, no weights, one planted unguessable fact per question, 8,192 tokens:
 
-**B1 · A `flow` scope that exists.** The `flow → project` arrow is blocked on
-this and on nothing else.
+| arm | notes | correct | steps | endings |
+|---|---|---|---|---|
+| flat | 200 | **0/3** | 1 | `context_limit` |
+| flat | 50,000 | **0/3** | 1 | `context_limit` |
+| search | 200 | **3/3** | 3 | `done` |
+| search | 50,000 | **3/3** | 3 | `done` |
+| storage | 200 | 2/3 | 7 | `done:2 step_cap:1` |
+| storage | 50,000 | 1/3 | 12 | `done:1 step_cap:2` |
 
-**B2 · `flow → project` promotion**, with the record and the reversal from A2.
-Note that **`project → user` is already in production** — `ccTargetFor` /
-`ccCaptureToPersonal` copy a fact learned in a shared scope into the acting
-person's scope with the source labelled, wired into two of the three strategies.
-One arrow of the diagram is built; two are not. **[read]**
+- **The flat file does not fit at any size** — not "answers worse", refuses. Two
+  hundred notes is 12,566 tokens against a memory lane of 2,300. That is the
+  honest version of what a single `MEMORY.md` does today, where the same file is
+  silently truncated and the model answers from whatever survived.
+- **Exact lexical search beats hierarchical navigation**, 3/3 against 1–2/3, and
+  reads less doing it. Navigation runs out of *steps*, not context.
 
-**B3 · `project → system`**, human-gated by rule.
+**This is the second flat result in the same direction**; the predecessor scored
+80% / 80% / 80%. `05-ai-storage.md` put the burden of proof on the axis, and the
+axis has not met it.
 
-**Retrieval stays deliberately boring**: level-ordered recall, flow → project →
-user → system, budget per level, nearer levels win ties, and `query()` exactly as
-upstream has it. **No embedding layer, no second axis, no graph in v1** — the
-80/80/80 result is what that costs when it is finally asked for a number.
+> So the brainstorm's §2.3 is not merely already shipped by QM. **The part of it
+> that is ours has now measured worse than the boring alternative.** A plan that
+> still offers the hierarchy as the moat is offering the thing that lost.
 
-**Gate: B2 and B3 do not start until Track C returns a number.**
+It is a ceiling measurement with no model in it, so it does not close the
+question — it changes what the next measurement is for. What remains, and none of
+it is more storage machinery:
 
----
+**B1 · The question family an index should win.** §59 names its own confound: the
+question shares its rare words with exactly one note, so search only has to match
+words. A family whose wording does **not** appear in the target note is where an
+index should win and search should not. Not built.
+
+**B2 · Or accept lexical search over a flat set of notes as v1**, and let the
+index earn its place by making *writing* manageable rather than reading. That is a
+different claim and it needs its own number.
+
+**B3 · The Reconciler fixture that does not exist.** *When two notes say the same
+thing, which survives?* The Reconciler answers in code — `same` keeps the older,
+`conflict` keeps both — and **no fixture has tested it**. It is the cheapest
+unmet item in the component, and Case B1 is written for it.
+
+**Unchanged: none of this starts before Track C.** A store whose retrieval has
+already lost to lexical search does not need more retrieval. It needs evidence
+that what it *holds* could not have been derived — which is Track C, and is now
+the only thing that can justify the component at all.
 
 ## Track C — the experiment that licenses Track B
 
@@ -336,11 +365,13 @@ C2  publish the number, either way     ← gates ALL of Track B
        │
        ├── flat?  → Track B does not start. Say so, and stop.
        │
-       └── moves? → B0 scope union · B1 flow scope · B2 flow→project
+       └── moves? → B3 the Reconciler fixture (cheapest unmet item)
                     A2 memory drawer with promote/demote/provenance
                     C3 retrieval attribution arm
-                    B3 project→system
+                    B1 the question family an index should win
                     A3 vertical arrangements
+
+  (B0/B1/B2 as first drafted are already built — see Track B)
 ```
 
 ## Where the cases are

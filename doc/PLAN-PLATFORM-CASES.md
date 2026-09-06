@@ -127,36 +127,51 @@ what carried the information, and the result belongs to the prompt.
 
 ---
 
-## Case B1 — three facts whose correct level is already known
+## Case B1 — the Reconciler fixture that does not exist
 
 **Stage:** Track B, once C has returned a number. **Kind:** real facts from this
 organisation's history, with the answer known independently.
 
-The ladder is only interesting if it puts a fact at the **right** level. So the
-fixture is facts we already know the level of — including one that must **not**
-be promoted, which is the case that catches silent promotion.
+**Corrected 2026-09-06.** `ai-storage` is built — store, promotion, provenance,
+history, ACLs, 119 tests — so this case is no longer "does the ladder work". It
+targets the one thing in the component that **has code and no fixture**:
+
+> *When two notes say the same thing, which survives?* The Reconciler answers in
+> code — `same` keeps the older, `conflict` keeps both — and **no fixture has
+> tested it.** **[read]**
+
+A branch with no fixture is a branch nobody has seen fail. That makes it the
+cheapest unmet item in the component and the right place for this case.
+
+### The material
+
+Real facts from this workspace whose correct level is already known by other
+means — including one that must **not** be promoted, which is the case that
+catches silent promotion.
 
 | fact | correct level | why |
 |---|---|---|
-| the seed and parameters of one run | **flow** — dies with it | Nothing later needs it. A ladder that promotes this is a ladder that promotes everything. |
-| *"the place code is falsified — do not re-derive it"* ([ADR-0002](adr/0002-flow-as-first-class-object.md), COCLEA-SR) | **project**, and no further | It is true of that project. Promoted to system it would become a belief about work it does not describe. |
+| the seed and parameters of one run | **flow** — dies with it | Nothing later needs it. A ladder that promotes this promotes everything. |
+| *"the place code is falsified — do not re-derive it"* (COCLEA-SR) | **project**, and no further | True of that project. Promoted to system it becomes a belief about work it does not describe. |
 | *"Gemma 4 on ollama writes its chain to a separate `reasoning` field and returns empty `content` under ~800 max tokens — budget ≥ 900 and treat empty content as an error, never a default"* | **system** | Learned inside one project, true of every model call this deployment makes. |
+
+### The two reconciliation cases, which are the point
+
+- **`same`** — the same fact arrives twice, worded differently, from two flows.
+  The older survives; the newer's provenance is merged into it rather than lost.
+- **`conflict`** — a later note contradicts an earlier one. **Both survive**, and
+  the contradiction is surfaced rather than merged. This is the branch with no
+  test, and it is the one that matters: a store that quietly picks a winner is
+  how a correction and the thing it corrected become indistinguishable.
 
 **Passes if:** each fact lands at its level; the middle one **stays** at project
 level across a promotion pass; every promotion carries source level, source id,
-actor, timestamp and reason; and a demotion restores the prior state at every
-level touched.
+actor, timestamp and reason; a demotion restores the prior state at every level
+touched; and both reconciliation branches do what the code says they do.
 
-**Fails if:** the middle fact reaches system. That is the failure the whole
-promotion design exists to prevent — *silent promotion is how a one-off
-workaround becomes an organisational belief* — and it is worth more attention
-than the two that succeed.
-
-**Note on scope.** `project → user` is already in production
-(`ccTargetFor` / `ccCaptureToPersonal`), so this case exercises the two arrows
-that are not: `flow → project` and `project → system`. **[read]**
-
----
+**Fails if:** the middle fact reaches system, or `conflict` keeps only one note.
+Either failure is worth more attention than every case that passes — *silent
+promotion is how a one-off workaround becomes an organisational belief.*
 
 ## Case A2 — the promotion, pressed by a person who does not know git
 
@@ -257,7 +272,7 @@ works is measuring phrasing.
 |---|---|---|
 | A1 | COCLEA-SR flow, stopwatch | the desk is worth having |
 | C1 | this repo's own house rules | non-derivable information survives a memory pass |
-| B1 | three facts with known levels | the ladder puts facts where they belong, reversibly |
+| B1 | the Reconciler's untested branches | contradiction is surfaced, not silently merged |
 | A2 | a person pressing promote | the backbone is genuinely invisible |
 | A3 | this repo's `doc/` corpus | the editorial vertical holds a real corpus |
 | E1 | *(unwritten)* | nothing, until the case exists |

@@ -40,7 +40,7 @@ contradicen la propuesta*.
 
 | fase | qué existe ya acá | estado |
 |---|---|---|
-| 1 · esquema markdown + backbone git | agentes y subagentes ya son archivos markdown con jerarquía por alcance; `agentvcs` versiona código + skills + goals + modelos + trazas juntos (212 tests, 0 deps) | **[read]** construido / archivado |
+| 1 · esquema markdown + backbone git | `ai-storage` shippea el store de cuatro niveles, promoción, procedencia, historia y ACLs (119 tests) — **y su primer benchmark dice que la jerarquía pierde contra búsqueda léxica**; `agentvcs` versiona código + skills + goals + modelos + trazas juntos | **[read]** construido, resultado negativo |
 | 2 · harness + arranque frontera | `ai-base` (subtree de QM), `ai-flows`, `ai-ui` — 402 tests, CI, stack corriendo, desk jugable | **[ran]** construido |
 | 3 · modelos chicos, QLoRA, routing especulativo | `gemma4nanoloop` — y tres premisas de esta fase ya están **falsificadas** (§4) | **[read]** congelado |
 | 4 · log de trayectorias + el sueño | `contribution.ts` ya contesta *qué pasos importaron* en cada flow; `nightshift` tiene captura + sueño fase 1 | **[read]** parcial |
@@ -55,9 +55,10 @@ mediada por administrador, y packs de skills importados desde repos git."*
 **[read]**
 
 O sea que Sistema/Organización/Proyecto-con-promoción no es un diferenciador a
-construir: es el piso sobre el que ya estamos parados. Lo que agrega `ai-storage`
-son los dos peldaños que QM **no** tiene — `flow` y `system` — y la razón por la
-que vale la pena está en §3, no en la tormenta.
+construir: es el piso sobre el que ya estamos parados. Los dos peldaños que QM
+**no** tiene — `flow` y `system` — **desde entonces se agregaron y se midieron, y
+la medición salió en contra**. Ver Track B: es el hecho más importante de este
+documento, y llegó después del primer borrador.
 
 **GBrain también shippea el sueño y el alcance por persona**, así que ni "memoria
 organizacional" ni "consolidación en reposo" son foso. Sus números publicados son
@@ -177,39 +178,67 @@ al modelo; no hay paso de build hasta que el cronómetro diga que el canvas gana
 
 ---
 
-## Track B — la escalera de memoria (`ai-storage`)
+## Track B — la escalera está construida, y su primer resultado es negativo
 
-Es la Fase 1 de la tormenta, y es una `MemoryStrategy`
-(`ai-base/src/memory/strategy.ts`), **no un subsistema nuevo**.
+**Corregido el 2026-09-06, y es la corrección más grande del documento.**
+`ai-storage` **no es especificación**. Las fases 1–8 shippearon el 2026-08-24: el
+store, cinco especialistas, alcances y ACLs, promoción, historia, procedencia, un
+índice acotado por tokens y búsqueda léxica — **119 tests en el paquete, 828 en el
+repositorio**. `SCOPE_KINDS` ya lleva `flow` y `system`, registrado en
+`AI-OS-PATCHES.md`. Cada ítem que este track listaba como trabajo ya estaba
+hecho. **[read]**
 
-**B0 · Ensanchar el union de alcances.** El de QM es
-`personal | channel | team | org | group`; nuestros niveles necesitan `flow` y
-`system`. ADR-0003 ya lo decidió: un ensanche de dos líneas dentro de `ai-base`,
-registrado en `AI-OS-PATCHES.md` y ofrecido upstream — *nunca* un alcance falso
-codificado en el string `ref`, porque un alcance falso saltea en silencio cada
-chequeo de permisos que parsea un `ScopeId`. **No tocar `ai-base` sin esa línea;
-CI lo exige.**
+**Y su primer benchmark salió en contra del diseño.** En el techo — un navegador
+perfecto, sin pesos, un hecho plantado inadivinable por pregunta, 8.192 tokens:
 
-**B1 · Que exista un alcance `flow`.** La flecha `flow → project` está bloqueada
-por esto y por nada más.
+| arm | notas | correctas | pasos | finales |
+|---|---|---|---|---|
+| plano | 200 | **0/3** | 1 | `context_limit` |
+| plano | 50.000 | **0/3** | 1 | `context_limit` |
+| búsqueda | 200 | **3/3** | 3 | `done` |
+| búsqueda | 50.000 | **3/3** | 3 | `done` |
+| storage | 200 | 2/3 | 7 | `done:2 step_cap:1` |
+| storage | 50.000 | 1/3 | 12 | `done:1 step_cap:2` |
 
-**B2 · Promoción `flow → project`**, con el registro y la reversión de A2. Ojo que
-**`project → user` ya está en producción** — `ccTargetFor` / `ccCaptureToPersonal`
-copian un hecho aprendido en un alcance compartido al alcance de la persona que
-actuó, con la fuente etiquetada. Una flecha del diagrama está construida; dos no.
-**[read]**
+- **El archivo plano no entra en ningún tamaño** — no "contesta peor": se niega.
+  Doscientas notas son 12.566 tokens contra un carril de memoria de 2.300. Ésa es
+  la versión honesta de lo que hace hoy un único `MEMORY.md`, donde el mismo
+  archivo se trunca en silencio y el modelo contesta con lo que sobrevivió.
+- **La búsqueda léxica exacta le gana a la navegación jerárquica**, 3/3 contra
+  1–2/3, y leyendo menos. A la navegación se le acaban los *pasos*, no el
+  contexto.
 
-**B3 · `project → system`**, con compuerta humana por regla.
+**Es el segundo resultado plano en la misma dirección**; el predecesor sacó
+80% / 80% / 80%. `05-ai-storage.md` puso la carga de la prueba sobre el eje, y el
+eje no la cumplió.
 
-**El retrieval se queda deliberadamente aburrido**: recuerdo ordenado por nivel,
-flow → project → user → system, presupuesto por nivel, gana el nivel más cercano,
-y `query()` exactamente como lo tiene upstream. **Sin capa de embeddings, sin
-segundo eje, sin grafo en v1** — el resultado 80/80/80 es lo que cuesta eso
-cuando finalmente se le pide un número.
+> Así que el §2.3 de la tormenta no es solamente algo que QM ya shippea. **La
+> parte que es nuestra midió peor que la alternativa aburrida.** Un plan que
+> siga ofreciendo la jerarquía como foso está ofreciendo lo que perdió.
 
-**Compuerta: B2 y B3 no arrancan hasta que el Track C devuelva un número.**
+Es una medición de techo sin ningún modelo adentro, así que no cierra la
+pregunta: cambia para qué sirve la próxima medición. Lo que queda, y nada de eso
+es más maquinaria de storage:
 
----
+**B1 · La familia de preguntas que un índice debería ganar.** El §59 nombra su
+propio confound: la pregunta comparte sus palabras raras con exactamente una
+nota, así que a la búsqueda le alcanza con hacer *match* de palabras. Una familia
+cuyo fraseo **no** aparezca en la nota objetivo es donde un índice debería ganar
+y la búsqueda no. No construida.
+
+**B2 · O aceptar la búsqueda léxica sobre un conjunto plano de notas como v1**, y
+que el índice se gane el lugar volviendo manejable la *escritura* en vez de la
+lectura. Es otra afirmación y necesita su propio número.
+
+**B3 · El fixture del Reconciler que no existe.** *Cuando dos notas dicen lo
+mismo, ¿cuál sobrevive?* El Reconciler contesta en código — `same` conserva la
+más vieja, `conflict` conserva las dos — y **ningún fixture lo probó**. Es el
+ítem incumplido más barato del componente, y el Caso B1 está escrito para él.
+
+**Sin cambios: nada de esto arranca antes del Track C.** Un store cuyo retrieval
+ya perdió contra búsqueda léxica no necesita más retrieval. Necesita evidencia de
+que lo que *guarda* no podría haberse derivado — que es el Track C, y que pasa a
+ser lo único que puede justificar el componente.
 
 ## Track C — el experimento que licencia al Track B
 
@@ -343,11 +372,13 @@ C2  publicar el número, salga como salga   ← condiciona TODO el Track B
        │
        ├── ¿plano?  → el Track B no arranca. Se dice, y se para.
        │
-       └── ¿se mueve? → B0 union de alcances · B1 alcance flow · B2 flow→project
+       └── ¿se mueve? → B3 el fixture del Reconciler (lo más barato incumplido)
                         A2 cajón de memoria con promover/degradar/procedencia
                         C3 arm de atribución de retrieval
-                        B3 project→system
+                        B1 la familia de preguntas que un índice debería ganar
                         A3 arreglos verticales
+
+  (B0/B1/B2 del primer borrador ya están construidos — ver Track B)
 ```
 
 ## Dónde están los casos
